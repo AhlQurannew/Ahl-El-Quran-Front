@@ -19,12 +19,7 @@
   --font-arabic: 'Cairo', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Dark mode disabled — app uses light theme only */
 
 * {
   font-family: 'Cairo', sans-serif;
