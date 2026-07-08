@@ -34,7 +34,7 @@ export default function RegisterPage() {
     setPhoneError('');
     setPasswordError('');
 
-    // Vérification des champs requis
+    
     if (
       !formData.firstname ||
       !formData.lastname ||
@@ -47,118 +47,125 @@ export default function RegisterPage() {
       return;
     }
 
-    // Validation de la taille du mot de passe
+    
     if (formData.password.length < 6) {
       setPasswordError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
     }
 
-    // Validation regex du téléphone
+    
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError('كلمتا المرور غير متطابقتين');
+      return;
+    }
+
+    
     const phoneRegex = /^0\d{9}$/;
     if (!phoneRegex.test(formData.phone_number)) {
       setPhoneError('رقم الهاتف يجب أن يبدأ بـ 0 ويتبعه 9 أرقام');
       return;
     }
 
-    console.log('Données envoyées au backend !', formData);
+    
+    console.log('Données prêtes à être envoyées au backend !', formData);
   };
 
   return (
-    <div className="min-h-screen bg-[#D9A84E] flex items-center justify-center p-4 font-sans">
+    <div className="min-h-screen bg-[#C8963E] flex items-center justify-center p-4 font-sans">
       {/* Carte principale */}
       <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col items-center">
         
         {/* Logo & En-tête */}
         <div className="flex flex-col items-center mb-4">
           <Image src={logo} alt="Ahl El Quran Logo" width={70} height={70} className="object-contain" />
-          <h1 className="text-[#C28E35] text-xl font-bold mt-1">أهل القرآن</h1>
-          <p className="text-[#000000] text-sm font-medium">إنشاء حساب جديد</p>
+          <h1 className="text-[#C8963E] text-xl font-bold mt-1">أهل القرآن</h1>
+          <p className="text-[#000000] text-xl font-medium">إنشاء حساب جديد</p>
         </div>
 
-        {/* Formulaire utilisant les propriétés natives de ton Input */}
+        {/* Formulaire */}
         <form onSubmit={handleSubmit} className="w-full space-y-3" dir="rtl">
           
           {/* Prénom */}
-<Input
-  name="firstname"
-  placeholder="الاسم الأول"
-  value={formData.firstname}
-  onChange={handleChange}
-  rightIcon={<User className="text-gray-400 w-5 h-5" />}
-  error={submitted && !formData.firstname ? 'الاسم الأول مطلوب' : undefined}
-  // Le [.._div] cible directement le conteneur de l'icône généré par le composant pour le placer à droite !
-  className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
-/>
+          <Input
+            name="firstname"
+            placeholder="الاسم الأول"
+            value={formData.firstname}
+            onChange={handleChange}
+            rightIcon={<User className="text-gray-400 w-5 h-5" />}
+            error={submitted && !formData.firstname ? 'الاسم الأول مطلوب' : undefined}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
+          />
 
-{/* Nom */}
-<Input
-  name="lastname"
-  placeholder="اسم العائلة"
-  value={formData.lastname}
-  onChange={handleChange}
-  rightIcon={<User className="text-gray-400 w-5 h-5" />}
-  error={submitted && !formData.lastname ? 'اسم العائلة مطلوب' : undefined}
-  className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
-/>
+          {/* Nom */}
+          <Input
+            name="lastname"
+            placeholder="اسم العائلة"
+            value={formData.lastname}
+            onChange={handleChange}
+            rightIcon={<User className="text-gray-400 w-5 h-5" />}
+            error={submitted && !formData.lastname ? 'اسم العائلة مطلوب' : undefined}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
+          />
 
-{/* Email */}
-<Input
-  name="email"
-  type="email"
-  placeholder="البريد الإلكتروني"
-  value={formData.email}
-  onChange={handleChange}
-  rightIcon={<Mail className="text-gray-400 w-5 h-5" />}
-  error={submitted && !formData.email ? 'البريد الإلكتروني مطلوب' : undefined}
-  className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
-/>
+          {/* Email */}
+          <Input
+            name="email"
+            type="email"
+            placeholder="البريد الإلكتروني"
+            value={formData.email}
+            onChange={handleChange}
+            rightIcon={<Mail className="text-gray-400 w-5 h-5" />}
+            error={submitted && !formData.email ? 'البريد الإلكتروني مطلوب' : undefined}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
+          />
 
-{/* Mot de passe */}
-<Input
-  name="password"
-  type="password"
-  placeholder="كلمة المرور"
-  value={formData.password}
-  onChange={handleChange}
-  rightIcon={<Lock className="text-gray-400 w-5 h-5" />}
-  error={(submitted && !formData.password ? 'كلمة المرور مطلوبة' : '') || passwordError || undefined}
-  className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
-/>
+          {/* Mot de passe */}
+          <Input
+            name="password"
+            type="password"
+            placeholder="كلمة المرور"
+            value={formData.password}
+            onChange={handleChange}
+            rightIcon={<Lock className="text-gray-400 w-5 h-5" />}
+            error={(submitted && !formData.password ? 'كلمة المرور مطلوبة' : '') || (passwordError && formData.password.length < 6 ? passwordError : undefined)}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
+          />
 
-{/* Confirmer le mot de passe */}
-<Input
-  name="confirmPassword"
-  type="password"
-  placeholder="تأكيد كلمة المرور"
-  value={formData.confirmPassword}
-  onChange={handleChange}
-  rightIcon={<Lock className="text-gray-400 w-5 h-5" />}
-  error={submitted && !formData.confirmPassword ? 'تأكيد كلمة المرور مطلوب' : undefined}
-  className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
-/>
+          {/* Confirmer le mot de passe */}
+          <Input
+            name="confirmPassword"
+            type="password"
+            placeholder="تأكيد كلمة المرور"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            rightIcon={<Lock className="text-gray-400 w-5 h-5" />}
+            error={(submitted && !formData.confirmPassword ? 'تأكيد كلمة المرور مطلوب' : '') || (passwordError && formData.password !== formData.confirmPassword ? passwordError : undefined)}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
+          />
 
-{/* Nom de l'école */}
-<Input
-  name="school_name"
-  placeholder="اسم المدرسة"
-  value={formData.school_name}
-  onChange={handleChange}
-  rightIcon={<School className="text-gray-400 w-5 h-5" />}
-  error={submitted && !formData.school_name ? 'اسم المدرسة مطلوب' : undefined}
-  className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
-/>
+          {/* Nom de l'école */}
+          <Input
+            name="school_name"
+            placeholder="اسم المدرسة"
+            value={formData.school_name}
+            onChange={handleChange}
+            rightIcon={<School className="text-gray-400 w-5 h-5" />}
+            error={submitted && !formData.school_name ? 'اسم المدرسة مطلوب' : undefined}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
+          />
 
-{/* Numéro de téléphone */}
-<Input
-  name="phone_number"
-  placeholder="رقم الهاتف"
-  value={formData.phone_number}
-  onChange={handleChange}
-  rightIcon={<Phone className="text-gray-400 w-5 h-5" />}
-  error={(submitted && !formData.phone_number ? 'رقم الهاتف مطلوب' : '') || phoneError || undefined}
-  className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
-/>
-          {/* Bouton centré */}
+          {/* Numéro de téléphone */}
+          <Input
+            name="phone_number"
+            placeholder="رقم الهاتف"
+            value={formData.phone_number}
+            onChange={handleChange}
+            rightIcon={<Phone className="text-gray-400 w-5 h-5" />}
+            error={(submitted && !formData.phone_number ? 'رقم الهاتف مطلوب' : '') || phoneError || undefined}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
+          />
+
+          
           <div className="flex justify-center w-full pt-2">
             <Button 
               type="submit" 
