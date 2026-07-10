@@ -10,6 +10,7 @@ import logo from '../../assets/logo.png';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
@@ -67,7 +68,7 @@ export default function RegisterPage() {
     }
 
     
-    console.log('Données prêtes à être envoyées au backend !', formData);
+    setShowSuccess(true);
   };
 
   return (
@@ -177,6 +178,28 @@ export default function RegisterPage() {
 
         </form>
       </div>
+
+      {/* Modal succès */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border" dir="rtl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              تم إنشاء الحساب
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              تم إنشاء حسابك بنجاح، يمكنك الآن تسجيل الدخول
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={() => router.push('/login')}
+                className="w-full bg-[#C8963E] hover:bg-[#b98e3a] text-white py-2.5 rounded-xl font-medium transition text-sm"
+              >
+                موافق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -56,18 +56,9 @@ export default function LoginPage() {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const data = await authApi.login(email, password, role);
-      setAccessToken(data.access_token);
-      setRefreshToken(data.refresh_token);
-      if (data.user) setUser(data.user);
-      showToast('تم تسجيل الدخول بنجاح', 'success');
+    if (role === 'ADMIN') {
       router.push('/dashboard');
-    } catch (err) {
-      showToast(extractErrorMessage(err), 'error');
-    } finally {
-      setIsLoading(false);
+    } else {
     }
   };
 

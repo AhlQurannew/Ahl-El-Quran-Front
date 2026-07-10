@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import PresidentCard from "@/components/PresidentCard"; // Ajuste le chemin selon ton projet
+import PresidentCard from "@/components/PresidentCard"; 
 import { RotateCw, LogOut } from "lucide-react";
+import { useRouter } from 'next/navigation';
 
 interface President {
   id: number;
@@ -12,7 +13,8 @@ interface President {
 }
 
 export default function AdminDashboard() {
-  // Données statiques
+  const router = useRouter();
+  
   const [presidents, setPresidents] = useState<President[]>([
     { id: 2, name: "younes pres", email: "younes@gmail.com", school: "سلمان الفارسي" },
     { id: 3, name: "ahmed attia", email: "ahmed@gmail.com", school: "مدرسة الهداية" },
@@ -35,26 +37,26 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] flex flex-col font-sans" dir="rtl">
+    <div className="min-h-screen bg-[#F9F4E4] flex flex-col font-sans" dir="rtl">
       {/* Barre de navigation */}
       <header className="bg-[#C8963E] text-white px-6 py-2 shadow-md flex justify-between items-center">
         <h1 className="text-xl font-bold text-center flex-1">لوحة تحكم المسؤول</h1>
         <button onClick={() => {/* Ajoute ta fonction refresh ici */}} className="hover:bg-black/10 p-2 rounded-full transition text-xl">
-          <RotateCw className="w-4 h-4 text-white"/> {/* Changé text-gray-800 en text-white pour que ce soit visible */}
+          <RotateCw className="w-4 h-4 text-white"/> 
         </button>
         <button onClick={() => setShowLogoutModal(true)} className="hover:bg-black/10 p-2 rounded-full transition text-xl">
-          <LogOut className="w-4 h-4 text-white" /> {/* Changé text-gray-800 en text-white pour le header */}
+          <LogOut className="w-4 h-4 text-white" /> 
         </button>
       </header>
 
-      {/* Contenu principal */}
+      
       <main className="p-4 w-full space-y-4 mt-4">
         {presidents.map((president) => (
           <PresidentCard
             key={president.id}
             president={president}
             onOpenDetails={(p) => setSelectedPresident(p)}
-            onApprove={(id) => setPendingApprovalId(id)} // Ouvre la modale au lieu de supprimer directement !
+            onApprove={(id) => setPendingApprovalId(id)}
           />
         ))}
 
@@ -63,7 +65,7 @@ export default function AdminDashboard() {
         )}
       </main>
 
-      {/* --- MODALE : DÉTAILS --- */}
+      {/* DETAILS */}
       {selectedPresident && (
         <div className="w-full fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border">
@@ -93,7 +95,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* --- NOUVELLE MODALE : CONFIRMATION D'APPROBATION --- */}
+      {/* CONFIRMATION */}
       {pendingApprovalId !== null && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border">
@@ -111,14 +113,14 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* --- MODALE : DECONNEXION --- */}
+      {/*  DECONNEXION */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border">
             <h3 className="text-lg font-bold text-gray-900 mb-2">تسجيل الخروج</h3>
             <p className="text-sm text-gray-500 mb-6">هل أنت متأكد من تسجيل الخروج؟</p>
             <div className="space-y-2">
-              <button onClick={() => setShowLogoutModal(false)} className="w-full bg-[#bd2130] hover:bg-red-700 text-white py-2.5 rounded-xl font-medium transition text-sm">
+              <button onClick={() => router.push('/login')} className="w-full bg-[#bd2130] hover:bg-red-700 text-white py-2.5 rounded-xl font-medium transition text-sm">
                 تسجيل الخروج
               </button>
               <button onClick={() => setShowLogoutModal(false)} className="w-full bg-transparent hover:bg-gray-50 text-gray-500 py-2 rounded-xl transition text-sm">
