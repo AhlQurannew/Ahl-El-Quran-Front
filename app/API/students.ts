@@ -106,12 +106,8 @@ const createStudent = async (data: CreateStudentPayload) => {
 };
 
 
-const getStudents = async (params?: {
-    skip?: number;
-    limit?: number;
-    lecture_id?: number;
-}) => {
-    const res = await axiosGlobal.get("/", { params });
+const getStudents = async () => {
+    const res = await axiosGlobal.get("/");
     return res.data;
 };
 
