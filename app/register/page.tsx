@@ -73,17 +73,14 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-[#C8963E] flex items-center justify-center p-4 font-sans">
-      {/* Carte principale */}
       <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col items-center">
         
-        {/* Logo & En-tête */}
         <div className="flex flex-col items-center mb-4">
           <Image src={logo} alt="Ahl El Quran Logo" width={70} height={70} className="object-contain" />
           <h1 className="text-[#C8963E] text-xl font-bold mt-1">أهل القرآن</h1>
           <p className="text-[#000000] text-xl font-medium">إنشاء حساب جديد</p>
         </div>
 
-        {/* Formulaire */}
         <form onSubmit={handleSubmit} className="w-full space-y-3" dir="rtl">
           
           {/* Prénom */}
@@ -97,7 +94,6 @@ export default function RegisterPage() {
             className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
           />
 
-          {/* Nom */}
           <Input
             name="lastname"
             placeholder="اسم العائلة"
@@ -108,7 +104,6 @@ export default function RegisterPage() {
             className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
           />
 
-          {/* Email */}
           <Input
             name="email"
             type="email"
@@ -120,7 +115,6 @@ export default function RegisterPage() {
             className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
           />
 
-          {/* Mot de passe */}
           <Input
             name="password"
             type="password"
@@ -132,7 +126,6 @@ export default function RegisterPage() {
             className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
           />
 
-          {/* Confirmer le mot de passe */}
           <Input
             name="confirmPassword"
             type="password"
@@ -144,7 +137,6 @@ export default function RegisterPage() {
             className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
           />
 
-          {/* Nom de l'école */}
           <Input
             name="school_name"
             placeholder="اسم المدرسة"
@@ -155,7 +147,6 @@ export default function RegisterPage() {
             className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right [+.absolute]:!right-3 [+.absolute]:!left-auto"
           />
 
-          {/* Numéro de téléphone */}
           <Input
             name="phone_number"
             placeholder="رقم الهاتف"
@@ -179,7 +170,6 @@ export default function RegisterPage() {
         </form>
       </div>
 
-      {/* Modal succès */}
       {showSuccess && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border" dir="rtl">
