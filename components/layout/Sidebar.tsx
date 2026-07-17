@@ -33,6 +33,7 @@ const navGroups: NavGroup[] = [
   {
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
+      { label: 'المشرفين', href: '/supervisors', icon: <UserCheck size={18} /> },
       { label: 'غرفة المحادثة', href: '/chat', icon: <MessageSquare size={18} /> },
       { label: 'الإعدادات', href: '/settings', icon: <Settings size={18} /> },
     ],
