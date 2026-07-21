@@ -1,5 +1,7 @@
 "use client";
-import { User , Mail , School } from "lucide-react";
+import { User, Mail, School, CheckCircle, Info } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 interface President {
   id: number;
@@ -16,50 +18,49 @@ interface PresidentCardProps {
 
 export default function PresidentCard({ president, onOpenDetails, onApprove }: PresidentCardProps) {
   return (
-    <div className="  bg-white rounded-2xl  px-5 py-5 shadow-sm border border-gray-100 flex flex-col relative w-full">
-      {/* Profil icône et Nom */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="bg-amber-50 p-3 rounded-full text-[#C8963E] text-xl"> <User /></div>
-        <div>
-          <h2 className="text-xl font-bold text-gray-800">{president.name}</h2>
-          <span className="bg-[#C8963E]/20 text-[#C8963E] text-xs px-3 py-0.5 rounded-full font-medium">
-            رئيس
-          </span>
+    <div className="bg-white rounded-2xl px-6 py-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 flex flex-col gap-4">
+      
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+          style={{ backgroundColor: '#C8963E' }}>
+          {president.name.charAt(0).toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-base font-bold text-gray-800 truncate">{president.name}</h2>
+          <Badge variant="warning">رئيس</Badge>
         </div>
       </div>
 
-      {/* Détails textuels */}
-      <div className="space-y-1.5 mb-5 text-[#000000]  text-sm pr-1">
-        <div className="flex items-center gap-2">
-          <Mail size={16} className="text-[#C8963E]" /> 
-          <p>
-            <span className="text-gray-400 ">البريد الإلكتروني: </span> 
-            {president.email}
-          </p>
+      <div className="space-y-2 text-sm bg-gray-50 rounded-xl p-3">
+        <div className="flex items-center gap-2 text-gray-600">
+          <Mail size={15} style={{ color: '#C8963E' }} />
+          <span className="truncate">{president.email}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <School size={16} className="text-[#C8963E]" /> {/* 2. Remplacement ici */}
-          <p>
-            <span className="text-gray-400 ">اسم المدرسة:</span> 
-            {president.school}
-          </p>
+        <div className="flex items-center gap-2 text-gray-600">
+          <School size={15} style={{ color: '#C8963E' }} />
+          <span className="truncate">{president.school}</span>
         </div>
       </div>
 
-      {/* Boutons d'action */}
-      <div className="grid grid-cols-3 gap-3">
-        <button
+      <div className="grid grid-cols-3 gap-2">
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onOpenDetails(president)}
-          className="bg-gray-50 hover:bg-gray-100 text-[#C8963E] font-bold text-base border border-[#C8963E] py-2.5 rounded-xl  transition "
+          className="!border-[#C8963E] !text-[#C8963E] hover:!bg-[#C8963E]/10 flex items-center justify-center gap-1"
         >
+          <Info size={14} />
           تفاصيل
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => onApprove(president.id)}
-          className="col-span-2 bg-[#C8963E] hover:bg-[#b98e3a] text-white py-2.5 font-bold text-base rounded-xl  transition shadow-sm "
+          className="col-span-2 !bg-[#C8963E] hover:!bg-[#b98e3a] flex items-center justify-center gap-1"
         >
+          <CheckCircle size={14} />
           قبول الطلب
-        </button>
+        </Button>
       </div>
     </div>
   );
