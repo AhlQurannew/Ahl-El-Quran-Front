@@ -83,7 +83,13 @@ export default function LoginPage() {
           localStorage.setItem('refresh_token', response.refresh_token);
         }
         showToast('تم تسجيل الدخول بنجاح', 'success');
-        router.push('/dashboard');
+
+        // 🎯 REDIRECTION CONDITIONNELLE SELON LE RÔLE
+        if (role === 'PRESIDENT') {
+          router.push('/'); // Redirection vers la page principale
+        } else {
+          router.push('/dashboard'); // Redirection vers le dashboard pour les autres rôles
+        }
       }
 
     } catch (error: any) {
@@ -105,7 +111,6 @@ export default function LoginPage() {
         onClose={() => setToast((prev) => ({ ...prev, visible: false }))}
       />
 
-      
       <div className="flex flex-1 items-center justify-center p-8" style={{ background: '#d6a75c' }}>
         <div
           className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
@@ -176,7 +181,6 @@ export default function LoginPage() {
               }
             />
 
-            
             <Select
               label="نوع الحساب"
               value={role}
@@ -185,7 +189,6 @@ export default function LoginPage() {
               className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
             />
 
-            
             <Button
               type="submit"
               variant="primary"
@@ -203,7 +206,6 @@ export default function LoginPage() {
               )}
             </Button>
 
-            
             <div className="text-center mt-4">
               <p className="text-gray-600 text-sm">
                 ليس لديك حساب؟{' '}
@@ -222,7 +224,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      
       <div className="hidden lg:flex flex-1 items-center justify-center">
         <Image
           src={doorIllustration}
