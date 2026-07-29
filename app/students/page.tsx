@@ -1,27 +1,75 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { AppLayout } from '@/components/layout/AppLayout';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';import { AppLayout } from '@/components/layout/AppLayout';
 import { StudentSearch } from '@/components/students/StudentSearch';
 import { StudentTable } from '@/components/students/StudentTable';
 import { StudentForm } from '@/components/students/StudentForm';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Student } from '@/types/student';
+import studentsAPI from '@/app/API/students';
+import axios from 'axios';
 
-// ─── Seed data from screenshot ─────────────────────────────────────────────
-const SEED_STUDENTS: Student[] = [
-  { id: '1', firstName: 'أحمد يعقوب', lastName: 'يعقوب', gender: 'male', halqa: '', username: 'yakoube@gmail.com', dob: '2011-12-13', pob: 'bourouba', nationality: 'Algerian', idType: '' },
-  { id: '2', firstName: 'عبدو معتصم', lastName: 'معتصم', gender: 'male', halqa: 'حلقة أحمد', username: 'abdulabbid@gmail.com', dob: '2025-12-03', pob: 'boubsila', nationality: 'Algerian', idType: '' },
-  { id: '3', firstName: 'جليل مطاطي', lastName: 'مطاطي', gender: 'male', halqa: 'حلقة أحمد', username: 'djalilstyfi@gmail.com', dob: '2004-02-15', pob: 'borj el kiffan', nationality: 'Algerian', idType: '' },
-  { id: '4', firstName: 'أحمد معتصم', lastName: 'معتصم', gender: 'male', halqa: 'حلقة أحمد', username: 'ahmedmoutasim@gmail.com', dob: '2012-12-14', pob: 'alharachh', nationality: 'Algerian', idType: '' },
-  { id: '5', firstName: 'رؤوف المعتصم', lastName: 'المعتصم', gender: 'male', halqa: 'حلقة أحمد', username: 'abdouferbadidud@gmail.com', dob: '1992-12-17', pob: 'fordlo', nationality: 'Algerian', idType: '' },
-];
 
-type ToastState = { visible: boolean; type: 'success' | 'info'; message: string };
+type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
+
+const mapApiToStudent = (apiStudent: any): Student => ({
+  id: String(apiStudent.id ?? apiStudent.user_id ?? Date.now()),
+  firstName: apiStudent.personalInfo?.firstNameAr ?? apiStudent.firstname ?? '',
+  lastName: apiStudent.personalInfo?.lastNameAr ?? apiStudent.lastname ?? '',
+  gender: apiStudent.personalInfo?.sex === 'female' ? 'female' : 'male',
+  halqa: apiStudent.lectures?.[0]?.lectureNameAr ?? '',
+  username: apiStudent.contactInfo?.email ?? apiStudent.email ?? '',
+  dob: apiStudent.personalInfo?.dateOfBirth ?? '',
+  pob: apiStudent.personalInfo?.placeOfBirth ?? '',
+  nationality: apiStudent.personalInfo?.nationality ?? 'Algerian',
+  idType: '',
+});
+
+const mapStudentToApi = (student: Omit<Student, 'id'>) => ({
+  personalInfo: {
+    firstNameAr: student.firstName,
+    lastNameAr: student.lastName,
+    firstNameEn: '',
+    lastNameEn: '',
+    sex: student.gender,
+    dateOfBirth: student.dob,
+    placeOfBirth: student.pob,
+    homeAddress: '',
+    nationality: student.nationality,
+    fatherStatus: '',
+    motherStatus: '',
+  },
+  accountInfo: {
+    username: student.username,
+    passcode: '123456',
+    accountType: 'STUDENT',
+  },
+  contactInfo: {
+    phoneNumber: '',
+    email: student.username,
+  },
+  guardian: {
+    firstName: '',
+    lastName: '',
+    // only include a guardian email when student.username is present and non-empty
+    email: student.username || undefined,
+    relationship: '',
+    homeAddress: '',
+    job: '',
+  },
+  lectures: [],
+  formalEducationInfo: {
+    academicLevel: '',
+    grade: '',
+    schoolName: student.halqa ?? '',
+  },
+});
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>(SEED_STUDENTS);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [isFormLoading, setIsFormLoading] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -48,6 +96,26 @@ export default function StudentsPage() {
   // ── Helpers ──
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
+
+  const fetchStudents = useCallback(async () => {
+    setIsPageLoading(true);
+    try {
+      const data = await studentsAPI.getStudents();
+      const mapped = Array.isArray(data)
+        ? data.map(mapApiToStudent)
+        : data.students?.map(mapApiToStudent) ?? [];
+      setStudents(mapped);
+    } catch (err) {
+      showToast('error', 'فشل تحميل بيانات الطلاب');
+      console.error(err);
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -77,25 +145,54 @@ export default function StudentsPage() {
     }
   };
 
-  const handleDeleteConfirm = () => {
-    setStudents((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
-    showToast('success', `تم حذف عدد ${selectedIds.length} طالب بنجاح`);
-    setSelectedIds([]);
+  const handleDeleteConfirm = async () => {
+    try {
+      await Promise.all(
+        selectedIds.map((id) => studentsAPI.deleteStudent(Number(id)))
+      );
+      showToast('success', `تم حذف عدد ${selectedIds.length} طالب بنجاح`);
+      setSelectedIds([]);
+      fetchStudents();
+    } catch (err) {
+      showToast('error', 'فشل حذف الطالب');
+      console.error(err);
+    } finally {
+      setIsConfirmOpen(false);
+    }
   };
 
-  const handleFormSubmit = (data: Omit<Student, 'id'>) => {
-    if (editingStudent) {
-      setStudents((prev) =>
-        prev.map((s) => (s.id === editingStudent.id ? { ...data, id: editingStudent.id } : s))
-      );
-      showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
-    } else {
-      const newStudent: Student = { ...data, id: Date.now().toString() };
-      setStudents((prev) => [newStudent, ...prev]);
-      showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
+  const handleFormSubmit = async (data: Omit<Student, 'id'>) => {
+    setIsFormLoading(true);
+    try {
+      const payload = mapStudentToApi(data);
+      if (editingStudent) {
+        await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
+        showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
+      } else {
+        await studentsAPI.createStudent(payload);
+        showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
+      }
+      setIsFormOpen(false);
+      setSelectedIds([]);
+      fetchStudents();
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || '';
+      
+      let errorMessage = 'فشلت العملية، يرجى المحاولة مجدداً';
+      
+      if (detail.toLowerCase().includes('email') && detail.toLowerCase().includes('exist')) {
+        errorMessage = 'البريد الإلكتروني مستخدم بالفعل، يرجى استخدام بريد آخر';
+      } else if (detail.toLowerCase().includes('already')) {
+        errorMessage = 'هذه البيانات موجودة مسبقاً';
+      } else if (detail) {
+        errorMessage = detail;
+      }
+      
+      showToast('error', errorMessage);
+      console.error(err);
+    } finally {
+      setIsFormLoading(false);
     }
-    setIsFormOpen(false);
-    setSelectedIds([]);
   };
 
   const handlePlusClick = (student: Student) => {
@@ -114,27 +211,36 @@ export default function StudentsPage() {
           إدارة الطلاب / الصفحة الرئيسية
         </div>
 
-        {/* Search Input and action buttons */}
-        <StudentSearch
-          query={query}
-          onQueryChange={setQuery}
-          selectedCount={selectedIds.length}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={() => setIsConfirmOpen(true)}
-          onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
-          onCancelSelection={() => setSelectedIds([])}
-          onPrint={handlePrint}
-        />
+        {isPageLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent" />
+            <span className="mr-3 text-gray-500 text-sm">جاري تحميل البيانات...</span>
+          </div>
+        ) : (
+          <>
+            {/* Search Input and action buttons */}
+            <StudentSearch
+              query={query}
+              onQueryChange={setQuery}
+              selectedCount={selectedIds.length}
+              onAdd={handleAdd}
+              onEdit={handleEdit}
+              onDelete={() => setIsConfirmOpen(true)}
+              onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
+              onCancelSelection={() => setSelectedIds([])}
+              onPrint={handlePrint}
+            />
 
-        {/* Data Table */}
-        <StudentTable
-          students={filtered}
-          selectedIds={selectedIds}
-          onToggleSelect={handleToggleSelect}
-          onToggleSelectAll={handleToggleSelectAll}
-          onPlusClick={handlePlusClick}
-        />
+            {/* Data Table */}
+            <StudentTable
+              students={filtered}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleSelectAll={handleToggleSelectAll}
+              onPlusClick={handlePlusClick}
+            />
+          </>
+        )}
       </div>
 
       {/* Student Form Modal */}
@@ -143,6 +249,7 @@ export default function StudentsPage() {
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
         editingStudent={editingStudent}
+        isLoading={isFormLoading}
       />
 
       {/* Confirm deletion dialog */}
