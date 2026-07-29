@@ -46,6 +46,7 @@ const navGroups: NavGroup[] = [
       { label: 'أولياء الأمور', href: '/guardians', icon: <Shield size={18} /> },
       { label: 'الحلقات', href: '/halaqat', icon: <BookOpen size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
+      { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
     ],
   },
 ];
