@@ -1,3 +1,4 @@
+
 import { 
   Users, 
   BookOpen, 
@@ -23,7 +24,7 @@ export function DashboardCards() {
   const statsCards: DashboardCard[] = [
     { title: 'الطلاب', count: 5, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
     { title: 'المعلمين', count: 4, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
-    { title: 'الحلقات', count: 3, icon: <BookOpen className="w-16 h-16" />, href: '/halaqat', variant: 'stat' },
+    { title: 'الحلقات', count: 3, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' },
     { title: 'أجزاء القرآن', count: 5, icon: <FileText className="w-16 h-16" />, href: '/quran-parts', variant: 'stat' }
   ];
 

@@ -29,13 +29,11 @@ export default function RegisterPage() {
   const [submitted, setSubmitted] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-
-  // 🎯 FONCTION AVEC ANIMATION DE RETOUR
   const handleBackToLogin = () => {
-    setIsLeaving(true); // Déclenche la transition CSS
+    setIsLeaving(true); 
     setTimeout(() => {
       router.push('/login');
-    }, 200); // Attend la fin de l'animation (200ms) avant de changer de page
+    }, 200); 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

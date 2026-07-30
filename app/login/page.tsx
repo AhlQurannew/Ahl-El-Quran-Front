@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import Image from 'next/image';
 import authAPI from '@/api/auth';
@@ -19,11 +19,11 @@ const ROLES = [
   { value: 'PRESIDENT', label: 'المشرف العام' },
   { value: 'SUPERVISOR', label: 'المشرف' },
   { value: 'TEACHER', label: 'المعلم' },
-  { value: 'GUARDIAN', label: 'ولي الأمر' },
 ];
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -44,6 +44,12 @@ export default function LoginPage() {
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     setToast({ visible: true, message, type });
   };
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      showToast('انتهت جلسة العمل، يرجى إعادة تسجيل الدخول', 'error');
+      router.replace('/login');
+    }
+  }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +79,7 @@ export default function LoginPage() {
         response = await authAPI.loginSupervisor({ email, password });
       } else if (role === 'TEACHER') {
         response = await authAPI.loginTeacher({ email, password });
-      } else if (role === 'GUARDIAN') {
-        response = await authAPI.loginGuardian({ email, password });
-      }
+      } 
 
       if (response?.access_token) {
         localStorage.setItem('access_token', response.access_token);
@@ -84,11 +88,10 @@ export default function LoginPage() {
         }
         showToast('تم تسجيل الدخول بنجاح', 'success');
 
-        // 🎯 REDIRECTION CONDITIONNELLE SELON LE RÔLE
-        if (role === 'PRESIDENT') {
-          router.push('/'); // Redirection vers la page principale
+        if (role === 'ADMIN') {
+          router.push('/admin'); 
         } else {
-          router.push('/dashboard'); // Redirection vers le dashboard pour les autres rôles
+          router.push('/'); 
         }
       }
 
@@ -138,7 +141,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="login-form space-y-4">
 
-            {/* 1. NOM D'UTILISATEUR OU EMAIL */}
+            
             {role === 'ADMIN' ? (
               <Input
                 type="text"
@@ -161,7 +164,7 @@ export default function LoginPage() {
               />
             )}
 
-            {/* 2. MOT DE PASSE */}
+            
             <Input
               type={showPassword ? 'text' : 'password'}
               label="كلمة المرور"

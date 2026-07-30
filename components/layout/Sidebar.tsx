@@ -43,7 +43,7 @@ const navGroups: NavGroup[] = [
       { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
       { label: 'المعلمين', href: '/teachers', icon: <UserCheck size={18} /> },
       { label: 'أولياء الأمور', href: '/guardians', icon: <Shield size={18} /> },
-      { label: 'الحلقات', href: '/halaqat', icon: <BookOpen size={18} /> },
+      { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
     ],
   },

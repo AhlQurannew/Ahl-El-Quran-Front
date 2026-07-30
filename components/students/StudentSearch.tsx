@@ -27,7 +27,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
   onSelectAll,
   onCancelSelection,
   onPrint,
-}) => {
+}) => {  
   return (
     <div className="space-y-4">
       {/* Search Input Bar */}
