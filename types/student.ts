@@ -9,4 +9,5 @@ export interface Student {
   pob: string; // مكان الميلاد
   nationality: string; // الجنسية
   idType?: string; // نوع الهوية
+  photo?: string;
 }

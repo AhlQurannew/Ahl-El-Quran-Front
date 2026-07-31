@@ -24,13 +24,18 @@ const axiosGlobal = axios.create({
 
 // Ajouter le token à chaque requête
 axiosGlobal.interceptors.request.use((config) => {
+    // Essayer d'abord le token direct (login de votre collègue)
+    const directToken = localStorage.getItem('access_token');
+    
     const authStorage = localStorage.getItem('auth-storage');
-    if (authStorage) {
-        const parsed = JSON.parse(authStorage);
-        const token = parsed?.state?.accessToken;
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
+    const zustandToken = authStorage 
+        ? JSON.parse(authStorage)?.state?.accessToken 
+        : null;
+    
+    const token = directToken ?? zustandToken;
+    
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 });

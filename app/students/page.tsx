@@ -68,6 +68,7 @@ const mapStudentToApi = (student: Omit<Student, 'id'>) => ({
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
+  const [localPhotos, setLocalPhotos] = useState<Record<string, string>>({});
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isFormLoading, setIsFormLoading] = useState(false);
   const [query, setQuery] = useState('');
@@ -97,12 +98,16 @@ export default function StudentsPage() {
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
 
-  const fetchStudents = useCallback(async () => {
+  const fetchStudents = async (photos?: Record<string, string>) => {
     setIsPageLoading(true);
     try {
       const data = await studentsAPI.getStudents();
       const list = Array.isArray(data) ? data : data.students ?? [];
-      const mapped = list.map(mapApiToStudent);
+      const currentPhotos = photos ?? localPhotos;
+      const mapped = list.map((s: any) => ({
+        ...mapApiToStudent(s),
+        photo: currentPhotos[String(s.id ?? s.user_id)] ?? '',
+      }));
       setStudents(mapped);
     } catch (err) {
       showToast('error', 'فشل تحميل بيانات الطلاب');
@@ -110,12 +115,11 @@ export default function StudentsPage() {
     } finally {
       setIsPageLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    fetchStudents();
-  }, [fetchStudents]);
-
+    fetchStudents({});
+  }, []);
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -166,19 +170,27 @@ export default function StudentsPage() {
       const payload = mapStudentToApi(data);
       if (editingStudent) {
         await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
+        const updatedPhotos = data.photo
+          ? { ...localPhotos, [editingStudent.id]: data.photo }
+          : localPhotos;
+        if (data.photo) setLocalPhotos(updatedPhotos);
+        await fetchStudents(updatedPhotos);
         showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
       } else {
-        await studentsAPI.createStudent(payload);
+        const created = await studentsAPI.createStudent(payload);
+        const newId = String(created?.id ?? created?.user_id ?? '');
+        const updatedPhotos = (data.photo && newId)
+          ? { ...localPhotos, [newId]: data.photo }
+          : localPhotos;
+        if (data.photo && newId) setLocalPhotos(updatedPhotos);
+        await fetchStudents(updatedPhotos);
         showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
       }
       setIsFormOpen(false);
       setSelectedIds([]);
-      fetchStudents();
     } catch (err: any) {
       const detail = err?.response?.data?.detail || '';
-      
       let errorMessage = 'فشلت العملية، يرجى المحاولة مجدداً';
-      
       if (detail.toLowerCase().includes('email') && detail.toLowerCase().includes('exist')) {
         errorMessage = 'البريد الإلكتروني مستخدم بالفعل، يرجى استخدام بريد آخر';
       } else if (detail.toLowerCase().includes('already')) {
@@ -186,7 +198,6 @@ export default function StudentsPage() {
       } else if (detail) {
         errorMessage = detail;
       }
-      
       showToast('error', errorMessage);
       console.error(err);
     } finally {

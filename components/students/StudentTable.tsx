@@ -41,6 +41,9 @@ export const StudentTable: React.FC<StudentTableProps> = ({
               </th>
               {/* Spacer/Plus Header */}
               <th className="px-2 py-3.5 w-10" />
+              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider w-16">
+                الصورة
+              </th>
               <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
                 الاسم
               </th>
@@ -73,13 +76,13 @@ export const StudentTable: React.FC<StudentTableProps> = ({
           <tbody className="divide-y divide-gray-100">
             {isLoading ? (
               <tr>
-                <td colSpan={11} className="py-16 text-center">
+                <td colSpan={12} className="py-16 text-center">
                   <Spinner size="md" label="جاري التحميل..." />
                 </td>
               </tr>
             ) : students.length === 0 ? (
               <tr>
-                <td colSpan={11} className="py-16 text-center">
+                <td colSpan={12} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <p className="text-sm text-gray-400 font-medium">لا يوجد طلاب</p>
                     <p className="text-xs text-gray-300">انقر على إضافة لإضافة طالب جديد</p>
@@ -115,6 +118,23 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                         <Plus size={12} strokeWidth={3} />
                       </button>
                     </td>
+
+                    <td className="px-4 py-3.5">
+                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200 flex-shrink-0">
+                        {student.photo ? (
+                          <img
+                            src={student.photo}
+                            alt={student.firstName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-xs font-bold text-gray-400">
+                            {student.firstName?.charAt(0) ?? '؟'}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
 
                     <td className="px-4 py-3.5 text-sm font-semibold text-gray-800">
                       {student.firstName}
