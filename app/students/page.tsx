@@ -18,7 +18,7 @@ const mapApiToStudent = (apiStudent: any): Student => ({
   firstName: apiStudent.personalInfo?.firstNameAr ?? apiStudent.firstname ?? '',
   lastName: apiStudent.personalInfo?.lastNameAr ?? apiStudent.lastname ?? '',
   gender: apiStudent.personalInfo?.sex === 'female' ? 'female' : 'male',
-  halqa: apiStudent.lectures?.[0]?.lectureNameAr ?? '',
+  halqa: apiStudent.lectures?.[0]?.lectureNameAr?.trim() ?? '',
   username: apiStudent.contactInfo?.email ?? apiStudent.email ?? '',
   dob: apiStudent.personalInfo?.dateOfBirth ?? '',
   pob: apiStudent.personalInfo?.placeOfBirth ?? '',
@@ -101,9 +101,8 @@ export default function StudentsPage() {
     setIsPageLoading(true);
     try {
       const data = await studentsAPI.getStudents();
-      const mapped = Array.isArray(data)
-        ? data.map(mapApiToStudent)
-        : data.students?.map(mapApiToStudent) ?? [];
+      const list = Array.isArray(data) ? data : data.students ?? [];
+      const mapped = list.map(mapApiToStudent);
       setStudents(mapped);
     } catch (err) {
       showToast('error', 'فشل تحميل بيانات الطلاب');
