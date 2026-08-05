@@ -33,6 +33,7 @@ const navGroups: NavGroup[] = [
   {
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
+      { label: 'المشرفين', href: '/supervisors', icon: <UserCheck size={18} /> },
       { label: 'غرفة المحادثة', href: '/chat', icon: <MessageSquare size={18} /> },
       { label: 'الإعدادات', href: '/settings', icon: <Settings size={18} /> },
     ],
@@ -45,6 +46,7 @@ const navGroups: NavGroup[] = [
       { label: 'أولياء الأمور', href: '/guardians', icon: <Shield size={18} /> },
       { label: 'الحلقات', href: '/halaqat', icon: <BookOpen size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
+      { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
     ],
   },
 ];

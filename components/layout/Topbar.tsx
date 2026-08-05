@@ -10,13 +10,13 @@ interface TopbarProps {
 
 export const Topbar: React.FC<TopbarProps> = ({ title, breadcrumb }) => {
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0 sticky top-0 z-20">
+    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 pr-16 lg:pr-6 shrink-0 sticky top-0 z-20">
       {/* Left: page title */}
-      <div>
+      <div className="min-w-0">
         {breadcrumb && (
-          <p className="text-xs text-gray-400 mb-0.5">{breadcrumb}</p>
+          <p className="text-xs text-gray-400 mb-0.5 hidden sm:block truncate">{breadcrumb}</p>
         )}
-        <h1 className="text-base font-bold text-gray-900">{title}</h1>
+        <h1 className="text-base font-bold text-gray-900 truncate">{title}</h1>
       </div>
 
       {/* Right: actions */}
