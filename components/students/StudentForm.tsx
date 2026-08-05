@@ -15,6 +15,7 @@ interface StudentFormProps {
   onSubmit: (data: StudentFormData) => void;
   editingStudent?: Student | null;
   isLoading?: boolean;
+  isSubmitting?: boolean;
 }
 
 const EMPTY_FORM: StudentFormData = {
@@ -35,6 +36,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   onSubmit,
   editingStudent,
   isLoading,
+  isSubmitting,
 }) => {
   const [form, setForm] = React.useState<StudentFormData>(EMPTY_FORM);
   const [errors, setErrors] = React.useState<Partial<Record<keyof StudentFormData, string>>>({});
@@ -81,10 +83,10 @@ export const StudentForm: React.FC<StudentFormProps> = ({
       size="md"
       footer={
         <>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading}>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading || isSubmitting}>
             إلغاء
           </Button>
-          <Button size="sm" isLoading={isLoading} onClick={handleSubmit}>
+          <Button size="sm" isLoading={isLoading || isSubmitting} onClick={handleSubmit}>
             {isEditing ? 'حفظ التعديلات' : 'إضافة'}
           </Button>
         </>
