@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Image from 'next/image';
-import { authApi } from '@/api/authApi';
+import authAPI from '@/app/API/auth';
 import { useAuthStore } from '@/store/authStore';
 import { extractErrorMessage } from '@/utils/errorMessages';
 import { Button } from '@/components/ui/Button';
@@ -56,9 +56,39 @@ export default function LoginPage() {
       return;
     }
 
-    if (role === 'ADMIN') {
-      router.push('/dashboard');
-    } else {
+    setIsLoading(true);
+    try {
+      let res: any;
+      if (role === 'ADMIN') {
+        res = await authAPI.loginAdmin({ user: email, email, password });
+      } else if (role === 'PRESIDENT') {
+        res = await authAPI.loginPresident({ email, password });
+      } else if (role === 'SUPERVISOR') {
+        res = await authAPI.loginSupervisor({ email, password });
+      } else if (role === 'TEACHER') {
+        res = await authAPI.loginTeacher({ email, password });
+      } else if (role === 'GUARDIAN') {
+        res = await authAPI.loginGuardian({ email, password });
+      } else {
+        res = await authAPI.loginAdmin({ user: email, email, password });
+      }
+
+      if (res?.access_token) {
+        setAccessToken(res.access_token);
+        if (res.refresh_token) setRefreshToken(res.refresh_token);
+        if (res.user) setUser(res.user);
+        showToast('تم تسجيل الدخول بنجاح', 'success');
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 500);
+      } else {
+        showToast(res?.message || 'فشل تسجيل الدخول', 'error');
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || err?.message || 'حدث خطأ في الاتصال بالخادم';
+      showToast(typeof msg === 'string' ? msg : JSON.stringify(msg), 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -113,9 +143,9 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="login-form space-y-4">
 
             <Input
-              type="email"
-              label="البريد الإلكتروني"
-              placeholder="البريد الإلكتروني"
+              type="text"
+              label="اسم المستخدم / البريد الإلكتروني"
+              placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               leftIcon={<Mail size={18} />}

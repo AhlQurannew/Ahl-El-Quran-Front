@@ -50,8 +50,12 @@ const loginGuardian = async (data: LoginPayload) => {
     return res.data;
 };
 
-const loginAdmin = async (data: LoginPayload) => {
-    const res = await axiosGlobal.post("/admin/login", data);
+const loginAdmin = async (data: { user?: string; email?: string; password: string }) => {
+    const payload = {
+        user: data.user || data.email || "",
+        password: data.password,
+    };
+    const res = await axiosGlobal.post("/admin/login", payload);
     return res.data;
 };
 const getCurrentUser = async () => {
