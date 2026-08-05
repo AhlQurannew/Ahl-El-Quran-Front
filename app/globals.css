@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -12,15 +13,28 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-primary: #0E9D6D;
+  --color-secondary: #FF6B35;
+  --font-arabic: 'Cairo', sans-serif;
+}
+
+/* Dark mode disabled — app uses light theme only */
+
+* {
+  font-family: 'Cairo', sans-serif;
+}
+
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+html[dir="ltr"] {
+  direction: ltr;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Cairo', Arial, Helvetica, sans-serif;
 }
