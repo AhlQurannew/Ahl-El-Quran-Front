@@ -1,0 +1,13 @@
+.login-form .group:focus-within label {
+  color: #C8963E !important;
+}
+
+.login-form input:focus {
+  border-color: #C8963E !important;
+  box-shadow: 0 0 0 2px rgba(200, 150, 62, 0.3) !important;
+}
+
+.login-form select:focus {
+  border-color: #C8963E !important;
+  box-shadow: 0 0 0 2px rgba(200, 150, 62, 0.3) !important;
+}
