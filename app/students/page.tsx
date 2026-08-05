@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StudentSearch } from '@/components/students/StudentSearch';
 import { StudentTable } from '@/components/students/StudentTable';
@@ -8,61 +8,152 @@ import { StudentForm } from '@/components/students/StudentForm';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Student } from '@/types/student';
-
-// ─── Seed data from screenshot ─────────────────────────────────────────────
-const SEED_STUDENTS: Student[] = [
-  { id: '1', firstName: 'أحمد يعقوب', lastName: 'يعقوب', gender: 'male', halqa: '', username: 'yakoube@gmail.com', dob: '2011-12-13', pob: 'bourouba', nationality: 'Algerian', idType: '' },
-  { id: '2', firstName: 'عبدو معتصم', lastName: 'معتصم', gender: 'male', halqa: 'حلقة أحمد', username: 'abdulabbid@gmail.com', dob: '2025-12-03', pob: 'boubsila', nationality: 'Algerian', idType: '' },
-  { id: '3', firstName: 'جليل مطاطي', lastName: 'مطاطي', gender: 'male', halqa: 'حلقة أحمد', username: 'djalilstyfi@gmail.com', dob: '2004-02-15', pob: 'borj el kiffan', nationality: 'Algerian', idType: '' },
-  { id: '4', firstName: 'أحمد معتصم', lastName: 'معتصم', gender: 'male', halqa: 'حلقة أحمد', username: 'ahmedmoutasim@gmail.com', dob: '2012-12-14', pob: 'alharachh', nationality: 'Algerian', idType: '' },
-  { id: '5', firstName: 'رؤوف المعتصم', lastName: 'المعتصم', gender: 'male', halqa: 'حلقة أحمد', username: 'abdouferbadidud@gmail.com', dob: '1992-12-17', pob: 'fordlo', nationality: 'Algerian', idType: '' },
-];
+import studentsAPI, { CreateStudentPayload } from '../API/students';
 
 type ToastState = { visible: boolean; type: 'success' | 'info'; message: string };
 
+// ─── API <-> Local Student mapping ─────────────────────────────────────────
+
+// "21/11/2005" -> "2005-11-21" (HTML date input format)
+function apiDateToInputDate(d?: string): string {
+  if (!d) return '';
+  const [dd, mm, yyyy] = d.split('/');
+  if (!dd || !mm || !yyyy) return '';
+  return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+}
+
+// "2005-11-21" -> "21/11/2005"
+function inputDateToApiDate(d?: string): string {
+  if (!d) return '';
+  const [yyyy, mm, dd] = d.split('-');
+  if (!dd || !mm || !yyyy) return '';
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function apiStudentToStudent(api: any): Student {
+  return {
+    id: String(api.id),
+    firstName: (api.personalInfo?.firstNameAr || api.firstname || '').trim(),
+    lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
+    gender: api.personalInfo?.sex === 'Masculin' ? 'male' : 'female',
+    halqa: api.lectures?.[0]?.lectureNameAr || '',
+    username: api.accountInfo?.username || api.email || '',
+    dob: apiDateToInputDate(api.personalInfo?.dateOfBirth),
+    pob: api.personalInfo?.placeOfBirth || '',
+    nationality: api.personalInfo?.nationality || '',
+    idType: '',
+  };
+}
+
+// Build the full nested payload used by both createStudent and updateStudentFull
+function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
+  return {
+    personalInfo: {
+      firstNameAr: data.firstName,
+      lastNameAr: data.lastName,
+      firstNameEn: '',
+      lastNameEn: '',
+      sex: data.gender === 'male' ? 'Masculin' : 'Féminin',
+      dateOfBirth: inputDateToApiDate(data.dob),
+      placeOfBirth: data.pob,
+      homeAddress: '',
+      nationality: data.nationality,
+      fatherStatus: '',
+      motherStatus: '',
+    },
+    accountInfo: {
+      username: data.username,
+      passcode: '',
+      accountType: 'Student',
+    },
+    contactInfo: {
+      phoneNumber: '',
+      email: data.username,
+    },
+    guardian: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      relationship: '',
+      homeAddress: '',
+      job: '',
+    },
+    lectures: [],
+    formalEducationInfo: {
+      academicLevel: '',
+      grade: '',
+      schoolName: '',
+    },
+  };
+}
+
+// ─── Page ───────────────────────────────────────────────────────────────────
+
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>(SEED_STUDENTS);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
-
-  // ── Derived filtered list ──
-  const filtered = useMemo(() => {
-    return students.filter((s) => {
-      const q = query.toLowerCase();
-      return (
-        s.firstName.toLowerCase().includes(q) ||
-        s.lastName.toLowerCase().includes(q) ||
-        s.username.toLowerCase().includes(q) ||
-        (s.halqa ?? '').toLowerCase().includes(q) ||
-        s.pob.toLowerCase().includes(q)
-      );
-    });
-  }, [students, query]);
-
-  // ── Helpers ──
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
 
-  const handleToggleSelect = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
+  const errMsg = (err: unknown, fallback: string) =>
+    (err as any)?.response?.data?.detail
+      ? JSON.stringify((err as any).response.data.detail)
+      : err instanceof Error
+        ? err.message
+        : fallback;
 
-  const handleToggleSelectAll = () => {
-    if (selectedIds.length === filtered.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(filtered.map((s) => s.id));
+  // ── Load students from API ──
+  const loadStudents = async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const res = await studentsAPI.getStudents();
+      const list = Array.isArray(res) ? res : res.students ?? [];
+      setStudents(list.map(apiStudentToStudent));
+    } catch (err) {
+      setLoadError(errMsg(err, 'فشل تحميل بيانات الطلاب'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  // ── Derived filtered list ──
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return students.filter((s) =>
+      s.firstName.toLowerCase().includes(q) ||
+      s.lastName.toLowerCase().includes(q) ||
+      s.username.toLowerCase().includes(q) ||
+      (s.halqa ?? '').toLowerCase().includes(q) ||
+      s.pob.toLowerCase().includes(q)
+    );
+  }, [students, query]);
+
+  // ── Selection ──
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const handleToggleSelectAll = () => {
+    setSelectedIds(selectedIds.length === filtered.length ? [] : filtered.map((s) => s.id));
+  };
+
+  // ── Add / Edit ──
   const handleAdd = () => {
     setEditingStudent(null);
     setIsFormOpen(true);
@@ -77,44 +168,58 @@ export default function StudentsPage() {
     }
   };
 
-  const handleDeleteConfirm = () => {
-    setStudents((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
-    showToast('success', `تم حذف عدد ${selectedIds.length} طالب بنجاح`);
-    setSelectedIds([]);
+  const handleFormSubmit = async (data: Omit<Student, 'id'>) => {
+    setIsSubmitting(true);
+    try {
+      const payload = studentToFullPayload(data);
+      if (editingStudent) {
+        const updated = await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
+        setStudents((prev) =>
+          prev.map((s) => (s.id === editingStudent.id ? apiStudentToStudent(updated) : s))
+        );
+        showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
+      } else {
+        const created = await studentsAPI.createStudent(payload);
+        setStudents((prev) => [apiStudentToStudent(created), ...prev]);
+        showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
+      }
+      setIsFormOpen(false);
+      setSelectedIds([]);
+    } catch (err) {
+      showToast('info', errMsg(err, 'حدث خطأ أثناء الحفظ'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleFormSubmit = (data: Omit<Student, 'id'>) => {
-    if (editingStudent) {
-      setStudents((prev) =>
-        prev.map((s) => (s.id === editingStudent.id ? { ...data, id: editingStudent.id } : s))
-      );
-      showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
-    } else {
-      const newStudent: Student = { ...data, id: Date.now().toString() };
-      setStudents((prev) => [newStudent, ...prev]);
-      showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
+  // ── Delete ──
+  const handleDeleteConfirm = async () => {
+    try {
+      await Promise.all(selectedIds.map((id) => studentsAPI.deleteStudent(Number(id))));
+      setStudents((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
+      showToast('success', `تم حذف عدد ${selectedIds.length} طالب بنجاح`);
+    } catch (err) {
+      showToast('info', errMsg(err, 'فشل حذف بعض الطلاب'));
+      loadStudents();
+    } finally {
+      setSelectedIds([]);
+      setIsConfirmOpen(false);
     }
-    setIsFormOpen(false);
-    setSelectedIds([]);
   };
 
   const handlePlusClick = (student: Student) => {
     showToast('info', `سجل إنجازات الطالب: ${student.firstName} ${student.lastName}`);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   return (
     <AppLayout title="الطلاب" breadcrumb="الشؤون الإدارية / الطلاب">
       <div className="space-y-6 max-w-7xl mx-auto">
-        {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
           إدارة الطلاب / الصفحة الرئيسية
         </div>
 
-        {/* Search Input and action buttons */}
         <StudentSearch
           query={query}
           onQueryChange={setQuery}
@@ -127,25 +232,34 @@ export default function StudentsPage() {
           onPrint={handlePrint}
         />
 
-        {/* Data Table */}
-        <StudentTable
-          students={filtered}
-          selectedIds={selectedIds}
-          onToggleSelect={handleToggleSelect}
-          onToggleSelectAll={handleToggleSelectAll}
-          onPlusClick={handlePlusClick}
-        />
+        {isLoading ? (
+          <div className="text-center py-10 text-gray-500">جاري تحميل بيانات الطلاب...</div>
+        ) : loadError ? (
+          <div className="text-center py-10 text-red-500">
+            {loadError}
+            <button onClick={loadStudents} className="block mx-auto mt-2 underline text-amber-600">
+              إعادة المحاولة
+            </button>
+          </div>
+        ) : (
+          <StudentTable
+            students={filtered}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
+            onPlusClick={handlePlusClick}
+          />
+        )}
       </div>
 
-      {/* Student Form Modal */}
       <StudentForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
         editingStudent={editingStudent}
+        isSubmitting={isSubmitting}
       />
 
-      {/* Confirm deletion dialog */}
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
@@ -157,7 +271,6 @@ export default function StudentsPage() {
         variant="danger"
       />
 
-      {/* Toast notifications */}
       <Toast
         type={toast.type}
         message={toast.message}
