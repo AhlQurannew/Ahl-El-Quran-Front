@@ -5,61 +5,98 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import type { MemorizationRecord } from '@/types/memorization';
+import type { ApiStudent } from '@/app/memorization/page';
+import { studentDisplayName } from '@/app/memorization/page';
 
-type MemorizationFormData = Omit<MemorizationRecord, 'id'>;
+export interface AchievementFormValues {
+  studentId: number;
+  fromSurah: number;
+  toSurah: number;
+  fromVerse: number;
+  toVerse: number;
+  note: string;
+  achievementType: string;
+  date: string; // yyyy-mm-dd
+}
 
 interface MemorizationFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: MemorizationFormData) => void;
-  editingRecord?: MemorizationRecord | null;
+  onSubmit: (data: AchievementFormValues) => void;
+  editingAchievement?: any | null;
+  students: ApiStudent[];
+  isLoadingStudents?: boolean;
+  defaultStudentId?: number | null;
   isLoading?: boolean;
 }
 
-const EMPTY_FORM: MemorizationFormData = {
-  name: '',
-  halqa: '',
-  joinDate: '',
-  status: 'active',
-  surah: '',
-  ayah: '',
-  notes: '',
-};
+function apiDateToInput(date: string): string {
+  if (!date) return '';
+  const [d, m, y] = date.split('-');
+  if (!d || !m || !y) return date;
+  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+}
+
+function emptyForm(defaultStudentId?: number | null): AchievementFormValues {
+  return {
+    studentId: defaultStudentId ?? 0,
+    fromSurah: 1,
+    toSurah: 1,
+    fromVerse: 1,
+    toVerse: 1,
+    note: '',
+    achievementType: 'normal',
+    date: new Date().toISOString().slice(0, 10),
+  };
+}
 
 export const MemorizationForm: React.FC<MemorizationFormProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  editingRecord,
+  editingAchievement,
+  students,
+  isLoadingStudents,
+  defaultStudentId,
   isLoading,
 }) => {
-  const [form, setForm] = React.useState<MemorizationFormData>(EMPTY_FORM);
-  const [errors, setErrors] = React.useState<Partial<Record<keyof MemorizationFormData, string>>>({});
+  const [form, setForm] = React.useState<AchievementFormValues>(emptyForm(defaultStudentId));
+  const [errors, setErrors] = React.useState<Partial<Record<keyof AchievementFormValues, string>>>({});
 
-  const isEditing = !!editingRecord;
+  const isEditing = !!editingAchievement;
 
-  // Pre-fill when editing
   useEffect(() => {
-    if (editingRecord) {
-      const { id: _id, ...rest } = editingRecord;
-      setForm(rest);
+    if (editingAchievement) {
+      setForm({
+        studentId: editingAchievement.student_id,
+        fromSurah: editingAchievement.from_surah,
+        toSurah: editingAchievement.to_surah,
+        fromVerse: editingAchievement.from_verse,
+        toVerse: editingAchievement.to_verse,
+        note: editingAchievement.note || '',
+        achievementType: editingAchievement.achievement_type || 'normal',
+        date: apiDateToInput(editingAchievement.date),
+      });
     } else {
-      setForm(EMPTY_FORM);
+      setForm(emptyForm(defaultStudentId));
     }
     setErrors({});
-  }, [editingRecord, isOpen]);
+  }, [editingAchievement, isOpen, defaultStudentId]);
 
-  const set = (field: keyof MemorizationFormData, value: string) => {
+  const set = <K extends keyof AchievementFormValues>(field: K, value: AchievementFormValues[K]) => {
     setForm((f) => ({ ...f, [field]: value }));
     setErrors((e) => ({ ...e, [field]: undefined }));
   };
 
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
-    if (!form.name.trim()) newErrors.name = 'اسم الطالب مطلوب';
-    if (!form.surah.trim()) newErrors.surah = 'اسم السورة مطلوب';
-    if (!form.ayah.trim()) newErrors.ayah = 'رقم الآية مطلوب';
+    if (!form.studentId) newErrors.studentId = 'اختيار الطالب مطلوب';
+    if (!form.fromSurah || form.fromSurah < 1 || form.fromSurah > 114) newErrors.fromSurah = 'رقم سورة غير صالح';
+    if (!form.toSurah || form.toSurah < 1 || form.toSurah > 114) newErrors.toSurah = 'رقم سورة غير صالح';
+    if (form.toSurah < form.fromSurah) newErrors.toSurah = 'يجب أن تكون بعد سورة البداية';
+    if (!form.fromVerse || form.fromVerse < 1) newErrors.fromVerse = 'رقم آية غير صالح';
+    if (!form.toVerse || form.toVerse < 1) newErrors.toVerse = 'رقم آية غير صالح';
+    if (!form.date) newErrors.date = 'التاريخ مطلوب';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -88,67 +125,89 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Name */}
-        <Input
-          label="اسم الطالب *"
-          placeholder="مثال: أحمد معتصم"
-          value={form.name}
-          onChange={(e) => set('name', e.target.value)}
-          error={errors.name}
-        />
-
-        {/* Surah & Ayah */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="اسم السورة *"
-            placeholder="مثال: البقرة"
-            value={form.surah}
-            onChange={(e) => set('surah', e.target.value)}
-            error={errors.surah}
-          />
-          <Input
-            label="إلى الآية *"
-            placeholder="مثال: 185 أو كاملة"
-            value={form.ayah}
-            onChange={(e) => set('ayah', e.target.value)}
-            error={errors.ayah}
-          />
-        </div>
-
-        {/* Halqa + Join Date */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="الحلقة"
-            placeholder="حلقة أحمد"
-            value={form.halqa || ''}
-            onChange={(e) => set('halqa', e.target.value)}
-          />
-          <Input
-            label="تاريخ الانضمام"
-            type="date"
-            value={form.joinDate || ''}
-            onChange={(e) => set('joinDate', e.target.value)}
-          />
-        </div>
-
-        {/* Status */}
+        {/* Student */}
         <Select
-          label="الحالة"
-          value={form.status}
-          onChange={(e) => set('status', e.target.value)}
+          label="الطالب *"
+          value={form.studentId || ''}
+          onChange={(e) => set('studentId', Number(e.target.value))}
+          error={errors.studentId}
+          disabled={isLoadingStudents}
           options={[
-            { value: 'active', label: 'نشط' },
-            { value: 'inactive', label: 'غير نشط' },
+            { value: '', label: isLoadingStudents ? 'جارٍ التحميل...' : 'اختر طالبًا' },
+            ...students.map((s) => ({ value: String(s.id), label: studentDisplayName(s) })),
           ]}
         />
 
-        {/* Notes */}
+        {/* Surah range */}
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="من سورة (رقم) *"
+            type="number"
+            min={1}
+            max={114}
+            value={form.fromSurah}
+            onChange={(e) => set('fromSurah', Number(e.target.value))}
+            error={errors.fromSurah}
+          />
+          <Input
+            label="إلى سورة (رقم) *"
+            type="number"
+            min={1}
+            max={114}
+            value={form.toSurah}
+            onChange={(e) => set('toSurah', Number(e.target.value))}
+            error={errors.toSurah}
+          />
+        </div>
+
+        {/* Verse range */}
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="من آية *"
+            type="number"
+            min={1}
+            value={form.fromVerse}
+            onChange={(e) => set('fromVerse', Number(e.target.value))}
+            error={errors.fromVerse}
+          />
+          <Input
+            label="إلى آية *"
+            type="number"
+            min={1}
+            value={form.toVerse}
+            onChange={(e) => set('toVerse', Number(e.target.value))}
+            error={errors.toVerse}
+          />
+        </div>
+
+        {/* Type + Date */}
+        <div className="grid grid-cols-2 gap-3">
+          <Select
+            label="نوع الإنجاز"
+            value={form.achievementType}
+            onChange={(e) => set('achievementType', e.target.value)}
+            options={[
+              { value: 'small', label: 'صغير' },
+              { value: 'normal', label: 'عادي' },
+              { value: 'big', label: 'كبير' },
+            ]}
+          />
+          <Input
+            label="التاريخ *"
+            type="date"
+            value={form.date}
+            onChange={(e) => set('date', e.target.value)}
+            error={errors.date}
+          />
+        </div>
+
+        {/* Note */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">ملاحظات</label>
           <textarea
             placeholder="أي ملاحظات إضافية..."
-            value={form.notes || ''}
-            onChange={(e) => set('notes', e.target.value)}
+            value={form.note}
+            onChange={(e) => set('note', e.target.value)}
             rows={3}
             className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500 resize-none transition-all"
           />
