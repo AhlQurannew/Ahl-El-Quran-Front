@@ -196,6 +196,54 @@ export default function StudentsPage() {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const XLSX = await import('xlsx');
+
+      const listToExport = selectedIds.length > 0
+        ? filtered.filter((s) => selectedIds.includes(s.id))
+        : filtered;
+
+      if (listToExport.length === 0) {
+        showToast('info', 'لا توجد بيانات للتصدير');
+        return;
+      }
+
+      const excelData = listToExport.map((s) => ({
+        'الاسم الأول': s.firstName,
+        'اسم العائلة': s.lastName,
+        'الجنس': s.gender === 'male' ? 'ذكر' : 'أنثى',
+        'الحلقة': s.halqa || '—',
+        'البريد / اسم المستخدم': s.username || '—',
+        'تاريخ الميلاد': s.dob || '—',
+        'مكان الميلاد': s.pob || '—',
+        'الجنسية': s.nationality || '—',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'الطلاب');
+
+      worksheet['!cols'] = [
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 10 },
+        { wch: 20 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 18 },
+        { wch: 15 },
+      ];
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `قائمة_الطلاب_${dateStr}.xlsx`);
+      showToast('success', 'تم تصدير ملف Excel بنجاح');
+    } catch (error) {
+      console.error('Erreur export Excel:', error);
+      showToast('error', 'حدث خطأ أثناء تصدير ملف Excel');
+    }
+  };
+
   const handlePlusClick = (student: Student) => {
     showToast('info', `سجل إنجازات الطالب: ${student.firstName} ${student.lastName}`);
   };
@@ -219,6 +267,7 @@ export default function StudentsPage() {
           onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
           onCancelSelection={() => setSelectedIds([])}
           onPrint={handlePrint}
+          onExportExcel={handleExportExcel}
         />
 
         {isLoading ? (

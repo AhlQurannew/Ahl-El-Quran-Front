@@ -15,7 +15,7 @@ const SEED_SUPERVISORS: Supervisor[] = [
   { id: '3', firstname: 'جليل', lastname: 'مطاطي', email: 'djalilstyfi@gmail.com', isActive: false, createdAt: '2024-03-05 14:20:00' },
 ];
 
-type ToastState = { visible: boolean; type: 'success' | 'info'; message: string };
+type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
 export default function SupervisorsPage() {
   const [supervisors, setSupervisors] = useState<Supervisor[]>(SEED_SUPERVISORS);
@@ -28,7 +28,6 @@ export default function SupervisorsPage() {
 
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
 
-  // ── Derived filtered list ──
   const filtered = useMemo(() => {
     return supervisors.filter((s) => {
       const q = query.toLowerCase();
@@ -40,7 +39,6 @@ export default function SupervisorsPage() {
     });
   }, [supervisors, query]);
 
-  // ── Helpers ──
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
 
@@ -97,6 +95,48 @@ export default function SupervisorsPage() {
     setSelectedIds([]);
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const XLSX = await import('xlsx');
+
+      const listToExport = selectedIds.length > 0
+        ? filtered.filter((s) => selectedIds.includes(s.id))
+        : filtered;
+
+      if (listToExport.length === 0) {
+        showToast('info', 'لا توجد بيانات للتصدير');
+        return;
+      }
+
+      const excelData = listToExport.map((s) => ({
+        'الاسم الأول': s.firstname,
+        'اسم العائلة': s.lastname,
+        'البريد الإلكتروني': s.email,
+        'الحالة': s.isActive ? 'نشط' : 'غير نشط',
+        'تاريخ الإنشاء': s.createdAt || '—',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'المشرفين');
+
+      worksheet['!cols'] = [
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 25 },
+        { wch: 12 },
+        { wch: 22 },
+      ];
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `قائمة_المشرفين_${dateStr}.xlsx`);
+      showToast('success', 'تم تصدير ملف Excel بنجاح');
+    } catch (error) {
+      console.error('Erreur export Excel:', error);
+      showToast('error', 'حدث خطأ أثناء تصدير ملف Excel');
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -104,12 +144,10 @@ export default function SupervisorsPage() {
   return (
     <AppLayout title="المشرفين" breadcrumb="الشؤون الإدارية / المشرفين">
       <div className="space-y-6 max-w-7xl mx-auto">
-        {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
           إدارة المشرفين / الصفحة الرئيسية
         </div>
 
-        {/* Search Input and action buttons */}
         <SupervisorSearch
           query={query}
           onQueryChange={setQuery}
@@ -120,9 +158,9 @@ export default function SupervisorsPage() {
           onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
           onCancelSelection={() => setSelectedIds([])}
           onPrint={handlePrint}
+          onExportExcel={handleExportExcel}
         />
 
-        {/* Data Table */}
         <SupervisorTable
           supervisors={filtered}
           selectedIds={selectedIds}
@@ -131,7 +169,6 @@ export default function SupervisorsPage() {
         />
       </div>
 
-      {/* Supervisor Form Modal */}
       <SupervisorForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -139,7 +176,6 @@ export default function SupervisorsPage() {
         editingSupervisor={editingSupervisor}
       />
 
-      {/* Confirm deletion dialog */}
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
@@ -151,7 +187,6 @@ export default function SupervisorsPage() {
         variant="danger"
       />
 
-      {/* Toast notifications */}
       <Toast
         type={toast.type}
         message={toast.message}
