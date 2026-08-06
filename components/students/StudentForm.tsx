@@ -28,6 +28,7 @@ const EMPTY_FORM: StudentFormData = {
   pob: '',
   nationality: 'Algerian',
   idType: '',
+  photo: '',
 };
 
 export const StudentForm: React.FC<StudentFormProps> = ({
@@ -52,6 +53,17 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     }
     setErrors({});
   }, [editingStudent, isOpen]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm((f) => ({ ...f, photo: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const set = (field: keyof StudentFormData, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -171,6 +183,44 @@ export const StudentForm: React.FC<StudentFormProps> = ({
           value={form.idType || ''}
           onChange={(e) => set('idType', e.target.value)}
         />
+
+        {/* Photo */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            صورة الطالب
+          </label>
+          <div className="flex items-center gap-4">
+            {/* Preview */}
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
+              {form.photo ? (
+                <img src={form.photo} alt="preview" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-gray-400 text-xs text-center">لا صورة</span>
+              )}
+            </div>
+            {/* Input file */}
+            <div className="flex-1">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer"
+              />
+              <p className="text-xs text-gray-400 mt-1">PNG, JPG حتى 2MB</p>
+            </div>
+            {/* Supprimer la photo */}
+            {form.photo && (
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, photo: '' }))}
+                className="text-red-400 hover:text-red-600 text-xs"
+              >
+                حذف
+              </button>
+            )}
+          </div>
+        </div>
+
       </form>
     </Modal>
   );

@@ -1,9 +1,8 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
 
-// axios 
 const axiosGlobal = axios.create({
     baseURL: `${API_URL}/students`,
     headers: {
@@ -12,7 +11,10 @@ const axiosGlobal = axios.create({
 });
 
 axiosGlobal.interceptors.request.use((config) => {
-    const token = useAuthStore.getState().accessToken;
+    const directToken = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const zustandToken = useAuthStore.getState().accessToken;
+    const token = directToken || zustandToken;
+
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -50,7 +52,7 @@ export interface Guardian {
     guardianId?: number;
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string;
     relationship: string;
     guardianContactId?: number;
     guardianAccountId?: number;
@@ -74,7 +76,6 @@ export interface CreateStudentPayload {
     formalEducationInfo: FormalEducationInfo;
 }
 
-
 export interface UpdateStudentPayload {
     firstname: string;
     lastname: string;
@@ -84,7 +85,6 @@ export interface UpdateStudentPayload {
     guardian_email: string;
     golden: boolean;
 }
-
 
 export interface AchievementPayload {
     from_surah: number;
@@ -102,20 +102,15 @@ export interface AttendancePayload {
     notes: string;
 }
 
-
-
-
 const createStudent = async (data: CreateStudentPayload) => {
     const res = await axiosGlobal.post("/", data);
     return res.data;
 };
 
-
 const getStudents = async () => {
     const res = await axiosGlobal.get("/");
     return res.data;
 };
-
 
 const getStudent = async (student_id: number) => {
     const res = await axiosGlobal.get(`/${student_id}`);
@@ -130,7 +125,6 @@ const updateStudent = async (
     return res.data;
 };
 
-
 const updateStudentFull = async (
     student_id: number,
     data: CreateStudentPayload
@@ -139,13 +133,11 @@ const updateStudentFull = async (
     return res.data;
 };
 
-
 const deleteStudent = async (student_id: number) => {
     await axiosGlobal.delete(`/${student_id}`);
 };
 
 // ================= ACHIEVEMENTS =================
-
 
 const addAchievement = async (
     student_id: number,
@@ -158,7 +150,6 @@ const addAchievement = async (
     return res.data;
 };
 
-
 const getAchievements = async (
     student_id: number,
     params?: { skip?: number; limit?: number; date?: string }
@@ -169,7 +160,6 @@ const getAchievements = async (
     );
     return res.data;
 };
-
 
 const updateAchievement = async (
     student_id: number,
@@ -192,8 +182,6 @@ const deleteAchievement = async (
     );
 };
 
-
-
 const createAttendance = async (
     student_id: number,
     data: AttendancePayload
@@ -205,7 +193,6 @@ const createAttendance = async (
     return res.data;
 };
 
-
 const getAttendance = async (
     student_id: number,
     params?: { skip?: number; limit?: number; date?: string }
@@ -216,7 +203,6 @@ const getAttendance = async (
     );
     return res.data;
 };
-
 
 const updateAttendance = async (
     student_id: number,
@@ -238,8 +224,6 @@ const deleteAttendance = async (
         `/${student_id}/attendance/${attendance_id}`
     );
 };
-
-
 
 const studentsAPI = {
     createStudent,

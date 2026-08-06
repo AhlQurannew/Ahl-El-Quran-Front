@@ -33,6 +33,10 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleReject = (id: number) => {
+    setPresidents(presidents.filter((p) => p.id !== id));
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ backgroundColor: '#F9F4E4' }} dir="rtl">
 
@@ -79,6 +83,7 @@ export default function AdminDashboard() {
               president={president}
               onOpenDetails={(p) => setSelectedPresident(p)}
               onApprove={(id) => setPendingApprovalId(id)}
+              onReject={handleReject}
             />
           ))}
 

@@ -8,13 +8,10 @@ import { StudentForm } from '@/components/students/StudentForm';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Student } from '@/types/student';
-import studentsAPI, { CreateStudentPayload } from '../API/students';
+import studentsAPI, { CreateStudentPayload } from '@/app/API/students';
 
-type ToastState = { visible: boolean; type: 'success' | 'info'; message: string };
+type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
-// ─── API <-> Local Student mapping ─────────────────────────────────────────
-
-// "21/11/2005" -> "2005-11-21" (HTML date input format)
 function apiDateToInputDate(d?: string): string {
   if (!d) return '';
   const [dd, mm, yyyy] = d.split('/');
@@ -22,7 +19,6 @@ function apiDateToInputDate(d?: string): string {
   return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
 }
 
-// "2005-11-21" -> "21/11/2005"
 function inputDateToApiDate(d?: string): string {
   if (!d) return '';
   const [yyyy, mm, dd] = d.split('-');
@@ -32,20 +28,19 @@ function inputDateToApiDate(d?: string): string {
 
 function apiStudentToStudent(api: any): Student {
   return {
-    id: String(api.id),
+    id: String(api.id ?? api.user_id ?? Date.now()),
     firstName: (api.personalInfo?.firstNameAr || api.firstname || '').trim(),
     lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
-    gender: api.personalInfo?.sex === 'Masculin' ? 'male' : 'female',
+    gender: api.personalInfo?.sex === 'female' ? 'female' : 'male',
     halqa: api.lectures?.[0]?.lectureNameAr || '',
     username: api.accountInfo?.username || api.email || '',
     dob: apiDateToInputDate(api.personalInfo?.dateOfBirth),
     pob: api.personalInfo?.placeOfBirth || '',
-    nationality: api.personalInfo?.nationality || '',
+    nationality: api.personalInfo?.nationality || 'Algerian',
     idType: '',
   };
 }
 
-// Build the full nested payload used by both createStudent and updateStudentFull
 function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
   return {
     personalInfo: {
@@ -63,7 +58,7 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
     },
     accountInfo: {
       username: data.username,
-      passcode: '',
+      passcode: '123456',
       accountType: 'Student',
     },
     contactInfo: {
@@ -73,7 +68,7 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
     guardian: {
       firstName: '',
       lastName: '',
-      email: '',
+      email: data.username || undefined,
       relationship: '',
       homeAddress: '',
       job: '',
@@ -82,18 +77,15 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
     formalEducationInfo: {
       academicLevel: '',
       grade: '',
-      schoolName: '',
+      schoolName: data.halqa ?? '',
     },
   };
 }
-
-// ─── Page ───────────────────────────────────────────────────────────────────
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -108,12 +100,13 @@ export default function StudentsPage() {
 
   const errMsg = (err: unknown, fallback: string) =>
     (err as any)?.response?.data?.detail
-      ? JSON.stringify((err as any).response.data.detail)
+      ? typeof (err as any).response.data.detail === 'string'
+        ? (err as any).response.data.detail
+        : JSON.stringify((err as any).response.data.detail)
       : err instanceof Error
         ? err.message
         : fallback;
 
-  // ── Load students from API ──
   const loadStudents = async () => {
     setIsLoading(true);
     setLoadError(null);
@@ -132,7 +125,6 @@ export default function StudentsPage() {
     loadStudents();
   }, []);
 
-  // ── Derived filtered list ──
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return students.filter((s) =>
@@ -144,7 +136,6 @@ export default function StudentsPage() {
     );
   }, [students, query]);
 
-  // ── Selection ──
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
@@ -153,7 +144,6 @@ export default function StudentsPage() {
     setSelectedIds(selectedIds.length === filtered.length ? [] : filtered.map((s) => s.id));
   };
 
-  // ── Add / Edit ──
   const handleAdd = () => {
     setEditingStudent(null);
     setIsFormOpen(true);
@@ -186,20 +176,19 @@ export default function StudentsPage() {
       setIsFormOpen(false);
       setSelectedIds([]);
     } catch (err) {
-      showToast('info', errMsg(err, 'حدث خطأ أثناء الحفظ'));
+      showToast('error', errMsg(err, 'حدث خطأ أثناء الحفظ'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ── Delete ──
   const handleDeleteConfirm = async () => {
     try {
       await Promise.all(selectedIds.map((id) => studentsAPI.deleteStudent(Number(id))));
       setStudents((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
       showToast('success', `تم حذف عدد ${selectedIds.length} طالب بنجاح`);
     } catch (err) {
-      showToast('info', errMsg(err, 'فشل حذف بعض الطلاب'));
+      showToast('error', errMsg(err, 'فشل حذف بعض الطلاب'));
       loadStudents();
     } finally {
       setSelectedIds([]);
@@ -237,7 +226,7 @@ export default function StudentsPage() {
         ) : loadError ? (
           <div className="text-center py-10 text-red-500">
             {loadError}
-            <button onClick={loadStudents} className="block mx-auto mt-2 underline text-amber-600">
+            <button onClick={loadStudents} className="block mx-auto mt-2 underline text-amber-600 cursor-pointer">
               إعادة المحاولة
             </button>
           </div>

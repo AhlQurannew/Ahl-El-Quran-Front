@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import Image from 'next/image';
 import authAPI from '@/app/API/auth';
 import { useAuthStore } from '@/store/authStore';
-import { extractErrorMessage } from '@/utils/errorMessages';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -27,9 +26,11 @@ const ROLES = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAccessToken, setRefreshToken, setUser } = useAuthStore();
 
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('ADMIN');
   const [showPassword, setShowPassword] = useState(false);
@@ -48,10 +49,18 @@ export default function LoginPage() {
     setToast({ visible: true, message, type });
   };
 
+  useEffect(() => {
+    if (searchParams?.get('expired') === 'true') {
+      showToast('انتهت جلسة العمل، يرجى إعادة تسجيل الدخول', 'error');
+      router.replace('/login');
+    }
+  }, [searchParams, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    const loginId = role === 'ADMIN' ? (username || email) : email;
+    if (!loginId || !password) {
       showToast('يرجى ملء جميع الحقول', 'error');
       return;
     }
@@ -60,26 +69,35 @@ export default function LoginPage() {
     try {
       let res: any;
       if (role === 'ADMIN') {
-        res = await authAPI.loginAdmin({ user: email, email, password });
+        res = await authAPI.loginAdmin({ user: loginId, email: loginId, password });
       } else if (role === 'PRESIDENT') {
-        res = await authAPI.loginPresident({ email, password });
+        res = await authAPI.loginPresident({ email: loginId, password });
       } else if (role === 'SUPERVISOR') {
-        res = await authAPI.loginSupervisor({ email, password });
+        res = await authAPI.loginSupervisor({ email: loginId, password });
       } else if (role === 'TEACHER') {
-        res = await authAPI.loginTeacher({ email, password });
+        res = await authAPI.loginTeacher({ email: loginId, password });
       } else if (role === 'GUARDIAN') {
-        res = await authAPI.loginGuardian({ email, password });
+        res = await authAPI.loginGuardian({ email: loginId, password });
       } else {
-        res = await authAPI.loginAdmin({ user: email, email, password });
+        res = await authAPI.loginAdmin({ user: loginId, email: loginId, password });
       }
 
       if (res?.access_token) {
         setAccessToken(res.access_token);
-        if (res.refresh_token) setRefreshToken(res.refresh_token);
+        localStorage.setItem('access_token', res.access_token);
+        if (res.refresh_token) {
+          setRefreshToken(res.refresh_token);
+          localStorage.setItem('refresh_token', res.refresh_token);
+        }
         if (res.user) setUser(res.user);
+
         showToast('تم تسجيل الدخول بنجاح', 'success');
         setTimeout(() => {
-          router.push('/dashboard');
+          if (role === 'ADMIN') {
+            router.push('/dashboard');
+          } else {
+            router.push('/students');
+          }
         }, 500);
       } else {
         showToast(res?.message || 'فشل تسجيل الدخول', 'error');
@@ -116,8 +134,7 @@ export default function LoginPage() {
       
       <div className="flex flex-1 items-center justify-center p-8" style={{ background: '#d6a75c' }}>
         <div
-          className="bg-white rounded-2xl shadow
-          -2xl p-8 w-full max-w-md"
+          className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
           dir="rtl"
         >
           <div className="text-center mb-6">
@@ -142,15 +159,30 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="login-form space-y-4">
 
-            <Input
-              type="text"
-              label="اسم المستخدم / البريد الإلكتروني"
-              placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail size={18} />}
-              className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
-            />
+            {role === 'ADMIN' ? (
+              <Input
+                type="text"
+                label="اسم المستخدم / البريد الإلكتروني"
+                placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
+                value={username || email}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setEmail(e.target.value);
+                }}
+                leftIcon={<User size={18} />}
+                className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
+              />
+            ) : (
+              <Input
+                type="email"
+                label="البريد الإلكتروني"
+                placeholder="البريد الإلكتروني"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                leftIcon={<Mail size={18} />}
+                className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
+              />
+            )}
 
             <Input
               type={showPassword ? 'text' : 'password'}
@@ -196,15 +228,18 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <p className="text-center text-gray-600 text-sm">
-              ليس لديك حساب؟{' '}
-              <a
-                href="/register"
-                style={{ color: '#C8963E' }}
-              >
-                إنشاء حساب
-              </a>
-            </p>
+            <div className="text-center mt-4">
+              <p className="text-gray-600 text-sm">
+                ليس لديك حساب؟{' '}
+                <button
+                  type="button"
+                  onClick={() => router.push('/register')}
+                  className="font-bold hover:underline bg-transparent border-0 p-0 cursor-pointer text-[#C8963E]"
+                >
+                  أنشئ حساباً الآن
+                </button>
+              </p>
+            </div>
 
           </form>
         </div>
