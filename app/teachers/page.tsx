@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { TeacherSearch } from '@/components/teachers/TeacherSearch';
 import { TeacherTable } from '@/components/teachers/TeacherTable';
@@ -151,6 +152,21 @@ export default function TeachersPage() {
     window.print();
   };
 
+  const handleExportExcel = () => {
+    const exportData = filtered.map((t) => ({
+      'الاسم الأول': t.firstname,
+      'اللقب': t.lastname,
+      'البريد الإلكتروني': t.email,
+      'الرواية': t.ruaya || '-',
+      'تاريخ التعيين': t.hire_date ? new Date(t.hire_date).toLocaleDateString('ar-EG') : '-',
+      'الحالة': t.is_active ? 'نشط' : 'غير نشط',
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعلمين');
+    XLSX.writeFile(workbook, 'قائمة_المعلمين.xlsx');
+  };
+
   return (
     <AppLayout title="المعلمين" breadcrumb="الشؤون الإدارية / المعلمين">
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -173,6 +189,7 @@ export default function TeachersPage() {
           onSelectAll={() => setSelectedIds(filtered.map((t) => t.id))}
           onCancelSelection={() => setSelectedIds([])}
           onPrint={handlePrint}
+          onExportExcel={handleExportExcel}
         />
 
         {/* Data Table */}

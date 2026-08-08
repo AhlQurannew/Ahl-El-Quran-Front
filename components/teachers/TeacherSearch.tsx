@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, PlusCircle, Edit, Trash2, CheckSquare, XCircle, Printer } from 'lucide-react';
+import { Search, PlusCircle, Edit, Trash2, CheckSquare, XCircle, Printer, Download } from 'lucide-react';
 
 interface TeacherSearchProps {
   query: string;
@@ -13,6 +13,7 @@ interface TeacherSearchProps {
   onSelectAll: () => void;
   onCancelSelection: () => void;
   onPrint: () => void;
+  onExportExcel?: () => void;
 }
 
 export const TeacherSearch: React.FC<TeacherSearchProps> = ({
@@ -25,6 +26,7 @@ export const TeacherSearch: React.FC<TeacherSearchProps> = ({
   onSelectAll,
   onCancelSelection,
   onPrint,
+  onExportExcel,
 }) => {
   return (
     <div className="space-y-4">
@@ -106,6 +108,17 @@ export const TeacherSearch: React.FC<TeacherSearchProps> = ({
             <XCircle size={14} />
             إلغاء
           </button>
+
+          {/* Export Excel */}
+          {onExportExcel && (
+            <button
+              onClick={onExportExcel}
+              className="px-5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+            >
+              <Download size={14} />
+              تصدير Excel
+            </button>
+          )}
         </div>
 
         {/* Print */}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { GuardianSearch } from '@/components/guardians/GuardianSearch';
 import { GuardianTable } from '@/components/guardians/GuardianTable';
@@ -181,6 +182,28 @@ export default function GuardiansPage() {
     window.print();
   };
 
+  const handleExportExcel = () => {
+    const relMap: Record<string, string> = {
+      father: 'أب',
+      mother: 'أم',
+      uncle: 'عم / خال',
+      aunt: 'عمة / خالة',
+      other: 'غير ذلك',
+    };
+    const exportData = filtered.map((g) => ({
+      'الاسم الأول': g.firstName,
+      'اللقب': g.lastName,
+      'صلة القرابة': relMap[g.relationship || ''] || g.relationship || '-',
+      'المهنة': g.job || '-',
+      'البريد الإلكتروني': g.email || '-',
+      'العنوان': g.homeAddress || '-',
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'أولياء الأمور');
+    XLSX.writeFile(workbook, 'قائمة_أولياء_الأمور.xlsx');
+  };
+
   return (
     <AppLayout title="أولياء الأمور" breadcrumb="الشؤون الإدارية / أولياء الأمور">
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -203,6 +226,7 @@ export default function GuardiansPage() {
           onSelectAll={() => setSelectedIds(filtered.map((g) => g.id))}
           onCancelSelection={() => setSelectedIds([])}
           onPrint={handlePrint}
+          onExportExcel={handleExportExcel}
         />
 
         {/* Data Table */}
