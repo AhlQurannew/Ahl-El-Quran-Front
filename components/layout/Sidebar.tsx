@@ -15,6 +15,9 @@ import {
   Menu,
   X,
   GraduationCap,
+  ChevronsRight,
+  ChevronsLeft,
+  School,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -29,7 +32,19 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const navGroups: NavGroup[] = [
+// Admin navigation - empty for now, will be added as we go
+const adminNavGroups: NavGroup[] = [
+  {
+    items: [
+      { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
+      { label: 'قبول الرؤساء', href: '/dashboard/approvals', icon: <UserCheck size={18} /> },
+      { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
+    ],
+  },
+];
+
+// President navigation
+const presidentNavGroups: NavGroup[] = [
   {
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
@@ -54,13 +69,20 @@ const navGroups: NavGroup[] = [
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  const NavContent = () => (
+  // Determine if we're on admin pages
+  const isAdmin = pathname.startsWith('/dashboard');
+  
+  // Choose navigation based on role
+  const navGroups = isAdmin ? adminNavGroups : presidentNavGroups;
+
+  const NavContent = ({ isCollapsed = false }: { isCollapsed?: boolean }) => (
     <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
       {navGroups.map((group, gi) => (
         <div key={gi}>
-          {group.groupLabel && (
-            <p className="text-xs font-bold text-emerald-300/70 uppercase tracking-widest px-3 mb-2">
+          {group.groupLabel && !isCollapsed && (
+            <p className="text-xs font-bold uppercase tracking-widest px-3 mb-2" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               {group.groupLabel}
             </p>
           )}
@@ -76,14 +98,21 @@ export const Sidebar: React.FC = () => {
                       'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
                       active
                         ? 'bg-white/15 text-white shadow-sm'
-                        : 'text-emerald-100/70 hover:bg-white/10 hover:text-white'
+                        : 'hover:bg-white/10',
+                      isCollapsed && 'justify-center'
                     )}
+                    style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.85)' }}
+                    title={isCollapsed ? item.label : undefined}
                   >
-                    <span className={active ? 'text-white' : 'text-emerald-300/70'}>
+                    <span style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.7)' }}>
                       {item.icon}
                     </span>
-                    <span className="flex-1">{item.label}</span>
-                    {active && <ChevronRight size={14} className="opacity-60" />}
+                    {!isCollapsed && (
+                      <>
+                        <span className="flex-1">{item.label}</span>
+                        {active && <ChevronRight size={14} className="opacity-60" />}
+                      </>
+                    )}
                   </Link>
                 </li>
               );
@@ -97,37 +126,75 @@ export const Sidebar: React.FC = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 bg-gradient-to-b from-emerald-700 to-emerald-900 h-screen sticky top-0 shrink-0">
+      <aside 
+        className={cn(
+          'hidden lg:flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out',
+          collapsed ? 'w-20' : 'w-60'
+        )}
+        style={{ background: 'linear-gradient(to bottom, #C8963E, #B8832E)' }}
+      >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+        <div className={cn(
+          'flex items-center gap-3 px-5 py-5 border-b border-white/10 transition-all duration-300',
+          collapsed && 'justify-center px-3'
+        )}>
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-            <BookOpen size={18} className="text-white" />
+            {isAdmin ? <Shield size={18} className="text-white" /> : <BookOpen size={18} className="text-white" />}
           </div>
-          <div>
-            <p className="text-white font-bold text-sm leading-tight">نظام أهل القرآن</p>
-            <p className="text-emerald-300/70 text-xs">لوحة الإدارة</p>
-          </div>
+          {!collapsed && (
+            <div className="overflow-hidden">
+              <p className="text-white font-bold text-sm leading-tight whitespace-nowrap">
+                {isAdmin ? 'لوحة المسؤول' : 'نظام أهل القرآن'}
+              </p>
+              <p className="text-xs whitespace-nowrap" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                {isAdmin ? 'إدارة المنصة' : 'لوحة الإدارة'}
+              </p>
+            </div>
+          )}
         </div>
 
-        <NavContent />
+        <NavContent isCollapsed={collapsed} />
 
         {/* User profile at bottom */}
         <div className="px-4 py-4 border-t border-white/10">
-          <div className="flex items-center gap-3">
+          <div className={cn(
+            'flex items-center gap-3',
+            collapsed && 'justify-center'
+          )}>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 text-white font-bold text-sm ring-2 ring-white/30">
               ر
             </div>
-            <div className="min-w-0">
-              <p className="text-white text-sm font-semibold truncate">raouf fer</p>
-              <p className="text-emerald-300/70 text-xs truncate">المشرف العام</p>
-            </div>
+            {!collapsed && (
+              <div className="min-w-0 overflow-hidden">
+                <p className="text-white text-sm font-semibold truncate">raouf fer</p>
+                <p className="text-xs truncate" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>المشرف العام</p>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Collapse/Expand Toggle Button */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className={cn(
+            'absolute -left-4 top-20 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-110 border-2 border-white/20 hover:border-white/40 z-50',
+            'group'
+          )}
+          style={{ backgroundColor: '#C8963E' }}
+          title={collapsed ? 'توسيع القائمة' : 'طي القائمة'}
+        >
+          {collapsed ? (
+            <ChevronsLeft size={16} className="transition-transform group-hover:scale-110" />
+          ) : (
+            <ChevronsRight size={16} className="transition-transform group-hover:scale-110" />
+          )}
+        </button>
       </aside>
 
       {/* Mobile: hamburger button */}
       <button
-        className="lg:hidden fixed top-4 right-4 z-50 w-10 h-10 bg-emerald-700 rounded-xl flex items-center justify-center text-white shadow-lg"
+        className="lg:hidden fixed top-4 right-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"
+        style={{ backgroundColor: '#C8963E' }}
         onClick={() => setMobileOpen(true)}
       >
         <Menu size={20} />
@@ -140,13 +207,16 @@ export const Sidebar: React.FC = () => {
             className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="lg:hidden fixed right-0 top-0 h-full w-64 bg-gradient-to-b from-emerald-700 to-emerald-900 z-50 flex flex-col shadow-2xl">
+          <aside className="lg:hidden fixed right-0 top-0 h-full w-64 z-50 flex flex-col shadow-2xl"
+            style={{ background: 'linear-gradient(to bottom, #C8963E, #B8832E)' }}>
             <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
-                  <BookOpen size={16} className="text-white" />
+                  {isAdmin ? <Shield size={16} className="text-white" /> : <BookOpen size={16} className="text-white" />}
                 </div>
-                <p className="text-white font-bold text-sm">نظام أهل القرآن</p>
+                <p className="text-white font-bold text-sm">
+                  {isAdmin ? 'لوحة المسؤول' : 'نظام أهل القرآن'}
+                </p>
               </div>
               <button onClick={() => setMobileOpen(false)} className="text-white/70 hover:text-white">
                 <X size={20} />

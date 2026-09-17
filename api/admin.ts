@@ -16,6 +16,9 @@ axiosGlobal.interceptors.request.use(
             const token = localStorage.getItem("access_token");
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
+                console.log("🔑 Auth token attached to request:", config.url); // Debug log
+            } else {
+                console.warn("⚠️ No auth token found for request:", config.url); // Debug log
             }
         }
         return config;
@@ -64,12 +67,30 @@ const deactivateUser = async (user_id: number) => {
     return res.data;
 };
 
+const getStatistics = async () => {
+    const res = await axiosGlobal.get("/statistics/overview");
+    return res.data;
+};
+
+const getSchoolsStatistics = async (limit: number = 3) => {
+    const res = await axiosGlobal.get(`/statistics/schools?limit=${limit}`);
+    return res.data;
+};
+
+const getAllSchools = async () => {
+    const res = await axiosGlobal.get("/schools");
+    return res.data;
+};
+
 const adminAPI = {
     getPendingPresidents,
     approvePresident,
     rejectPresident,
     getAllUsers,
-    deactivateUser
+    deactivateUser,
+    getStatistics,
+    getSchoolsStatistics,
+    getAllSchools
 };
 
 export default adminAPI;

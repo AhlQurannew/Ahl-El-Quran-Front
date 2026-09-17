@@ -1,190 +1,250 @@
 "use client";
 
-import { useState } from "react";
-import PresidentCard from "@/components/PresidentCard";
-import { RotateCw, LogOut, Users, CheckCircle } from "lucide-react";
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { SchoolCard } from "@/components/SchoolCard";
+import { 
+  Users, 
+  Shield,
+  TrendingUp,
+  School,
+  CheckCircle,
+  Loader2,
+  ChevronLeft
+} from "lucide-react";
+import Link from "next/link";
+import adminAPI from "@/api/admin";
 
-interface President {
-  id: number;
-  name: string;
-  email: string;
-  school: string;
+interface Statistics {
+  total_schools: number;
+  total_presidents: number;
+  pending_requests: number;
+  performance: number | null;
+}
+
+interface SchoolData {
+  school_name: string;
+  president_name: string;
+  student_count: number;
+  percentage: number;
+}
+
+interface SchoolsStatistics {
+  total_students: number;
+  schools: SchoolData[];
 }
 
 export default function AdminDashboard() {
-  const router = useRouter();
+  const [stats, setStats] = useState<Statistics | null>(null);
+  const [schoolsStats, setSchoolsStats] = useState<SchoolsStatistics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(true);
+  const [error, setError] = useState<string>("");
 
-  const [presidents, setPresidents] = useState<President[]>([
-    { id: 2, name: "younes pres", email: "younes@gmail.com", school: "سلمان الفارسي" },
-    { id: 3, name: "ahmed attia", email: "ahmed@gmail.com", school: "مدرسة الهداية" },
-    { id: 4, name: "ihab maarifi", email: "ihab@gmail.com", school: "مدرسة الهداية" },
-  ]);
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        setIsLoading(true);
+        const data = await adminAPI.getStatistics();
+        setStats(data);
+      } catch (err: any) {
+        console.error("Error fetching statistics:", err);
+        setError("تعذر تحميل الإحصاءات");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [selectedPresident, setSelectedPresident] = useState<President | null>(null);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [pendingApprovalId, setPendingApprovalId] = useState<number | null>(null);
+    const fetchSchoolsStatistics = async () => {
+      try {
+        setIsLoadingSchools(true);
+        const data = await adminAPI.getSchoolsStatistics(3);
+        setSchoolsStats(data);
+      } catch (err: any) {
+        console.error("Error fetching schools statistics:", err);
+      } finally {
+        setIsLoadingSchools(false);
+      }
+    };
 
-  const handleConfirmApprove = () => {
-    if (pendingApprovalId !== null) {
-      setPresidents(presidents.filter((p) => p.id !== pendingApprovalId));
-      setPendingApprovalId(null);
-      setSelectedPresident(null);
-    }
-  };
-
-  const handleReject = (id: number) => {
-    setPresidents(presidents.filter((p) => p.id !== id));
-  };
+    fetchStatistics();
+    fetchSchoolsStatistics();
+  }, []);
 
   return (
-    <div className="min-h-screen flex flex-col font-sans" style={{ backgroundColor: '#F9F4E4' }} dir="rtl">
-
-      <header className="text-white px-6 py-3 shadow-md flex justify-between items-center sticky top-0 z-10"
-        style={{ backgroundColor: '#C8963E' }}>
-        <div className="flex items-center gap-2">
-          <Users size={20} />
-          <h1 className="text-lg font-bold">لوحة تحكم المسؤول</h1>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => window.location.reload()}
-            className="hover:bg-white/10 p-2 rounded-full transition"
-            title="تحديث"
-          >
-            <RotateCw size={18} />
-          </button>
-          <button
-            onClick={() => setShowLogoutModal(true)}
-            className="hover:bg-white/10 p-2 rounded-full transition"
-            title="تسجيل الخروج"
-          >
-            <LogOut size={18} />
-          </button>
-        </div>
-      </header>
-
-      <main className="flex-1 flex flex-col items-center py-8 px-4">
-        
-        <div className="w-full max-w-3xl mb-6">
+    <AppLayout title="لوحة تحكم المسؤول" breadcrumb="الرئيسية">
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="rounded-2xl p-6 text-white shadow-lg"
+          style={{ background: 'linear-gradient(to right, #C8963E, #B8832E)' }}>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-700">طلبات الرؤساء</h2>
-            <span className="text-sm text-gray-400 bg-white px-3 py-1 rounded-full border border-gray-200">
-              {presidents.length} طلب
-            </span>
+            <div>
+              <h2 className="text-2xl font-bold mb-2">مرحباً بك في لوحة المسؤول</h2>
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>إدارة المنصة والإشراف على المدارس</p>
+            </div>
+            <div className="hidden md:block">
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <Shield size={40} className="text-white" />
+              </div>
+            </div>
           </div>
-          <div className="h-0.5 mt-3 rounded-full" style={{ backgroundColor: '#C8963E', opacity: 0.3 }} />
         </div>
 
-        <div className="w-full max-w-3xl space-y-4">
-          {presidents.map((president) => (
-            <PresidentCard
-              key={president.id}
-              president={president}
-              onOpenDetails={(p) => setSelectedPresident(p)}
-              onApprove={(id) => setPendingApprovalId(id)}
-              onReject={handleReject}
-            />
-          ))}
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+            {error}
+          </div>
+        )}
 
-          {presidents.length === 0 && (
-            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-              <Users size={40} className="mx-auto mb-3 text-gray-300" />
-              <p className="text-gray-400">لا توجد طلبات رئيس معلقة حالياً</p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Schools */}
+          <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <School size={24} className="text-blue-600" />
+              </div>
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+              ) : (
+                <span className="text-2xl font-bold text-gray-900">{stats?.total_schools || 0}</span>
+              )}
+            </div>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">إجمالي المدارس</h3>
+            <p className="text-xs text-gray-400">عدد المدارس المسجلة</p>
+          </div>
+
+          {/* Total Presidents */}
+          <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                <Users size={24} className="text-purple-600" />
+              </div>
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+              ) : (
+                <span className="text-2xl font-bold text-gray-900">{stats?.total_presidents || 0}</span>
+              )}
+            </div>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">عدد الرؤساء</h3>
+            <p className="text-xs text-gray-400">الرؤساء المعتمدين</p>
+          </div>
+
+          {/* Pending Approvals */}
+          <Link href="/dashboard/approvals">
+            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(200, 150, 62, 0.1)' }}>
+                  <CheckCircle size={24} style={{ color: '#C8963E' }} />
+                </div>
+                {isLoading ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                ) : (
+                  <span className="text-2xl font-bold text-gray-900">{stats?.pending_requests || 0}</span>
+                )}
+              </div>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">طلبات معلقة</h3>
+              <p className="text-xs" style={{ color: '#C8963E' }}>انقر للمراجعة</p>
+            </div>
+          </Link>
+
+          {/* Performance */}
+          <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <TrendingUp size={24} className="text-green-600" />
+              </div>
+              <span className="text-2xl font-bold text-gray-900">--</span>
+            </div>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">معدل الأداء</h3>
+            <p className="text-xs text-gray-400">قريباً</p>
+          </div>
+        </div>
+
+        {/* Schools Distribution Section */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">توزيع الطلاب حسب المدارس</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {schoolsStats?.total_students || 0} طالب في المجموع
+              </p>
+            </div>
+            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-colors"
+              style={{ color: '#C8963E', backgroundColor: 'rgba(200, 150, 62, 0.1)' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.15)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.1)'}>
+              عرض الكل
+              <ChevronLeft size={16} />
+            </button>
+          </div>
+
+          {isLoadingSchools ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8963E' }} />
+            </div>
+          ) : schoolsStats && schoolsStats.schools.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {schoolsStats.schools.map((school, index) => (
+                <SchoolCard
+                  key={index}
+                  schoolName={school.school_name}
+                  presidentName={school.president_name}
+                  studentCount={school.student_count}
+                  percentage={school.percentage}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-400">
+              <School size={48} className="mx-auto mb-3 text-gray-300" />
+              <p className="text-sm">لا توجد مدارس مسجلة حالياً</p>
             </div>
           )}
         </div>
-      </main>
 
-      {selectedPresident && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4"
-              style={{ backgroundColor: '#C8963E' }}>
-              {selectedPresident.name.charAt(0).toUpperCase()}
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">تفاصيل الطلب</h3>
-            <div className="space-y-3 text-sm text-right mb-6">
-              <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                <span className="text-gray-400">رقم المعرف</span>
-                <span className="font-bold text-gray-800">{selectedPresident.id}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                <span className="text-gray-400">الاسم الكامل</span>
-                <span className="font-bold text-gray-800">{selectedPresident.name}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                <span className="text-gray-400">البريد الإلكتروني</span>
-                <span className="font-bold text-gray-800">{selectedPresident.email}</span>
-              </div>
-              <div className="flex justify-between items-center pb-2">
-                <span className="text-gray-400">اسم المدرسة</span>
-                <span className="font-bold" style={{ color: '#C8963E' }}>{selectedPresident.school}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedPresident(null)}
-              className="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium py-2.5 rounded-xl transition text-sm"
-            >
-              إغلاق
+        {/* Quick Links */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">روابط سريعة</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Link href="/dashboard/approvals">
+              <button className="w-full text-right px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-sm font-medium text-gray-700 flex items-center gap-3">
+                <CheckCircle size={18} style={{ color: '#C8963E' }} />
+                قبول الرؤساء
+                {!isLoading && stats && stats.pending_requests > 0 && (
+                  <span className="mr-auto px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ backgroundColor: '#C8963E' }}>
+                    {stats.pending_requests}
+                  </span>
+                )}
+              </button>
+            </Link>
+            <button className="w-full text-right px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-sm font-medium text-gray-700 flex items-center gap-3">
+              <School size={18} className="text-gray-500" />
+              إدارة المدارس
+            </button>
+            <button className="w-full text-right px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-sm font-medium text-gray-700 flex items-center gap-3">
+              <TrendingUp size={18} className="text-gray-500" />
+              التقارير والإحصاءات
             </button>
           </div>
         </div>
-      )}
 
-      {pendingApprovalId !== null && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: '#C8963E20' }}>
-              <CheckCircle size={28} style={{ color: '#C8963E' }} />
+        {/* Info Message */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-white text-xs font-bold">ℹ</span>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">قبول الطلب</h3>
-            <p className="text-sm text-gray-500 mb-6">هل أنت متأكد من قبول طلب هذا الرئيس؟</p>
-            <div className="space-y-2">
-              <button
-                onClick={handleConfirmApprove}
-                className="w-full text-white py-2.5 rounded-xl font-medium transition text-sm hover:opacity-90"
-                style={{ backgroundColor: '#C8963E' }}
-              >
-                تأكيد القبول
-              </button>
-              <button
-                onClick={() => setPendingApprovalId(null)}
-                className="w-full bg-transparent hover:bg-gray-50 text-gray-500 py-2 rounded-xl transition text-sm"
-              >
-                إلغاء
-              </button>
+            <div>
+              <h4 className="font-semibold text-blue-900 mb-1">لوحة المسؤول</h4>
+              <p className="text-sm text-blue-700">
+                استخدم القائمة الجانبية للتنقل بين الأقسام المختلفة. سيتم إضافة المزيد من الميزات قريباً.
+              </p>
             </div>
           </div>
         </div>
-      )}
-
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border">
-            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <LogOut size={28} className="text-red-500" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">تسجيل الخروج</h3>
-            <p className="text-sm text-gray-500 mb-6">هل أنت متأكد من تسجيل الخروج؟</p>
-            <div className="space-y-2">
-              <button
-                onClick={() => router.push('/login')}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-medium transition text-sm"
-              >
-                تسجيل الخروج
-              </button>
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="w-full bg-transparent hover:bg-gray-50 text-gray-500 py-2 rounded-xl transition text-sm"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </AppLayout>
   );
 }
