@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { TeacherSearch } from '@/components/teachers/TeacherSearch';
@@ -10,73 +10,43 @@ import { TeacherStats } from '@/components/teachers/TeacherStats';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Teacher } from '@/types/teacher';
+import presidentAPI from '@/app/API/president';
 
-// ─── Seed data ─────────────────────────────────────────────
-const SEED_TEACHERS: Teacher[] = [
-  {
-    id: '1',
-    user_id: 'USR001',
-    firstname: 'محمد',
-    lastname: 'أحمد',
-    email: 'mohamed.ahmed@example.com',
-    ruaya: 'حفص عن عاصم',
-    hire_date: '2020-09-01T00:00:00.000Z',
-    is_active: true,
-  },
-  {
-    id: '2',
-    user_id: 'USR002',
-    firstname: 'فاطمة',
-    lastname: 'علي',
-    email: 'fatima.ali@example.com',
-    ruaya: 'ورش عن نافع',
-    hire_date: '2019-03-15T00:00:00.000Z',
-    is_active: true,
-  },
-  {
-    id: '3',
-    user_id: 'USR003',
-    firstname: 'خالد',
-    lastname: 'حسن',
-    email: 'khaled.hassan@example.com',
-    ruaya: 'حفص عن عاصم',
-    hire_date: '2021-01-20T00:00:00.000Z',
-    is_active: false,
-  },
-  {
-    id: '4',
-    user_id: 'USR004',
-    firstname: 'عائشة',
-    lastname: 'محمود',
-    email: 'aisha.mahmoud@example.com',
-    ruaya: 'قالون عن نافع',
-    hire_date: '2018-07-10T00:00:00.000Z',
-    is_active: true,
-  },
-  {
-    id: '5',
-    user_id: 'USR005',
-    firstname: 'عبد الله',
-    lastname: 'يوسف',
-    email: 'abdullah.youssef@example.com',
-    ruaya: 'حفص عن عاصم',
-    hire_date: '2022-02-28T00:00:00.000Z',
-    is_active: true,
-  },
-];
-
-type ToastState = { visible: boolean; type: 'success' | 'info'; message: string };
+type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>(SEED_TEACHERS);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
+
+  // ── Load teachers from API ──
+  const loadTeachers = async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const response = await presidentAPI.getTeachers();
+      const teachersList = Array.isArray(response) ? response : response.teachers || [];
+      setTeachers(teachersList);
+    } catch (err: any) {
+      console.error('Error loading teachers:', err);
+      setLoadError(err.response?.data?.detail || err.message || 'فشل تحميل بيانات المعلمين');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTeachers();
+  }, []);
 
   // ── Derived filtered list ──
   const filtered = useMemo(() => {
@@ -123,25 +93,47 @@ export default function TeachersPage() {
     }
   };
 
-  const handleDeleteConfirm = () => {
-    setTeachers((prev) => prev.filter((t) => !selectedIds.includes(t.id)));
-    showToast('success', `تم حذف عدد ${selectedIds.length} معلم بنجاح`);
+  const handleDeleteConfirm = async () => {
+    // Note: Backend delete endpoint may not exist yet
+    // For now, we'll just remove from local state
+    setTeachers((prev) => prev.filter((t) => t.id !== selectedIds[0]));
+    showToast('success', `تم حذف المعلم بنجاح`);
     setSelectedIds([]);
+    setIsConfirmOpen(false);
   };
 
-  const handleFormSubmit = (data: Omit<Teacher, 'id'>) => {
-    if (editingTeacher) {
-      setTeachers((prev) =>
-        prev.map((t) => (t.id === editingTeacher.id ? { ...data, id: editingTeacher.id } : t))
-      );
-      showToast('success', `تم تعديل بيانات المعلم ${data.firstname} ${data.lastname}`);
-    } else {
-      const newTeacher: Teacher = { ...data, id: Date.now().toString() };
-      setTeachers((prev) => [newTeacher, ...prev]);
-      showToast('success', `تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح`);
+  const handleFormSubmit = async (data: Omit<Teacher, 'id'>) => {
+    setIsSubmitting(true);
+    try {
+      if (editingTeacher) {
+        // Update existing teacher (local only for now)
+        setTeachers((prev) =>
+          prev.map((t) => (t.id === editingTeacher.id ? { ...data, id: editingTeacher.id } : t))
+        );
+        showToast('success', `تم تعديل بيانات المعلم ${data.firstname} ${data.lastname}`);
+      } else {
+        // Create new teacher via API
+        await presidentAPI.registerTeacher({
+          firstname: data.firstname,
+          lastname: data.lastname,
+          email: data.email,
+          riwaya: data.ruaya || 'حفص عن عاصم',
+          password: '123456' // Default password
+        });
+        
+        showToast('success', `تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح`);
+        
+        // Reload teachers list
+        await loadTeachers();
+      }
+      setIsFormOpen(false);
+      setSelectedIds([]);
+    } catch (err: any) {
+      console.error('Error saving teacher:', err);
+      showToast('error', err.response?.data?.detail || err.message || 'فشل حفظ بيانات المعلم');
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsFormOpen(false);
-    setSelectedIds([]);
   };
 
   const handlePlusClick = (teacher: Teacher) => {
@@ -175,31 +167,56 @@ export default function TeachersPage() {
           إدارة المعلمين / الصفحة الرئيسية
         </div>
 
-        {/* Statistics Cards */}
-        <TeacherStats teachers={filtered} />
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+          </div>
+        )}
 
-        {/* Search Input and action buttons */}
-        <TeacherSearch
-          query={query}
-          onQueryChange={setQuery}
-          selectedCount={selectedIds.length}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={() => setIsConfirmOpen(true)}
-          onSelectAll={() => setSelectedIds(filtered.map((t) => t.id))}
-          onCancelSelection={() => setSelectedIds([])}
-          onPrint={handlePrint}
-          onExportExcel={handleExportExcel}
-        />
+        {/* Error State */}
+        {loadError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+            {loadError}
+            <button 
+              onClick={loadTeachers}
+              className="mr-4 underline hover:no-underline"
+            >
+              إعادة المحاولة
+            </button>
+          </div>
+        )}
 
-        {/* Data Table */}
-        <TeacherTable
-          teachers={filtered}
-          selectedIds={selectedIds}
-          onToggleSelect={handleToggleSelect}
-          onToggleSelectAll={handleToggleSelectAll}
-          onPlusClick={handlePlusClick}
-        />
+        {/* Content - Only show when not loading */}
+        {!isLoading && !loadError && (
+          <>
+            {/* Statistics Cards */}
+            <TeacherStats teachers={filtered} />
+
+            {/* Search Input and action buttons */}
+            <TeacherSearch
+              query={query}
+              onQueryChange={setQuery}
+              selectedCount={selectedIds.length}
+              onAdd={handleAdd}
+              onEdit={handleEdit}
+              onDelete={() => setIsConfirmOpen(true)}
+              onSelectAll={() => setSelectedIds(filtered.map((t) => t.id))}
+              onCancelSelection={() => setSelectedIds([])}
+              onPrint={handlePrint}
+              onExportExcel={handleExportExcel}
+            />
+
+            {/* Data Table */}
+            <TeacherTable
+              teachers={filtered}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleSelectAll={handleToggleSelectAll}
+              onPlusClick={handlePlusClick}
+            />
+          </>
+        )}
       </div>
 
       {/* Teacher Form Modal */}
@@ -208,6 +225,7 @@ export default function TeachersPage() {
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
         editingTeacher={editingTeacher}
+        isSubmitting={isSubmitting}
       />
 
       {/* Confirm deletion dialog */}

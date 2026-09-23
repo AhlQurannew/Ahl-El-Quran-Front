@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell, LogOut } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
 
 interface TopbarProps {
   title: string;
@@ -9,6 +11,35 @@ interface TopbarProps {
 }
 
 export const Topbar: React.FC<TopbarProps> = ({ title, breadcrumb }) => {
+  const router = useRouter();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const [isAdminViewingSchool, setIsAdminViewingSchool] = useState(false);
+
+  useEffect(() => {
+    // Check if admin is viewing a school
+    if (typeof window !== 'undefined') {
+      const adminViewData = sessionStorage.getItem('admin_viewing_school');
+      setIsAdminViewingSchool(!!adminViewData);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    // Clear auth store
+    clearAuth();
+
+    // Clear all tokens from localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('jwt');
+      sessionStorage.removeItem('admin_viewing_school');
+    }
+
+    // Redirect to login page
+    router.push('/login');
+  };
+
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 pr-16 lg:pr-6 shrink-0 sticky top-0 z-20">
       {/* Left: page title */}
@@ -27,8 +58,17 @@ export const Topbar: React.FC<TopbarProps> = ({ title, breadcrumb }) => {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
         </button>
 
-        {/* Logout */}
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors cursor-pointer">
+        {/* Logout - disabled when admin is viewing a school */}
+        <button 
+          onClick={handleLogout}
+          disabled={isAdminViewingSchool}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
+            isAdminViewingSchool
+              ? 'text-gray-300 bg-gray-50 cursor-not-allowed opacity-50'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 cursor-pointer'
+          }`}
+          title={isAdminViewingSchool ? 'استخدم زر "الخروج" من شريط العرض للعودة إلى لوحة الإدارة' : 'تسجيل الخروج'}
+        >
           <LogOut size={16} />
           <span className="hidden sm:block">تسجيل الخروج</span>
         </button>

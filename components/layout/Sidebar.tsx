@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +20,8 @@ import {
   School,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useAdminView } from '@/contexts/AdminViewContext';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItem {
   label: string;
@@ -39,6 +41,8 @@ const adminNavGroups: NavGroup[] = [
       { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
       { label: 'قبول الرؤساء', href: '/dashboard/approvals', icon: <UserCheck size={18} /> },
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
+      { label: 'بيانات المدرسة', href: '/dashboard/school-data', icon: <School size={18} /> },
+      { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
     ],
   },
 ];
@@ -68,14 +72,39 @@ const presidentNavGroups: NavGroup[] = [
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { isAdminViewing } = useAdminView();
+  const user = useAuthStore((state) => state.user);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Determine if we're on admin pages
-  const isAdmin = pathname.startsWith('/dashboard');
+  // Determine if we're on admin pages (but not when viewing as school)
+  const isAdmin = pathname.startsWith('/dashboard') && !isAdminViewing;
   
-  // Choose navigation based on role
+  // Choose navigation based on role - if admin is viewing, show president nav
   const navGroups = isAdmin ? adminNavGroups : presidentNavGroups;
+
+  // Set sidebar colors based on role - if admin is viewing, use emerald green
+  const sidebarGradient = isAdmin 
+    ? 'linear-gradient(to bottom, #C8963E, #B8832E)' // Golden for admin
+    : 'linear-gradient(to bottom, #047857, #064e3b)'; // Emerald green (700-900) for others
+  
+  const sidebarColor = isAdmin ? '#C8963E' : '#047857';
+
+  // Get user display data
+  const userName = user ? `${user.firstname} ${user.lastname}` : 'مستخدم';
+  const userInitial = user?.firstname ? user.firstname.charAt(0).toUpperCase() : 'م';
+  
+  // Role labels in Arabic
+  const roleLabels: Record<string, string> = {
+    ADMIN: 'المسؤول',
+    PRESIDENT: 'الرئيس',
+    SUPERVISOR: 'المشرف',
+    TEACHER: 'المعلم',
+    GUARDIAN: 'ولي الأمر',
+    STUDENT: 'الطالب',
+  };
+  const userRole = user?.role ? roleLabels[user.role] : 'مستخدم';
 
   const NavContent = ({ isCollapsed = false }: { isCollapsed?: boolean }) => (
     <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
@@ -131,7 +160,7 @@ export const Sidebar: React.FC = () => {
           'hidden lg:flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out',
           collapsed ? 'w-20' : 'w-60'
         )}
-        style={{ background: 'linear-gradient(to bottom, #C8963E, #B8832E)' }}
+        style={{ background: sidebarGradient }}
       >
         {/* Logo */}
         <div className={cn(
@@ -162,12 +191,12 @@ export const Sidebar: React.FC = () => {
             collapsed && 'justify-center'
           )}>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 text-white font-bold text-sm ring-2 ring-white/30">
-              ر
+              {userInitial}
             </div>
             {!collapsed && (
               <div className="min-w-0 overflow-hidden">
-                <p className="text-white text-sm font-semibold truncate">raouf fer</p>
-                <p className="text-xs truncate" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>المشرف العام</p>
+                <p className="text-white text-sm font-semibold truncate">{userName}</p>
+                <p className="text-xs truncate" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{userRole}</p>
               </div>
             )}
           </div>
@@ -180,7 +209,7 @@ export const Sidebar: React.FC = () => {
             'absolute -left-4 top-20 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-110 border-2 border-white/20 hover:border-white/40 z-50',
             'group'
           )}
-          style={{ backgroundColor: '#C8963E' }}
+          style={{ backgroundColor: sidebarColor }}
           title={collapsed ? 'توسيع القائمة' : 'طي القائمة'}
         >
           {collapsed ? (
@@ -194,7 +223,7 @@ export const Sidebar: React.FC = () => {
       {/* Mobile: hamburger button */}
       <button
         className="lg:hidden fixed top-4 right-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"
-        style={{ backgroundColor: '#C8963E' }}
+        style={{ backgroundColor: sidebarColor }}
         onClick={() => setMobileOpen(true)}
       >
         <Menu size={20} />
@@ -208,7 +237,7 @@ export const Sidebar: React.FC = () => {
             onClick={() => setMobileOpen(false)}
           />
           <aside className="lg:hidden fixed right-0 top-0 h-full w-64 z-50 flex flex-col shadow-2xl"
-            style={{ background: 'linear-gradient(to bottom, #C8963E, #B8832E)' }}>
+            style={{ background: sidebarGradient }}>
             <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">

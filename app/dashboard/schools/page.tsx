@@ -27,6 +27,19 @@ interface SchoolData {
   approval_date: string | null;
   created_at: string | null;
   is_active: boolean;
+  // Role counts for circular progress
+  president_count?: number;
+  supervisor_count?: number;
+  teacher_count?: number;
+  guardian_count?: number;
+}
+
+interface RoleStats {
+  label: string;
+  count: number;
+  total: number;
+  percentage: number;
+  color: string;
 }
 
 export default function SchoolsManagementPage() {
@@ -110,6 +123,95 @@ export default function SchoolsManagementPage() {
     });
   };
 
+  const calculateRoleStats = (school: SchoolData): RoleStats[] => {
+    const total = (school.president_count || 1) + 
+                  (school.supervisor_count || 0) + 
+                  (school.teacher_count || 0) + 
+                  (school.guardian_count || 0) + 
+                  school.student_count;
+
+    return [
+      {
+        label: 'الرؤساء',
+        count: school.president_count || 1,
+        total,
+        percentage: ((school.president_count || 1) / total) * 100,
+        color: '#C8963E' // Golden
+      },
+      {
+        label: 'المشرفين',
+        count: school.supervisor_count || 0,
+        total,
+        percentage: ((school.supervisor_count || 0) / total) * 100,
+        color: '#3b82f6' // Blue
+      },
+      {
+        label: 'المعلمين',
+        count: school.teacher_count || 0,
+        total,
+        percentage: ((school.teacher_count || 0) / total) * 100,
+        color: '#10b981' // Emerald
+      },
+      {
+        label: 'أولياء الأمور',
+        count: school.guardian_count || 0,
+        total,
+        percentage: ((school.guardian_count || 0) / total) * 100,
+        color: '#8b5cf6' // Purple
+      },
+      {
+        label: 'الطلاب',
+        count: school.student_count,
+        total,
+        percentage: (school.student_count / total) * 100,
+        color: '#f59e0b' // Amber
+      }
+    ];
+  };
+
+  const CircularProgress = ({ percentage, color, size = 120 }: { percentage: number; color: string; size?: number }) => {
+    const strokeWidth = 8;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percentage / 100) * circumference;
+
+    return (
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          {/* Background circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="#f3f4f6"
+            strokeWidth={strokeWidth}
+          />
+          {/* Progress circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          />
+        </svg>
+        {/* Percentage text */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-900">{Math.round(percentage)}%</div>
+            <div className="text-xs text-gray-500">مكتمل</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <AppLayout title="إدارة المدارس" breadcrumb="لوحة التحكم / إدارة المدارس">
       <div className="space-y-6">
@@ -154,102 +256,109 @@ export default function SchoolsManagementPage() {
           </div>
         </div>
 
-        {/* Schools Table */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Schools Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading ? (
-            <div className="flex items-center justify-center py-20">
+            <div className="col-span-full flex items-center justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8963E' }} />
             </div>
           ) : filteredSchools.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
+            <div className="col-span-full text-center py-16 text-gray-400">
               <School size={48} className="mx-auto mb-3 text-gray-300" />
               <p className="text-sm">
                 {searchQuery ? "لا توجد نتائج للبحث" : "لا توجد مدارس مسجلة حالياً"}
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      اسم المدرسة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      اسم الرئيس
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      البريد الإلكتروني
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      رقم الهاتف
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      عدد الطلاب
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      تاريخ القبول
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      إجراءات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {filteredSchools.map((school) => (
-                    <tr key={school.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(200, 150, 62, 0.1)' }}>
-                            <School size={18} style={{ color: '#C8963E' }} />
+            filteredSchools.map((school) => {
+              const roleStats = calculateRoleStats(school);
+              
+              return (
+                <div 
+                  key={school.id} 
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group"
+                >
+                  {/* Card Header */}
+                  <div className="p-6 border-b border-gray-100">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center" 
+                          style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}>
+                          <School size={24} className="text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">{school.school_name}</h3>
+                          <p className="text-sm text-gray-500">{school.president_name}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedSchool(school)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="عرض التفاصيل"
+                      >
+                        <MoreVertical size={20} className="text-gray-400 hover:text-gray-600" />
+                      </button>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail size={14} className="text-gray-400" />
+                        <span className="truncate">{school.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone size={14} className="text-gray-400" />
+                        <span>{school.phone_number}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar size={14} className="text-gray-400" />
+                        <span>{formatDate(school.approval_date)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Role Statistics with Circular Progress */}
+                  <div className="p-6">
+                    <h4 className="text-sm font-bold text-gray-700 mb-4">توزيع الأدوار</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      {roleStats.map((role, index) => (
+                        <div key={index} className="flex flex-col items-center">
+                          <CircularProgress 
+                            percentage={role.percentage} 
+                            color={role.color}
+                            size={85}
+                          />
+                          <div className="mt-3 text-center">
+                            <p className="text-xs font-medium text-gray-700">{role.label}</p>
+                            <p className="text-xs text-gray-500">{role.count} عضو</p>
                           </div>
-                          <div className="font-medium text-gray-900">{school.school_name}</div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {school.president_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Mail size={14} className="text-gray-400" />
-                          {school.email}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Phone size={14} className="text-gray-400" />
-                          {school.phone_number}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Users size={14} className="text-gray-400" />
-                          <span className="text-sm font-medium text-gray-900">{school.student_count}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Calendar size={14} className="text-gray-400" />
-                          {formatDate(school.approval_date)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => setSelectedSchool(school)}
-                          className="px-3 py-1.5 rounded-lg font-medium transition-colors"
-                          style={{ color: '#C8963E', backgroundColor: 'rgba(200, 150, 62, 0.1)' }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.15)'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.1)'}
-                        >
-                          <Eye size={16} className="inline ml-1" />
-                          عرض التفاصيل
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Footer */}
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                    <button
+                      onClick={() => setSelectedSchool(school)}
+                      className="w-full px-4 py-2 rounded-lg font-medium transition-all text-sm"
+                      style={{ color: '#C8963E', backgroundColor: 'rgba(200, 150, 62, 0.1)' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.15)';
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <Eye size={16} className="inline ml-1" />
+                      عرض التفاصيل الكاملة
+                    </button>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
