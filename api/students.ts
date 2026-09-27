@@ -92,9 +92,10 @@ export interface AchievementPayload {
 }
 
 export interface AttendancePayload {
+    student_id?: number;
     date: string;
     status: string;
-    notes: string;
+    notes?: string;
 }
 
 
@@ -193,9 +194,13 @@ const createAttendance = async (
     student_id: number,
     data: AttendancePayload
 ) => {
+    const payload = {
+        student_id: student_id,
+        ...data,
+    };
     const res = await axiosGlobal.post(
         `/${student_id}/attendance`,
-        data
+        payload
     );
     return res.data;
 };

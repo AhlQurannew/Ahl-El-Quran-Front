@@ -41,7 +41,6 @@ const adminNavGroups: NavGroup[] = [
       { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
       { label: 'قبول الرؤساء', href: '/dashboard/approvals', icon: <UserCheck size={18} /> },
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
-      { label: 'بيانات المدرسة', href: '/dashboard/school-data', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
     ],
   },

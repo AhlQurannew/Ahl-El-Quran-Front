@@ -121,7 +121,8 @@ export interface AchievementPayload {
 export interface AttendancePayload {
     date: string;
     status: string;
-    notes: string;
+    notes?: string;  // Optional
+    // Note: student_id is added automatically in createAttendance function
 }
 
 const createStudent = async (data: CreateStudentPayload) => {
@@ -208,9 +209,13 @@ const createAttendance = async (
     student_id: number,
     data: AttendancePayload
 ) => {
+    const payload = {
+        student_id: student_id,  // Must match the URL path parameter
+        ...data,
+    };
     const res = await axiosGlobal.post(
         `/${student_id}/attendance`,
-        data
+        payload
     );
     return res.data;
 };

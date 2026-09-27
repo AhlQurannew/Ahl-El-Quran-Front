@@ -11,7 +11,10 @@ const axiosGlobal = axios.create({
 });
 
 axiosGlobal.interceptors.request.use((config) => {
-    const token = useAuthStore.getState().accessToken;
+    const directToken = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const zustandToken = useAuthStore.getState().accessToken;
+    const token = directToken || zustandToken;
+
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -55,6 +58,13 @@ export interface AchievementPayload {
     note: string;
     achievement_type: string;
     date: string;
+}
+
+export interface TeacherAttendancePayload {
+    teacher_id?: number;  // Optional - backend schema says it's optional
+    date: string;          // DD-MM-YYYY format
+    status: string;        // "present" | "late" | "absent" | "excused"
+    notes?: string;        // Optional
 }
 
 
@@ -204,6 +214,49 @@ const deleteAchievement = async (
     );
 };
 
+// ================= TEACHER ATTENDANCE =================
+
+const createTeacherAttendance = async (
+    teacher_id: number,
+    data: TeacherAttendancePayload
+) => {
+    const payload = {
+        teacher_id: teacher_id,
+        ...data,
+    };
+    const res = await axiosGlobal.post(`/${teacher_id}/attendance`, payload);
+    return res.data;
+};
+
+const getTeacherAttendance = async (
+    teacher_id: number,
+    params?: { date?: string; skip?: number; limit?: number }
+) => {
+    const res = await axiosGlobal.get(`/${teacher_id}/attendance`, { params });
+    return res.data;
+};
+
+const updateTeacherAttendance = async (
+    teacher_id: number,
+    attendance_id: number,
+    data: Partial<TeacherAttendancePayload>
+) => {
+    const res = await axiosGlobal.put(
+        `/${teacher_id}/attendance/${attendance_id}`,
+        data
+    );
+    return res.data;
+};
+
+const deleteTeacherAttendance = async (
+    teacher_id: number,
+    attendance_id: number
+) => {
+    await axiosGlobal.delete(
+        `/${teacher_id}/attendance/${attendance_id}`
+    );
+};
+
 
 const teacherAPI = {
     // CRUD
@@ -219,7 +272,7 @@ const teacherAPI = {
     getMyLectures,
     createSession,
 
-    // attendance
+    // student attendance (by teacher)
     createStudentAttendance,
     getStudentAttendance,
     updateStudentAttendance,
@@ -230,6 +283,12 @@ const teacherAPI = {
     getAchievements,
     updateAchievement,
     deleteAchievement,
+
+    // teacher attendance
+    createTeacherAttendance,
+    getTeacherAttendance,
+    updateTeacherAttendance,
+    deleteTeacherAttendance,
 };
 
 export default teacherAPI;
