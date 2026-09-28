@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import type { Student } from '@/types/student';
+import lecturesAPI, { type Lecture } from '@/api/lectures';
 
 type StudentFormData = Omit<Student, 'id'>;
 
@@ -41,8 +42,30 @@ export const StudentForm: React.FC<StudentFormProps> = ({
 }) => {
   const [form, setForm] = React.useState<StudentFormData>(EMPTY_FORM);
   const [errors, setErrors] = React.useState<Partial<Record<keyof StudentFormData, string>>>({});
+  const [lectures, setLectures] = React.useState<Lecture[]>([]);
+  const [loadingLectures, setLoadingLectures] = React.useState(false);
 
   const isEditing = !!editingStudent;
+
+  // Fetch lectures when form opens
+  useEffect(() => {
+    const fetchLectures = async () => {
+      if (isOpen) {
+        setLoadingLectures(true);
+        try {
+          const data = await lecturesAPI.getAllLectures();
+          setLectures(data);
+        } catch (error) {
+          console.error('Error fetching lectures:', error);
+          setLectures([]);
+        } finally {
+          setLoadingLectures(false);
+        }
+      }
+    };
+
+    fetchLectures();
+  }, [isOpen]);
 
   useEffect(() => {
     if (editingStudent) {
@@ -146,11 +169,16 @@ export const StudentForm: React.FC<StudentFormProps> = ({
 
         {/* Halqa & DOB */}
         <div className="grid grid-cols-2 gap-3">
-          <Input
+          <Select
             label="الحلقة"
-            placeholder="حلقة أحمد"
+            placeholder={loadingLectures ? "جاري التحميل..." : "اختر الحلقة..."}
             value={form.halqa || ''}
             onChange={(e) => set('halqa', e.target.value)}
+            options={lectures.map((lecture) => ({
+              value: lecture.lecture_name_ar,
+              label: lecture.lecture_name_ar,
+            }))}
+            disabled={loadingLectures}
           />
           <Input
             label="تاريخ الميلاد"
