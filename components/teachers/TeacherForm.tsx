@@ -1,17 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import type { Teacher } from '@/types/teacher';
+import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
 
 interface TeacherFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<Teacher, 'id'>) => void;
+  onSubmit: (data: TeacherCreatePayload | Partial<Teacher>) => void;
   editingTeacher?: Teacher | null;
+  isSubmitting?: boolean;
 }
 
 export const TeacherForm: React.FC<TeacherFormProps> = ({
@@ -19,39 +20,45 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   onClose,
   onSubmit,
   editingTeacher,
+  isSubmitting = false,
 }) => {
-  const [formData, setFormData] = useState<Omit<Teacher, 'id'>>({
-    user_id: '',
+  const [formData, setFormData] = useState<TeacherCreatePayload | Partial<Teacher>>({
     firstname: '',
     lastname: '',
     email: '',
-    ruaya: '',
-    hire_date: new Date().toISOString().split('T')[0],
-    is_active: true,
+    riwaya: 'حفص عن عاصم',
+    password: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Generate random password
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
   useEffect(() => {
     if (editingTeacher) {
+      // Edit mode - only include editable fields
       setFormData({
-        user_id: editingTeacher.user_id,
         firstname: editingTeacher.firstname,
         lastname: editingTeacher.lastname,
         email: editingTeacher.email,
-        ruaya: editingTeacher.ruaya,
-        hire_date: editingTeacher.hire_date.split('T')[0],
-        is_active: editingTeacher.is_active,
+        riwaya: editingTeacher.riwaya,
       });
     } else {
+      // Create mode - include password
       setFormData({
-        user_id: '',
         firstname: '',
         lastname: '',
         email: '',
-        ruaya: '',
-        hire_date: new Date().toISOString().split('T')[0],
-        is_active: true,
+        riwaya: 'حفص عن عاصم',
+        password: generatePassword(),
       });
     }
     setErrors({});
@@ -60,19 +67,26 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstname.trim()) {
+    if (!formData.firstname?.trim()) {
       newErrors.firstname = 'الاسم مطلوب';
     }
-    if (!formData.lastname.trim()) {
+    if (!formData.lastname?.trim()) {
       newErrors.lastname = 'اللقب مطلوب';
     }
-    if (!formData.email.trim()) {
+    if (!formData.email?.trim()) {
       newErrors.email = 'البريد الإلكتروني مطلوب';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'البريد الإلكتروني غير صحيح';
     }
-    if (!formData.hire_date) {
-      newErrors.hire_date = 'تاريخ التوظيف مطلوب';
+    if (!formData.riwaya?.trim()) {
+      newErrors.riwaya = 'الرواية مطلوبة';
+    }
+    
+    // Password is only required in create mode
+    if (!editingTeacher && !formData.password?.trim()) {
+      newErrors.password = 'كلمة المرور مطلوبة';
+    } else if (!editingTeacher && formData.password && formData.password.length < 6) {
+      newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
     }
 
     setErrors(newErrors);
@@ -82,17 +96,22 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onSubmit({
-        ...formData,
-        hire_date: new Date(formData.hire_date).toISOString(),
-      });
+      onSubmit(formData);
     }
   };
 
-  const handleChange = (field: keyof Omit<Teacher, 'id'>, value: string | boolean) => {
+  const handleChange = (field: keyof TeacherCreatePayload, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleGeneratePassword = () => {
+    const newPassword = generatePassword();
+    setFormData((prev) => ({ ...prev, password: newPassword }));
+    if (errors.password) {
+      setErrors((prev) => ({ ...prev, password: '' }));
     }
   };
 
@@ -105,94 +124,119 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 transition-colors"
+          disabled={isSubmitting}
         >
           <X size={24} />
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* User ID */}
-        <Input
-          label="رقم المستخدم"
-          value={formData.user_id}
-          onChange={(e) => handleChange('user_id', e.target.value)}
-          placeholder="أدخل رقم المستخدم"
-          error={errors.user_id}
-        />
-
         {/* First Name */}
         <Input
-          label="الاسم"
-          value={formData.firstname}
+          label="الاسم الأول"
+          value={formData.firstname || ''}
           onChange={(e) => handleChange('firstname', e.target.value)}
-          placeholder="أدخل الاسم"
+          placeholder="أدخل الاسم الأول"
           error={errors.firstname}
           required
+          disabled={isSubmitting}
         />
 
         {/* Last Name */}
         <Input
-          label="اللقب"
-          value={formData.lastname}
+          label="اسم العائلة"
+          value={formData.lastname || ''}
           onChange={(e) => handleChange('lastname', e.target.value)}
-          placeholder="أدخل اللقب"
+          placeholder="أدخل اسم العائلة"
           error={errors.lastname}
           required
+          disabled={isSubmitting}
         />
 
         {/* Email */}
         <Input
           label="البريد الإلكتروني"
           type="email"
-          value={formData.email}
+          value={formData.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
           placeholder="example@domain.com"
           error={errors.email}
           required
+          disabled={isSubmitting}
         />
 
-        {/* Ruaya */}
-        <Input
-          label="الرؤية"
-          value={formData.ruaya}
-          onChange={(e) => handleChange('ruaya', e.target.value)}
-          placeholder="أدخل الرؤية"
-          error={errors.ruaya}
-        />
-
-        {/* Hire Date */}
-        <Input
-          label="تاريخ التوظيف"
-          type="date"
-          value={formData.hire_date}
-          onChange={(e) => handleChange('hire_date', e.target.value)}
-          error={errors.hire_date}
-          required
-        />
-
-        {/* Active Status */}
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="is_active"
-            checked={formData.is_active}
-            onChange={(e) => handleChange('is_active', e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
-          />
-          <label
-            htmlFor="is_active"
-            className="text-sm font-medium text-gray-700 cursor-pointer"
-          >
-            المعلم نشط
+        {/* Riwaya */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            الرواية <span className="text-red-500">*</span>
           </label>
+          <select
+            value={formData.riwaya || 'حفص عن عاصم'}
+            onChange={(e) => handleChange('riwaya', e.target.value)}
+            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-500"
+            disabled={isSubmitting}
+          >
+            <option value="حفص عن عاصم">حفص عن عاصم</option>
+            <option value="ورش عن نافع">ورش عن نافع</option>
+            <option value="قالون عن نافع">قالون عن نافع</option>
+            <option value="الدوري عن أبي عمرو">الدوري عن أبي عمرو</option>
+            <option value="السوسي عن أبي عمرو">السوسي عن أبي عمرو</option>
+          </select>
+          {errors.riwaya && (
+            <p className="mt-1 text-sm text-red-600">{errors.riwaya}</p>
+          )}
         </div>
+
+        {/* Password - Only show in create mode */}
+        {!editingTeacher && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              كلمة المرور <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              <Input
+                value={formData.password || ''}
+                onChange={(e) => handleChange('password', e.target.value)}
+                placeholder="أدخل كلمة المرور"
+                error={errors.password}
+                required
+                disabled={isSubmitting}
+                className="flex-1"
+              />
+              <button
+                type="button"
+                onClick={handleGeneratePassword}
+                className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="توليد كلمة مرور"
+                disabled={isSubmitting}
+              >
+                <RefreshCw size={18} />
+                توليد
+              </button>
+            </div>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-4 border-t border-gray-100">
-          <Button type="submit" variant="primary" className="flex-1">
-            {editingTeacher ? 'حفظ التعديلات' : 'إضافة المعلم'}
+          <Button 
+            type="submit" 
+            variant="primary" 
+            className="flex-1"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'جاري الحفظ...' : editingTeacher ? 'حفظ التعديلات' : 'إضافة المعلم'}
           </Button>
-          <Button type="button" onClick={onClose} variant="outline" className="flex-1">
+          <Button 
+            type="button" 
+            onClick={onClose} 
+            variant="outline" 
+            className="flex-1"
+            disabled={isSubmitting}
+          >
             إلغاء
           </Button>
         </div>

@@ -67,7 +67,7 @@ export const TeacherRow: React.FC<TeacherRowProps> = ({
         {teacher.email}
       </td>
       <td className="px-4 py-3.5 text-sm text-gray-600">
-        {teacher.ruaya || <span className="text-gray-300">—</span>}
+        {teacher.riwaya || <span className="text-gray-300">—</span>}
       </td>
       <td className="px-4 py-3.5 text-sm text-gray-600">
         {formatDate(teacher.hire_date)}

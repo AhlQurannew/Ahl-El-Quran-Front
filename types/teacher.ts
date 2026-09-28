@@ -4,7 +4,7 @@ export interface Teacher {
   firstname: string;
   lastname: string;
   email: string;
-  ruaya: string;
+  riwaya: string;
   hire_date: string; // date-time format
   is_active: boolean;
 }
@@ -12,4 +12,12 @@ export interface Teacher {
 export interface TeacherList {
   teachers: Teacher[];
   total: number;
+}
+
+export interface TeacherCreatePayload {
+  firstname: string;
+  lastname: string;
+  email: string;
+  riwaya: string;
+  password: string;
 }

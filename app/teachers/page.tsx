@@ -9,8 +9,9 @@ import { TeacherForm } from '@/components/teachers/TeacherForm';
 import { TeacherStats } from '@/components/teachers/TeacherStats';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
-import type { Teacher } from '@/types/teacher';
+import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
 import presidentAPI from '@/app/API/president';
+import teacherAPI from '@/api/teacher';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -56,7 +57,7 @@ export default function TeachersPage() {
         t.firstname.toLowerCase().includes(q) ||
         t.lastname.toLowerCase().includes(q) ||
         t.email.toLowerCase().includes(q) ||
-        (t.ruaya ?? '').toLowerCase().includes(q)
+        (t.riwaya ?? '').toLowerCase().includes(q)
       );
     });
   }, [teachers, query]);
@@ -102,24 +103,27 @@ export default function TeachersPage() {
     setIsConfirmOpen(false);
   };
 
-  const handleFormSubmit = async (data: Omit<Teacher, 'id'>) => {
+  const handleFormSubmit = async (data: TeacherCreatePayload | Partial<Teacher>) => {
     setIsSubmitting(true);
     try {
       if (editingTeacher) {
-        // Update existing teacher (local only for now)
-        setTeachers((prev) =>
-          prev.map((t) => (t.id === editingTeacher.id ? { ...data, id: editingTeacher.id } : t))
-        );
-        showToast('success', `تم تعديل بيانات المعلم ${data.firstname} ${data.lastname}`);
-      } else {
-        // Create new teacher via API
-        await presidentAPI.registerTeacher({
+        // Update existing teacher via API
+        const updateData = {
           firstname: data.firstname,
           lastname: data.lastname,
           email: data.email,
-          riwaya: data.ruaya || 'حفص عن عاصم',
-          password: '123456' // Default password
-        });
+          riwaya: data.riwaya,
+        };
+        
+        await teacherAPI.updateTeacher(Number(editingTeacher.id), updateData);
+        showToast('success', `تم تعديل بيانات المعلم ${data.firstname} ${data.lastname}`);
+        
+        // Reload teachers list
+        await loadTeachers();
+      } else {
+        // Create new teacher via API
+        const createData = data as TeacherCreatePayload;
+        await presidentAPI.registerTeacher(createData);
         
         showToast('success', `تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح`);
         
@@ -149,7 +153,7 @@ export default function TeachersPage() {
       'الاسم الأول': t.firstname,
       'اللقب': t.lastname,
       'البريد الإلكتروني': t.email,
-      'الرواية': t.ruaya || '-',
+      'الرواية': t.riwaya || '-',
       'تاريخ التعيين': t.hire_date ? new Date(t.hire_date).toLocaleDateString('ar-EG') : '-',
       'الحالة': t.is_active ? 'نشط' : 'غير نشط',
     }));
