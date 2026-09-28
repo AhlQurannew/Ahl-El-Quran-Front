@@ -5,12 +5,11 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { StudentSearch } from '@/components/students/StudentSearch';
 import { StudentTable } from '@/components/students/StudentTable';
 import { StudentForm } from '@/components/students/StudentForm';
-import { AttendanceDialog } from '@/components/students/AttendanceDialog';
+import { StudentDetailsDialog } from '@/components/students/StudentDetailsDialog';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Student } from '@/types/student';
 import studentsAPI, { CreateStudentPayload } from '@/app/API/students';
-import { Attendance } from '@/types/attendance.types';
 import { getTodayApiDate } from '@/utils/dateHelpers';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
@@ -104,9 +103,9 @@ export default function StudentsPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Attendance dialog state
-  const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
-  const [selectedStudentForAttendance, setSelectedStudentForAttendance] = useState<Student | null>(null);
+  // Student details dialog state
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedStudentForDetails, setSelectedStudentForDetails] = useState<Student | null>(null);
 
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
   const showToast = (type: ToastState['type'], message: string) =>
@@ -259,12 +258,8 @@ export default function StudentsPage() {
   };
 
   const handlePlusClick = (student: Student) => {
-    setSelectedStudentForAttendance(student);
-    setIsAttendanceDialogOpen(true);
-  };
-
-  const handleAttendanceSaved = (attendance: Attendance) => {
-    showToast('success', `تم حفظ مواظبة الطالب بنجاح`);
+    setSelectedStudentForDetails(student);
+    setIsDetailsDialogOpen(true);
   };
 
   const handlePrint = () => window.print();
@@ -335,20 +330,15 @@ export default function StudentsPage() {
         onClose={() => setToast((t) => ({ ...t, visible: false }))}
       />
 
-      {/* Attendance Dialog */}
-      {selectedStudentForAttendance && (
-        <AttendanceDialog
-          isOpen={isAttendanceDialogOpen}
-          onClose={() => {
-            setIsAttendanceDialogOpen(false);
-            setSelectedStudentForAttendance(null);
-          }}
-          studentId={Number(selectedStudentForAttendance.id)}
-          studentName={`${selectedStudentForAttendance.firstName} ${selectedStudentForAttendance.lastName}`}
-          date={getTodayApiDate()}
-          onSaved={handleAttendanceSaved}
-        />
-      )}
+      {/* Student Details Dialog */}
+      <StudentDetailsDialog
+        isOpen={isDetailsDialogOpen}
+        onClose={() => {
+          setIsDetailsDialogOpen(false);
+          setSelectedStudentForDetails(null);
+        }}
+        student={selectedStudentForDetails}
+      />
     </AppLayout>
   );
 }
