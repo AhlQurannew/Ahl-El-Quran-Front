@@ -36,6 +36,7 @@ function apiStudentToStudent(api: any): Student {
     lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
     gender: api.personalInfo?.sex === 'female' ? 'female' : 'male',
     halqa: api.lectures?.[0]?.lectureNameAr || '',
+    halqaId: api.lectures?.[0]?.lectureId || undefined,
     username: api.accountInfo?.username || api.email || '',
     dob: apiDateToInputDate(api.personalInfo?.dateOfBirth),
     pob: api.personalInfo?.placeOfBirth || '',
@@ -45,6 +46,12 @@ function apiStudentToStudent(api: any): Student {
 }
 
 function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
+  const lectures = data.halqaId ? [{
+    lectureId: data.halqaId,
+    lectureNameAr: data.halqa || '',
+    lectureNameEn: ''
+  }] : [];
+
   return {
     personalInfo: {
       firstNameAr: data.firstName,
@@ -76,7 +83,7 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
       homeAddress: '',
       job: '',
     },
-    lectures: [],
+    lectures: lectures,
     formalEducationInfo: {
       academicLevel: '',
       grade: '',

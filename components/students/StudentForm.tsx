@@ -24,6 +24,7 @@ const EMPTY_FORM: StudentFormData = {
   lastName: '',
   gender: 'male',
   halqa: '',
+  halqaId: undefined,
   username: '',
   dob: '',
   pob: '',
@@ -91,6 +92,18 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   const set = (field: keyof StudentFormData, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
     setErrors((e) => ({ ...e, [field]: undefined }));
+  };
+
+  const setLecture = (lectureId: number) => {
+    const selectedLecture = lectures.find(l => l.lecture_id === lectureId);
+    if (selectedLecture) {
+      setForm((f) => ({ 
+        ...f, 
+        halqa: selectedLecture.lecture_name_ar,
+        halqaId: lectureId
+      }));
+      setErrors((e) => ({ ...e, halqa: undefined }));
+    }
   };
 
   const validate = (): boolean => {
@@ -172,10 +185,10 @@ export const StudentForm: React.FC<StudentFormProps> = ({
           <Select
             label="الحلقة"
             placeholder={loadingLectures ? "جاري التحميل..." : "اختر الحلقة..."}
-            value={form.halqa || ''}
-            onChange={(e) => set('halqa', e.target.value)}
+            value={form.halqaId ? String(form.halqaId) : ''}
+            onChange={(e) => setLecture(Number(e.target.value))}
             options={lectures.map((lecture) => ({
-              value: lecture.lecture_name_ar,
+              value: String(lecture.lecture_id),
               label: lecture.lecture_name_ar,
             }))}
             disabled={loadingLectures}

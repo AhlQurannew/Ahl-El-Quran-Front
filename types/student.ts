@@ -3,7 +3,8 @@ export interface Student {
   firstName: string; // الاسم
   lastName: string; // الكنية
   gender: 'male' | 'female'; // الجنس
-  halqa?: string; // الحلقات
+  halqa?: string; // الحلقات (lecture name)
+  halqaId?: number; // الحلقات (lecture ID)
   username: string; // اسم المستخدم
   dob: string; // تاريخ الميلاد
   pob: string; // مكان الميلاد
