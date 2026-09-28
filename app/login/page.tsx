@@ -95,6 +95,8 @@ export default function LoginPage() {
         setTimeout(() => {
           if (role === 'ADMIN') {
             router.push('/dashboard');
+          } else if (role === 'PRESIDENT') {
+            router.push('/');
           } else {
             router.push('/students');
           }
