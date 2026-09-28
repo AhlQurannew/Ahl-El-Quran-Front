@@ -138,6 +138,16 @@ export default function StudentsPage() {
     loadStudents();
   }, []);
 
+  // Update selected student details when students data changes
+  useEffect(() => {
+    if (selectedStudentForDetails) {
+      const updatedStudent = students.find(s => s.id === selectedStudentForDetails.id);
+      if (updatedStudent) {
+        setSelectedStudentForDetails(updatedStudent);
+      }
+    }
+  }, [students]);
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return students.filter((s) =>
@@ -176,18 +186,16 @@ export default function StudentsPage() {
     try {
       const payload = studentToFullPayload(data);
       if (editingStudent) {
-        const updated = await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
-        setStudents((prev) =>
-          prev.map((s) => (s.id === editingStudent.id ? apiStudentToStudent(updated) : s))
-        );
+        await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
         showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
       } else {
-        const created = await studentsAPI.createStudent(payload);
-        setStudents((prev) => [apiStudentToStudent(created), ...prev]);
+        await studentsAPI.createStudent(payload);
         showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
       }
       setIsFormOpen(false);
       setSelectedIds([]);
+      // Reload students to get fresh data from server
+      await loadStudents();
     } catch (err) {
       showToast('error', errMsg(err, 'حدث خطأ أثناء الحفظ'));
     } finally {
@@ -198,14 +206,17 @@ export default function StudentsPage() {
   const handleDeleteConfirm = async () => {
     try {
       await Promise.all(selectedIds.map((id) => studentsAPI.deleteStudent(Number(id))));
-      setStudents((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
       showToast('success', `تم حذف عدد ${selectedIds.length} طالب بنجاح`);
-    } catch (err) {
-      showToast('error', errMsg(err, 'فشل حذف بعض الطلاب'));
-      loadStudents();
-    } finally {
       setSelectedIds([]);
       setIsConfirmOpen(false);
+      // Reload students to get fresh data from server
+      await loadStudents();
+    } catch (err) {
+      showToast('error', errMsg(err, 'فشل حذف بعض الطلاب'));
+      setSelectedIds([]);
+      setIsConfirmOpen(false);
+      // Still reload to ensure data consistency
+      await loadStudents();
     }
   };
 
