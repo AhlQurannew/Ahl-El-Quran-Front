@@ -58,29 +58,27 @@ export function DashboardCards() {
   const statsCards: DashboardCard[] = [
     { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
     { title: 'المعلمين', count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
-    { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' },
-    { title: 'أجزاء القرآن', count: stats?.total_pages_memorized || 0, icon: <FileText className="w-16 h-16" />, href: '/quran-parts', variant: 'stat' }
+    { title: 'المشرفين', count: 0, icon: <UserCheck className="w-16 h-16" />, href: '/supervisors', variant: 'stat' },
+    { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' }
   ];
 
   const statsSmallIcons: React.ReactNode[] = [
     <GraduationCap className="w-4 h-4" key="stat-icon-0" />,
     <Users className="w-4 h-4" key="stat-icon-1" />,
-    <BookOpen className="w-4 h-4" key="stat-icon-2" />,
-    <FileText className="w-4 h-4" key="stat-icon-3" />
+    <UserCheck className="w-4 h-4" key="stat-icon-2" />,
+    <BookOpen className="w-4 h-4" key="stat-icon-3" />
   ];
 
   const actionCards: DashboardCard[] = [
     { title: 'حضور الطلاب', icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
     { title: 'حضور المعلمين', icon: <ClipboardCheck className="w-16 h-16" />, href: '/teacher-attendance', variant: 'action' },
-    { title: 'تسميع المشرفين', icon: <CheckCircle2 className="w-16 h-16" />, href: '/recitation', variant: 'action' },
     { title: 'الخطة والمراجعة', icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' }
   ];
 
   const actionSmallIcons: React.ReactNode[] = [
     <UserCheck className="w-4 h-4" key="action-icon-0" />,
     <ClipboardCheck className="w-4 h-4" key="action-icon-1" />,
-    <CheckCircle2 className="w-4 h-4" key="action-icon-2" />,
-    <Calendar className="w-4 h-4" key="action-icon-3" />
+    <Calendar className="w-4 h-4" key="action-icon-2" />
   ];
 
   const reportCards: DashboardCard[] = [
