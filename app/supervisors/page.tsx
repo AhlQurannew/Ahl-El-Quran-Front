@@ -1,33 +1,58 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SupervisorSearch } from '@/components/supervisors/SupervisorSearch';
 import { SupervisorTable } from '@/components/supervisors/SupervisorTable';
 import { SupervisorForm } from '@/components/supervisors/SupervisorForm';
+import { SupervisorStats } from '@/components/supervisors/SupervisorStats';
+import { SupervisorDetailsDialog } from '@/components/supervisors/SupervisorDetailsDialog';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
-import type { Supervisor } from '@/types/supervisor';
-
-const SEED_SUPERVISORS: Supervisor[] = [
-  { id: '1', firstname: 'أحمد', lastname: 'يعقوب', email: 'yakoube@gmail.com', isActive: true, createdAt: '2024-01-15 08:30:00' },
-  { id: '2', firstname: 'عبدو', lastname: 'معتصم', email: 'abdulabbid@gmail.com', isActive: true, createdAt: '2024-02-10 10:15:00' },
-  { id: '3', firstname: 'جليل', lastname: 'مطاطي', email: 'djalilstyfi@gmail.com', isActive: false, createdAt: '2024-03-05 14:20:00' },
-];
+import type { Supervisor, SupervisorCreatePayload, SupervisorUpdatePayload } from '@/types/supervisor';
+import presidentAPI from '@/app/API/president';
+import supervisorAPI from '@/app/API/supervisor';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
 export default function SupervisorsPage() {
-  const [supervisors, setSupervisors] = useState<Supervisor[]>(SEED_SUPERVISORS);
+  const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSupervisor, setEditingSupervisor] = useState<Supervisor | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedSupervisor, setSelectedSupervisor] = useState<Supervisor | null>(null);
 
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
 
+  // ── Load supervisors from API ──
+  const loadSupervisors = async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const response = await supervisorAPI.getSupervisors();
+      const supervisorsList = Array.isArray(response) ? response : response.supervisors || [];
+      setSupervisors(supervisorsList);
+    } catch (err: any) {
+      console.error('Error loading supervisors:', err);
+      setLoadError(err.response?.data?.detail || err.message || 'فشل تحميل بيانات المشرفين');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSupervisors();
+  }, []);
+
+  // ── Derived filtered list ──
   const filtered = useMemo(() => {
     return supervisors.filter((s) => {
       const q = query.toLowerCase();
@@ -39,6 +64,7 @@ export default function SupervisorsPage() {
     });
   }, [supervisors, query]);
 
+  // ── Helpers ──
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
 
@@ -70,112 +96,154 @@ export default function SupervisorsPage() {
     }
   };
 
-  const handleDeleteConfirm = () => {
-    setSupervisors((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
-    showToast('success', `تم حذف عدد ${selectedIds.length} مشرف بنجاح`);
-    setSelectedIds([]);
-  };
-
-  const handleFormSubmit = (data: Omit<Supervisor, 'id' | 'createdAt'>) => {
-    if (editingSupervisor) {
-      setSupervisors((prev) =>
-        prev.map((s) => (s.id === editingSupervisor.id ? { ...s, ...data } : s))
-      );
-      showToast('success', `تم تعديل بيانات المشرف ${data.firstname} ${data.lastname}`);
-    } else {
-      const newSupervisor: Supervisor = {
-        ...data,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-      };
-      setSupervisors((prev) => [newSupervisor, ...prev]);
-      showToast('success', `تمت إضافة المشرف ${data.firstname} ${data.lastname} بنجاح`);
-    }
-    setIsFormOpen(false);
-    setSelectedIds([]);
-  };
-
-  const handleExportExcel = async () => {
+  const handleDeleteConfirm = async () => {
     try {
-      const XLSX = await import('xlsx');
-
-      const listToExport = selectedIds.length > 0
-        ? filtered.filter((s) => selectedIds.includes(s.id))
-        : filtered;
-
-      if (listToExport.length === 0) {
-        showToast('info', 'لا توجد بيانات للتصدير');
-        return;
+      for (const id of selectedIds) {
+        await supervisorAPI.deleteSupervisor(Number(id));
       }
-
-      const excelData = listToExport.map((s) => ({
-        'الاسم الأول': s.firstname,
-        'اسم العائلة': s.lastname,
-        'البريد الإلكتروني': s.email,
-        'الحالة': s.isActive ? 'نشط' : 'غير نشط',
-        'تاريخ الإنشاء': s.createdAt || '—',
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'المشرفين');
-
-      worksheet['!cols'] = [
-        { wch: 18 },
-        { wch: 18 },
-        { wch: 25 },
-        { wch: 12 },
-        { wch: 22 },
-      ];
-
-      const dateStr = new Date().toISOString().split('T')[0];
-      XLSX.writeFile(workbook, `قائمة_المشرفين_${dateStr}.xlsx`);
-      showToast('success', 'تم تصدير ملف Excel بنجاح');
-    } catch (error) {
-      console.error('Erreur export Excel:', error);
-      showToast('error', 'حدث خطأ أثناء تصدير ملف Excel');
+      showToast('success', `تم حذف ${selectedIds.length} مشرف بنجاح`);
+      setSelectedIds([]);
+      setIsConfirmOpen(false);
+      await loadSupervisors();
+    } catch (err: any) {
+      console.error('Error deleting supervisors:', err);
+      showToast('error', err.response?.data?.detail || err.message || 'فشل حذف المشرفين');
     }
+  };
+
+  const handleFormSubmit = async (data: SupervisorCreatePayload | SupervisorUpdatePayload) => {
+    setIsSubmitting(true);
+    try {
+      if (editingSupervisor) {
+        // Update existing supervisor via API
+        await supervisorAPI.updateSupervisor(Number(editingSupervisor.id), data as SupervisorUpdatePayload);
+        showToast('success', `تم تعديل بيانات المشرف ${data.firstname} ${data.lastname}`);
+        
+        // Reload supervisors list
+        await loadSupervisors();
+      } else {
+        // Create new supervisor via API
+        const createData = data as SupervisorCreatePayload;
+        await presidentAPI.registerSupervisor(createData);
+        
+        showToast('success', `تمت إضافة المشرف ${data.firstname} ${data.lastname} بنجاح`);
+        
+        // Reload supervisors list
+        await loadSupervisors();
+      }
+      setIsFormOpen(false);
+      setSelectedIds([]);
+    } catch (err: any) {
+      console.error('Error saving supervisor:', err);
+      showToast('error', err.response?.data?.detail || err.message || 'فشل حفظ بيانات المشرف');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePlusClick = (supervisor: Supervisor) => {
+    setSelectedSupervisor(supervisor);
+    setIsDetailsOpen(true);
   };
 
   const handlePrint = () => {
     window.print();
   };
 
+  const handleExportExcel = () => {
+    const exportData = filtered.map((s) => ({
+      'الاسم الأول': s.firstname,
+      'الاسم الأخير': s.lastname,
+      'البريد الإلكتروني': s.email,
+      'تاريخ الإنشاء': s.created_at ? new Date(s.created_at).toLocaleDateString('ar-EG') : '-',
+      'الحالة': s.is_active ? 'نشط' : 'غير نشط',
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'المشرفين');
+    XLSX.writeFile(workbook, 'قائمة_المشرفين.xlsx');
+  };
+
   return (
     <AppLayout title="المشرفين" breadcrumb="الشؤون الإدارية / المشرفين">
       <div className="space-y-6 max-w-7xl mx-auto">
+        {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
           إدارة المشرفين / الصفحة الرئيسية
         </div>
 
-        <SupervisorSearch
-          query={query}
-          onQueryChange={setQuery}
-          selectedCount={selectedIds.length}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={() => setIsConfirmOpen(true)}
-          onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
-          onCancelSelection={() => setSelectedIds([])}
-          onPrint={handlePrint}
-          onExportExcel={handleExportExcel}
-        />
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+          </div>
+        )}
 
-        <SupervisorTable
-          supervisors={filtered}
-          selectedIds={selectedIds}
-          onToggleSelect={handleToggleSelect}
-          onToggleSelectAll={handleToggleSelectAll}
-        />
+        {/* Error State */}
+        {loadError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+            {loadError}
+            <button 
+              onClick={loadSupervisors}
+              className="mr-4 underline hover:no-underline"
+            >
+              إعادة المحاولة
+            </button>
+          </div>
+        )}
+
+        {/* Content - Only show when not loading */}
+        {!isLoading && !loadError && (
+          <>
+            {/* Statistics Cards */}
+            <SupervisorStats supervisors={filtered} />
+
+            {/* Search Input and action buttons */}
+            <SupervisorSearch
+              query={query}
+              onQueryChange={setQuery}
+              selectedCount={selectedIds.length}
+              onAdd={handleAdd}
+              onEdit={handleEdit}
+              onDelete={() => setIsConfirmOpen(true)}
+              onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
+              onCancelSelection={() => setSelectedIds([])}
+              onPrint={handlePrint}
+              onExportExcel={handleExportExcel}
+            />
+
+            {/* Data Table */}
+            <SupervisorTable
+              supervisors={filtered}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleSelectAll={handleToggleSelectAll}
+              onPlusClick={handlePlusClick}
+            />
+          </>
+        )}
       </div>
 
+      {/* Supervisor Form Modal */}
       <SupervisorForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
         editingSupervisor={editingSupervisor}
+        isSubmitting={isSubmitting}
       />
 
+      {/* Supervisor Details Dialog */}
+      <SupervisorDetailsDialog
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedSupervisor(null);
+        }}
+        supervisor={selectedSupervisor}
+      />
+
+      {/* Confirm deletion dialog */}
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
@@ -187,6 +255,7 @@ export default function SupervisorsPage() {
         variant="danger"
       />
 
+      {/* Toast notifications */}
       <Toast
         type={toast.type}
         message={toast.message}

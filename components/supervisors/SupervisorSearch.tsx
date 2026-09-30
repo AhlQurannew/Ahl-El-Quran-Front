@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Search, Printer, Edit, Trash2, CheckSquare, XCircle, PlusCircle, FileSpreadsheet } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CheckSquare, X, Printer, FileSpreadsheet } from 'lucide-react';
 
 interface SupervisorSearchProps {
   query: string;
-  onQueryChange: (v: string) => void;
+  onQueryChange: (query: string) => void;
   selectedCount: number;
   onAdd: () => void;
   onEdit: () => void;
@@ -13,7 +13,7 @@ interface SupervisorSearchProps {
   onSelectAll: () => void;
   onCancelSelection: () => void;
   onPrint: () => void;
-  onExportExcel?: () => void;
+  onExportExcel: () => void;
 }
 
 export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
@@ -30,106 +30,90 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      {/* Search Input Bar */}
-      <div className="w-full">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="البحث..."
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-5 py-3 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500 transition-all shadow-sm"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 pointer-events-none">
-            <Search size={18} />
-          </div>
+      {/* Search Input */}
+      <div className="relative">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder="البحث عن مشرف بالاسم أو البريد الإلكتروني..."
+          className="w-full px-4 py-3 pr-11 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all"
+        />
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+          <Search size={20} />
         </div>
       </div>
 
-      {/* Actions row */}
-      <div className="flex flex-wrap gap-2.5 items-center justify-between">
-        <div className="flex flex-wrap gap-2">
-          {/* Add */}
-          <button
-            onClick={onAdd}
-            className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
-          >
-            <PlusCircle size={14} />
-            إضافة
-          </button>
+      {/* Action Buttons */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Add Button */}
+        <button
+          onClick={onAdd}
+          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+        >
+          <Plus size={18} />
+          <span>إضافة</span>
+        </button>
 
-          {/* Edit */}
-          <button
-            onClick={onEdit}
-            disabled={selectedCount !== 1}
-            className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 ${
-              selectedCount === 1
-                ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <Edit size={14} />
-            تعديل
-          </button>
+        {/* Edit Button */}
+        <button
+          onClick={onEdit}
+          disabled={selectedCount !== 1}
+          className="flex items-center gap-2 px-4 py-2.5 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        >
+          <Edit2 size={18} />
+          <span>تعديل</span>
+        </button>
 
-          {/* Delete */}
-          <button
-            onClick={onDelete}
-            disabled={selectedCount === 0}
-            className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 ${
-              selectedCount > 0
-                ? 'bg-red-500 hover:bg-red-600 text-white cursor-pointer'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <Trash2 size={14} />
-            حذف
-          </button>
+        {/* Delete Button */}
+        <button
+          onClick={onDelete}
+          disabled={selectedCount === 0}
+          className="flex items-center gap-2 px-4 py-2.5 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        >
+          <Trash2 size={18} />
+          <span>حذف</span>
+        </button>
 
-          {/* Select All */}
-          <button
-            onClick={onSelectAll}
-            className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
-          >
-            <CheckSquare size={14} />
-            تحديد الكل
-          </button>
+        {/* Select All Button */}
+        <button
+          onClick={onSelectAll}
+          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+        >
+          <CheckSquare size={18} />
+          <span>تحديد الكل</span>
+        </button>
 
-          {/* Cancel */}
-          <button
-            onClick={onCancelSelection}
-            disabled={selectedCount === 0}
-            className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 ${
-              selectedCount > 0
-                ? 'bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <XCircle size={14} />
-            إلغاء
-          </button>
-        </div>
+        {/* Cancel Selection Button */}
+        <button
+          onClick={onCancelSelection}
+          disabled={selectedCount === 0}
+          className="flex items-center gap-2 px-4 py-2.5 border-2 border-gray-400 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        >
+          <X size={18} />
+          <span>إلغاء</span>
+        </button>
 
-        {/* Export Excel & Print */}
-        <div className="flex items-center gap-2">
-          {onExportExcel && (
-            <button
-              onClick={onExportExcel}
-              className="px-5 py-2 text-xs font-bold rounded-xl border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/70 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
-            >
-              <FileSpreadsheet size={14} />
-              تصدير Excel
-            </button>
-          )}
+        {/* Spacer */}
+        <div className="flex-1" />
 
-          <button
-            onClick={onPrint}
-            className="px-5 py-2 text-xs font-bold rounded-xl border border-amber-500 text-amber-600 hover:bg-amber-50 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
-          >
-            <Printer size={14} />
-            طباعة
-          </button>
-        </div>
+        {/* Print Button */}
+        <button
+          onClick={onPrint}
+          className="flex items-center gap-2 px-4 py-2.5 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium"
+        >
+          <Printer size={18} />
+          <span>طباعة</span>
+        </button>
+
+        {/* Export Excel Button */}
+        <button
+          onClick={onExportExcel}
+          className="flex items-center gap-2 px-4 py-2.5 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium"
+        >
+          <FileSpreadsheet size={18} />
+          <span>تصدير Excel</span>
+        </button>
       </div>
     </div>
   );

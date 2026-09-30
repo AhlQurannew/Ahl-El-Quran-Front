@@ -1,129 +1,222 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { X, RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import type { Supervisor } from '@/types/supervisor';
-
-type SupervisorFormData = Omit<Supervisor, 'id' | 'createdAt'>;
+import { Input } from '@/components/ui/Input';
+import type { Supervisor, SupervisorCreatePayload, SupervisorUpdatePayload } from '@/types/supervisor';
 
 interface SupervisorFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: SupervisorFormData) => void;
+  onSubmit: (data: SupervisorCreatePayload | SupervisorUpdatePayload) => void;
   editingSupervisor?: Supervisor | null;
-  isLoading?: boolean;
+  isSubmitting?: boolean;
 }
-
-const EMPTY_FORM: SupervisorFormData = {
-  firstname: '',
-  lastname: '',
-  email: '',
-  isActive: true,
-};
 
 export const SupervisorForm: React.FC<SupervisorFormProps> = ({
   isOpen,
   onClose,
   onSubmit,
   editingSupervisor,
-  isLoading,
+  isSubmitting = false,
 }) => {
-  const [form, setForm] = React.useState<SupervisorFormData>(EMPTY_FORM);
-  const [errors, setErrors] = React.useState<Partial<Record<keyof SupervisorFormData, string>>>({});
+  const [formData, setFormData] = useState<SupervisorCreatePayload | SupervisorUpdatePayload>({
+    firstname: '',
+    lastname: '',
+    email: '',
+    password: '',
+  });
 
-  const isEditing = !!editingSupervisor;
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Generate random password
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
 
   useEffect(() => {
     if (editingSupervisor) {
-      const { id: _id, createdAt: _createdAt, ...rest } = editingSupervisor;
-      setForm(rest);
+      // Edit mode - only include editable fields
+      setFormData({
+        firstname: editingSupervisor.firstname,
+        lastname: editingSupervisor.lastname,
+        email: editingSupervisor.email,
+        password: '', // Optional in edit mode
+      });
     } else {
-      setForm(EMPTY_FORM);
+      // Create mode - include password
+      setFormData({
+        firstname: '',
+        lastname: '',
+        email: '',
+        password: generatePassword(),
+      });
     }
     setErrors({});
   }, [editingSupervisor, isOpen]);
 
-  const set = (field: keyof SupervisorFormData, value: string | boolean) => {
-    setForm((f) => ({ ...f, [field]: value }));
-    setErrors((e) => ({ ...e, [field]: undefined }));
-  };
-
   const validate = (): boolean => {
-    const newErrors: typeof errors = {};
-    if (!form.firstname.trim()) newErrors.firstname = 'الاسم مطلوب';
-    if (!form.lastname.trim()) newErrors.lastname = 'الكنية مطلوبة';
-    if (!form.email.trim() || !form.email.includes('@')) {
-      newErrors.email = 'بريد إلكتروني صحيح مطلوب';
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstname?.trim()) {
+      newErrors.firstname = 'الاسم الأول مطلوب';
     }
+    if (!formData.lastname?.trim()) {
+      newErrors.lastname = 'الاسم الأخير مطلوب';
+    }
+    if (!formData.email?.trim()) {
+      newErrors.email = 'البريد الإلكتروني مطلوب';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'البريد الإلكتروني غير صحيح';
+    }
+    
+    // Password is only required in create mode
+    if (!editingSupervisor && !formData.password?.trim()) {
+      newErrors.password = 'كلمة المرور مطلوبة';
+    } else if (formData.password && formData.password.length < 6) {
+      newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
-    onSubmit(form);
+    if (validate()) {
+      // Remove empty password from edit payload
+      const submitData = { ...formData };
+      if (editingSupervisor && !submitData.password?.trim()) {
+        delete submitData.password;
+      }
+      onSubmit(submitData);
+    }
+  };
+
+  const handleChange = (field: keyof SupervisorCreatePayload, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleGeneratePassword = () => {
+    const newPassword = generatePassword();
+    setFormData((prev) => ({ ...prev, password: newPassword }));
+    if (errors.password) {
+      setErrors((prev) => ({ ...prev, password: '' }));
+    }
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={isEditing ? 'تعديل بيانات المشرف' : 'إضافة مشرف جديد'}
-      size="md"
-      footer={
-        <>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading}>
-            إلغاء
-          </Button>
-          <Button size="sm" isLoading={isLoading} onClick={handleSubmit}>
-            {isEditing ? 'حفظ التعديلات' : 'إضافة'}
-          </Button>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* First & Last name */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="الاسم *"
-            placeholder="مثال: أحمد"
-            value={form.firstname}
-            onChange={(e) => set('firstname', e.target.value)}
-            error={errors.firstname}
-          />
-          <Input
-            label="الكنية *"
-            placeholder="مثال: يعقوب"
-            value={form.lastname}
-            onChange={(e) => set('lastname', e.target.value)}
-            error={errors.lastname}
-          />
-        </div>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <h2 className="text-xl font-bold text-gray-800">
+          {editingSupervisor ? 'تعديل بيانات المشرف' : 'إضافة مشرف جديد'}
+        </h2>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+          disabled={isSubmitting}
+        >
+          <X size={24} />
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* First Name */}
+        <Input
+          label="الاسم الأول"
+          value={formData.firstname || ''}
+          onChange={(e) => handleChange('firstname', e.target.value)}
+          placeholder="أدخل الاسم الأول"
+          error={errors.firstname}
+          required
+          disabled={isSubmitting}
+        />
+
+        {/* Last Name */}
+        <Input
+          label="الاسم الأخير"
+          value={formData.lastname || ''}
+          onChange={(e) => handleChange('lastname', e.target.value)}
+          placeholder="أدخل الاسم الأخير"
+          error={errors.lastname}
+          required
+          disabled={isSubmitting}
+        />
 
         {/* Email */}
         <Input
-          label="البريد الإلكتروني *"
-          placeholder="yakoube@gmail.com"
+          label="البريد الإلكتروني"
           type="email"
-          value={form.email}
-          onChange={(e) => set('email', e.target.value)}
+          value={formData.email || ''}
+          onChange={(e) => handleChange('email', e.target.value)}
+          placeholder="example@domain.com"
           error={errors.email}
+          required
+          disabled={isSubmitting}
         />
 
-        {/* Status */}
-        <Select
-          label="الحالة"
-          value={form.isActive ? 'active' : 'inactive'}
-          onChange={(e) => set('isActive', e.target.value === 'active')}
-          options={[
-            { value: 'active', label: 'نشط' },
-            { value: 'inactive', label: 'غير نشط' },
-          ]}
-        />
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            كلمة المرور {!editingSupervisor && <span className="text-red-500">*</span>}
+            {editingSupervisor && <span className="text-gray-500 text-xs">(اختياري)</span>}
+          </label>
+          <div className="flex gap-2">
+            <Input
+              value={formData.password || ''}
+              onChange={(e) => handleChange('password', e.target.value)}
+              placeholder={editingSupervisor ? 'اترك فارغاً للحفاظ على كلمة المرور الحالية' : 'أدخل كلمة المرور'}
+              error={errors.password}
+              required={!editingSupervisor}
+              disabled={isSubmitting}
+              className="flex-1"
+            />
+            <button
+              type="button"
+              onClick={handleGeneratePassword}
+              className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="توليد كلمة مرور"
+              disabled={isSubmitting}
+            >
+              <RefreshCw size={18} />
+              توليد
+            </button>
+          </div>
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4 border-t border-gray-100">
+          <Button 
+            type="submit" 
+            variant="primary" 
+            className="flex-1"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'جاري الحفظ...' : editingSupervisor ? 'حفظ التعديلات' : 'إضافة المشرف'}
+          </Button>
+          <Button 
+            type="button" 
+            onClick={onClose} 
+            variant="outline" 
+            className="flex-1"
+            disabled={isSubmitting}
+          >
+            إلغاء
+          </Button>
+        </div>
       </form>
     </Modal>
   );
