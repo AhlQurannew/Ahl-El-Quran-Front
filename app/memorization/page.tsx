@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { MemorizationStats } from '@/components/memorization/MemorizationStats';
-import { MemorizationSearch } from '@/components/memorization/MemorizationSearch';
-import { MemorizationTable } from '@/components/memorization/MemorizationTable';
 import { MemorizationForm, type AchievementFormValues } from '@/components/memorization/MemorizationForm';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
-import type { MemorizationRecord } from '@/types/memorization';
+import studentsAPI from '@/app/API/students';
+import lecturesAPI, { Lecture } from '@/app/API/lectures';
+import { quranSurahs } from '@/data/quran_data';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 
@@ -42,10 +41,18 @@ export interface ApiStudent {
   firstname?: string;
   lastname?: string;
   name?: string;
+  personalInfo?: {
+    firstNameAr?: string;
+    lastNameAr?: string;
+  };
+  lectures?: any[];
   [key: string]: unknown;
 }
 
 export function studentDisplayName(s: ApiStudent): string {
+  if (s.personalInfo?.firstNameAr || s.personalInfo?.lastNameAr) {
+    return `${s.personalInfo.firstNameAr || ''} ${s.personalInfo.lastNameAr || ''}`.trim();
+  }
   if (s.firstname || s.lastname) {
     return `${s.firstname || ''} ${s.lastname || ''}`.trim();
   }
@@ -53,7 +60,6 @@ export function studentDisplayName(s: ApiStudent): string {
 }
 
 type ToastState = { visible: boolean; type: 'success' | 'error' | 'info'; message: string };
-type StatusFilter = 'all' | 'active' | 'inactive';
 
 function apiDateToInput(date: string): string {
   if (!date) return '';
@@ -67,19 +73,6 @@ function inputDateToApi(date: string): string {
   const [y, m, d] = date.split('-');
   if (!d || !m || !y) return date;
   return `${d.padStart(2, '0')}-${m.padStart(2, '0')}-${y}`;
-}
-
-function achievementToRecord(a: ApiAchievement, studentName: string): MemorizationRecord {
-  return {
-    id: String(a.id),
-    name: studentName,
-    halqa: '',
-    joinDate: apiDateToInput(a.date),
-    status: 'active',
-    surah: `${a.from_surah} ← ${a.to_surah}`,
-    ayah: `${a.from_verse} ← ${a.to_verse}`,
-    notes: a.note,
-  };
 }
 
 async function fetchStudents(): Promise<ApiStudent[]> {
@@ -143,19 +136,17 @@ async function deleteAchievement(studentId: number, achievementId: number): Prom
 }
 
 export default function MemorizationPage() {
+  const [lectures, setLectures] = useState<Lecture[]>([]);
+  const [selectedLecture, setSelectedLecture] = useState<Lecture | null>(null);
+  const [date, setDate] = useState('');
+  const [isLoadingLectures, setIsLoadingLectures] = useState(true);
+
   const [students, setStudents] = useState<ApiStudent[]>([]);
-  const [isLoadingStudents, setIsLoadingStudents] = useState(true);
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
-
-  const [achievements, setAchievements] = useState<ApiAchievement[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [halqaFilter, setHalqaFilter] = useState('');
+  const [achievements, setAchievements] = useState<Record<number, ApiAchievement | null>>({});
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<ApiStudent | null>(null);
   const [editingAchievement, setEditingAchievement] = useState<ApiAchievement | null>(null);
   const [deletingAchievement, setDeletingAchievement] = useState<ApiAchievement | null>(null);
 
@@ -166,111 +157,106 @@ export default function MemorizationPage() {
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
 
+  // Set today's date on mount
+  useEffect(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    setDate(`${yyyy}-${mm}-${dd}`);
+  }, []);
+
+  // Load lectures
   useEffect(() => {
     (async () => {
-      setIsLoadingStudents(true);
+      setIsLoadingLectures(true);
       try {
-        const list = await fetchStudents();
-        setStudents(list);
-        if (list.length > 0) setSelectedStudentId(list[0].id);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'حدث خطأ أثناء تحميل الطلاب';
-        showToast('error', message);
+        const response = await lecturesAPI.getAllLectures();
+        setLectures(response);
+        if (response.length > 0) {
+          setSelectedLecture(response[0]);
+        }
+      } catch (err: any) {
+        console.error('Error loading lectures:', err);
+        showToast('error', 'فشل تحميل الحلقات');
       } finally {
-        setIsLoadingStudents(false);
+        setIsLoadingLectures(false);
       }
     })();
   }, []);
 
-  const loadAchievements = useCallback(async () => {
-    if (selectedStudentId == null) {
-      setAchievements([]);
+  // Load students and achievements when lecture or date changes
+  const loadData = useCallback(async () => {
+    if (!selectedLecture || !date) {
+      setStudents([]);
+      setAchievements({});
       return;
     }
-    setIsLoading(true);
-    setLoadError(null);
+
+    setIsLoadingData(true);
     try {
-      const data = await fetchAchievements(selectedStudentId);
-      setAchievements(data);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع أثناء تحميل البيانات';
-      setLoadError(message);
-      showToast('error', message);
+      // Load all students
+      const allStudents = await fetchStudents();
+      
+      // Filter students by selected lecture
+      const filteredStudents = allStudents.filter((student) =>
+        student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
+      );
+
+      setStudents(filteredStudents);
+
+      // Load achievements for each student
+      const achievementsMap: Record<number, ApiAchievement | null> = {};
+      await Promise.all(
+        filteredStudents.map(async (student) => {
+          try {
+            const studentAchievements = await fetchAchievements(student.id);
+            // Get the latest achievement for the selected date
+            const dateAchievement = studentAchievements.find(
+              (a) => a.date === inputDateToApi(date)
+            );
+            achievementsMap[student.id] = dateAchievement || null;
+          } catch (err) {
+            console.error(`Error loading achievements for student ${student.id}:`, err);
+            achievementsMap[student.id] = null;
+          }
+        })
+      );
+
+      setAchievements(achievementsMap);
+    } catch (err: any) {
+      console.error('Error loading data:', err);
+      showToast('error', 'فشل تحميل البيانات');
+      setStudents([]);
+      setAchievements({});
     } finally {
-      setIsLoading(false);
+      setIsLoadingData(false);
     }
-  }, [selectedStudentId]);
+  }, [selectedLecture, date]);
 
   useEffect(() => {
-    loadAchievements();
-  }, [loadAchievements]);
+    loadData();
+  }, [loadData]);
 
-  const selectedStudent = useMemo(
-    () => students.find((s) => s.id === selectedStudentId) ?? null,
-    [students, selectedStudentId]
-  );
-
-  const records: MemorizationRecord[] = useMemo(
-    () =>
-      achievements.map((a) =>
-        achievementToRecord(a, selectedStudent ? studentDisplayName(selectedStudent) : 'طالب')
-      ),
-    [achievements, selectedStudent]
-  );
-
-  const halqaOptions = useMemo(
-    () => [...new Set(records.map((r) => r.halqa).filter(Boolean) as string[])].sort(),
-    [records]
-  );
-
-  const filtered = useMemo(() => {
-    return records.filter((r) => {
-      const q = query.toLowerCase();
-      const matchesQuery =
-        r.name.toLowerCase().includes(q) ||
-        r.surah.toLowerCase().includes(q) ||
-        r.ayah.toLowerCase().includes(q);
-      const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
-      const matchesHalqa = !halqaFilter || r.halqa === halqaFilter;
-      return matchesQuery && matchesStatus && matchesHalqa;
-    });
-  }, [records, query, statusFilter, halqaFilter]);
-
-  const stats = useMemo(
-    () => ({
-      total: records.length,
-      active: records.filter((r) => r.status === 'active').length,
-      inactive: records.filter((r) => r.status === 'inactive').length,
-    }),
-    [records]
-  );
-
-  const deletingRecord = useMemo(
-    () => (deletingAchievement ? records.find((r) => r.id === String(deletingAchievement.id)) ?? null : null),
-    [deletingAchievement, records]
-  );
-
-  const openAddForm = () => {
+  const handleAddAchievement = (student: ApiStudent) => {
+    setSelectedStudent(student);
     setEditingAchievement(null);
     setIsFormOpen(true);
   };
 
-  const openEditForm = (record: MemorizationRecord) => {
-    const achievement = achievements.find((a) => String(a.id) === record.id) ?? null;
+  const handleEditAchievement = (student: ApiStudent, achievement: ApiAchievement) => {
+    setSelectedStudent(student);
     setEditingAchievement(achievement);
     setIsFormOpen(true);
   };
 
-  const openDeleteConfirm = (record: MemorizationRecord) => {
-    const achievement = achievements.find((a) => String(a.id) === record.id) ?? null;
-    setDeletingAchievement(achievement);
-  };
-
   const handleFormSubmit = async (data: AchievementFormValues) => {
+    if (!selectedStudent) return;
+
     setIsSaving(true);
     try {
-      const payload: Omit<ApiAchievement, 'id'> = {
-        student_id: data.studentId,
+      const payload = {
+        student_id: selectedStudent.id, // Add student_id to payload
         from_surah: data.fromSurah,
         to_surah: data.toSurah,
         from_verse: data.fromVerse,
@@ -281,115 +267,242 @@ export default function MemorizationPage() {
       };
 
       if (editingAchievement) {
-        const updated = await updateAchievement(data.studentId, editingAchievement.id, payload);
-        if (data.studentId === selectedStudentId) {
-          setAchievements((prev) => prev.map((a) => (a.id === editingAchievement.id ? updated : a)));
-        } else {
-          setAchievements((prev) => prev.filter((a) => a.id !== editingAchievement.id));
-        }
+        await updateAchievement(selectedStudent.id, editingAchievement.id, payload);
         showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
       } else {
-        const created = await createAchievement(data.studentId, payload);
-        if (data.studentId === selectedStudentId) {
-          setAchievements((prev) => [created, ...prev]);
-        }
+        await createAchievement(selectedStudent.id, payload);
         showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
       }
+
       setIsFormOpen(false);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع أثناء الحفظ';
-      showToast('error', message);
+      loadData(); // Reload data
+    } catch (err: any) {
+      console.error('Error saving achievement:', err);
+      showToast('error', err.message || 'حدث خطأ غير متوقع أثناء الحفظ');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteConfirm = async () => {
     if (!deletingAchievement) return;
+
     setIsDeleting(true);
     try {
       await deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
-      setAchievements((prev) => prev.filter((a) => a.id !== deletingAchievement.id));
       showToast('success', 'تم حذف سجل الإنجاز بنجاح');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع أثناء الحذف';
-      showToast('error', message);
+      setDeletingAchievement(null);
+      loadData(); // Reload data
+    } catch (err: any) {
+      console.error('Error deleting achievement:', err);
+      showToast('error', err.message || 'حدث خطأ غير متوقع أثناء الحذف');
     } finally {
       setIsDeleting(false);
-      setDeletingAchievement(null);
     }
+  };
+
+  const getSurahName = (surahNumber: number): string => {
+    const surah = quranSurahs.find((s) => s.number === surahNumber);
+    return surah ? surah.name : `سورة ${surahNumber}`;
   };
 
   return (
     <AppLayout title="الحفظ والمراجعة" breadcrumb="الشؤون الإدارية / الحفظ والمراجعة">
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <label className="text-sm font-semibold text-gray-700">الطالب:</label>
-          <select
-            value={selectedStudentId ?? ''}
-            onChange={(e) => setSelectedStudentId(Number(e.target.value))}
-            disabled={isLoadingStudents || students.length === 0}
-            className="rounded-xl border border-gray-200 bg-white/80 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500"
-          >
-            {students.length === 0 && <option value="">لا يوجد طلاب</option>}
-            {students.map((s) => (
-              <option key={s.id} value={s.id}>
-                {studentDisplayName(s)}
-              </option>
-            ))}
-          </select>
+      <div className="space-y-6 max-w-7xl mx-auto">
+        {/* Page Banner */}
+        <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
+          متابعة الحفظ والمراجعة / الصفحة الرئيسية
         </div>
 
-        <MemorizationStats total={stats.total} active={stats.active} inactive={stats.inactive} />
+        {/* Lecture and Date Selection */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Lecture Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                الحلقة <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedLecture?.lecture_id || ''}
+                onChange={(e) => {
+                  const lecture = lectures.find((l) => l.lecture_id === Number(e.target.value));
+                  setSelectedLecture(lecture || null);
+                }}
+                disabled={isLoadingLectures || lectures.length === 0}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
+              >
+                {lectures.length === 0 ? (
+                  <option value="">لا توجد حلقات متاحة</option>
+                ) : (
+                  lectures.map((lecture) => (
+                    <option key={lecture.lecture_id} value={lecture.lecture_id}>
+                      {lecture.lecture_name_ar}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
 
-        <MemorizationSearch
-          query={query}
-          onQueryChange={setQuery}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          halqaFilter={halqaFilter}
-          onHalqaFilterChange={setHalqaFilter}
-          halqaOptions={halqaOptions}
-          onAddRecord={openAddForm}
-        />
-
-        {isLoading && <div className="py-10 text-center text-gray-500">جارٍ تحميل السجلات...</div>}
-        {!isLoading && loadError && (
-          <div className="py-10 text-center text-red-500">
-            {loadError}
-            <button onClick={loadAchievements} className="block mx-auto mt-2 text-sm text-blue-600 underline">
-              إعادة المحاولة
-            </button>
+            {/* Date Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                التاريخ <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
+              />
+            </div>
           </div>
-        )}
+        </div>
 
-        {!isLoading && !loadError && (
-          <MemorizationTable records={filtered} onEdit={openEditForm} onDelete={openDeleteConfirm} />
+        {/* Students Table */}
+        {isLoadingData ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+          </div>
+        ) : !selectedLecture || !date ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+            <svg
+              className="w-16 h-16 text-gray-300 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <p className="text-gray-500 text-lg">الرجاء اختيار الحلقة والتاريخ</p>
+          </div>
+        ) : students.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+            <svg
+              className="w-16 h-16 text-gray-300 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            <p className="text-gray-500 text-lg">لا يوجد طلاب في هذه الحلقة</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Table Header */}
+            <div className="bg-teal-600 px-6 py-4 grid grid-cols-12 gap-4 text-white font-semibold text-sm">
+              <div className="col-span-1 text-center">#</div>
+              <div className="col-span-4 text-center">الطالب</div>
+              <div className="col-span-5 text-center">الإنجاز</div>
+              <div className="col-span-2 text-center">الإجراءات</div>
+            </div>
+
+            {/* Table Body */}
+            <div className="divide-y divide-gray-100">
+              {students.map((student, index) => {
+                const achievement = achievements[student.id];
+                const isEven = index % 2 === 0;
+
+                return (
+                  <div
+                    key={student.id}
+                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-center ${
+                      isEven ? 'bg-gray-50' : 'bg-white'
+                    }`}
+                  >
+                    {/* Index */}
+                    <div className="col-span-1 text-center text-gray-700">{index + 1}</div>
+
+                    {/* Student Name */}
+                    <div className="col-span-4 text-center text-gray-900 font-medium">
+                      {studentDisplayName(student)}
+                    </div>
+
+                    {/* Achievement */}
+                    <div className="col-span-5 text-center">
+                      {achievement ? (
+                        <div className="inline-block px-3 py-2 bg-teal-50 border border-teal-500 rounded-lg text-teal-700 text-xs font-medium">
+                          <div>{getSurahName(achievement.from_surah)} ({achievement.from_verse})</div>
+                          <div className="text-teal-600">←</div>
+                          <div>{getSurahName(achievement.to_surah)} ({achievement.to_verse})</div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">--</span>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-span-2 flex justify-center gap-2">
+                      {achievement ? (
+                        <>
+                          <button
+                            onClick={() => handleEditAchievement(student, achievement)}
+                            className="px-3 py-1.5 bg-blue-50 border border-blue-500 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium"
+                          >
+                            تعديل
+                          </button>
+                          <button
+                            onClick={() => setDeletingAchievement(achievement)}
+                            className="px-3 py-1.5 bg-red-50 border border-red-500 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium"
+                          >
+                            حذف
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleAddAchievement(student)}
+                          className="px-4 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-medium"
+                        >
+                          إضافة إنجاز
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
 
-      <MemorizationForm
-        isOpen={isFormOpen}
-        onClose={() => !isSaving && setIsFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        editingAchievement={editingAchievement}
-        students={students}
-        isLoadingStudents={isLoadingStudents}
-        defaultStudentId={selectedStudentId}
-        isLoading={isSaving}
-      />
+      {/* Achievement Form Modal */}
+      {selectedStudent && (
+        <MemorizationForm
+          isOpen={isFormOpen}
+          onClose={() => !isSaving && setIsFormOpen(false)}
+          onSubmit={handleFormSubmit}
+          editingAchievement={editingAchievement}
+          students={[selectedStudent]}
+          isLoadingStudents={false}
+          defaultStudentId={selectedStudent.id}
+          isLoading={isSaving}
+        />
+      )}
 
+      {/* Confirm deletion dialog */}
       <ConfirmDialog
         isOpen={!!deletingAchievement}
         onClose={() => !isDeleting && setDeletingAchievement(null)}
-        onConfirm={handleDelete}
+        onConfirm={handleDeleteConfirm}
         title="تأكيد حذف سجل الإنجاز"
-        message={`هل أنت متأكد من حذف سجل إنجاز "${deletingRecord?.name ?? ''}"؟ لا يمكن التراجع عن هذا الإجراء.`}
+        message={`هل أنت متأكد من حذف سجل الإنجاز؟ لا يمكن التراجع عن هذا الإجراء.`}
         confirmText="نعم، احذف"
         cancelText="إلغاء"
         variant="danger"
       />
 
+      {/* Toast notifications */}
       <Toast
         type={toast.type}
         message={toast.message}
@@ -399,3 +512,4 @@ export default function MemorizationPage() {
     </AppLayout>
   );
 }
+

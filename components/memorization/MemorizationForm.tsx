@@ -7,6 +7,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import type { ApiStudent } from '@/app/memorization/page';
 import { studentDisplayName } from '@/app/memorization/page';
+import { quranSurahs } from '@/data/quran_data';
 
 export interface AchievementFormValues {
   studentId: number;
@@ -65,6 +66,10 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
 
   const isEditing = !!editingAchievement;
 
+  // Get max verses for selected surahs
+  const fromSurahData = quranSurahs.find((s) => s.number === form.fromSurah);
+  const toSurahData = quranSurahs.find((s) => s.number === form.toSurah);
+
   useEffect(() => {
     if (editingAchievement) {
       setForm({
@@ -90,13 +95,52 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
 
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
+    
+    // Check student selection
     if (!form.studentId) newErrors.studentId = 'اختيار الطالب مطلوب';
-    if (!form.fromSurah || form.fromSurah < 1 || form.fromSurah > 114) newErrors.fromSurah = 'رقم سورة غير صالح';
-    if (!form.toSurah || form.toSurah < 1 || form.toSurah > 114) newErrors.toSurah = 'رقم سورة غير صالح';
-    if (form.toSurah < form.fromSurah) newErrors.toSurah = 'يجب أن تكون بعد سورة البداية';
-    if (!form.fromVerse || form.fromVerse < 1) newErrors.fromVerse = 'رقم آية غير صالح';
-    if (!form.toVerse || form.toVerse < 1) newErrors.toVerse = 'رقم آية غير صالح';
-    if (!form.date) newErrors.date = 'التاريخ مطلوب';
+    
+    // Check surah validity
+    if (!form.fromSurah || form.fromSurah < 1 || form.fromSurah > 114) {
+      newErrors.fromSurah = 'اختيار السورة مطلوب';
+    }
+    if (!form.toSurah || form.toSurah < 1 || form.toSurah > 114) {
+      newErrors.toSurah = 'اختيار السورة مطلوب';
+    }
+    
+    // Check verse validity based on selected surahs
+    const fromSurahData = quranSurahs.find((s) => s.number === form.fromSurah);
+    const toSurahData = quranSurahs.find((s) => s.number === form.toSurah);
+    
+    if (!form.fromVerse || form.fromVerse < 1) {
+      newErrors.fromVerse = 'رقم آية غير صالح';
+    } else if (fromSurahData && form.fromVerse > fromSurahData.numberOfAyahs) {
+      newErrors.fromVerse = `الحد الأقصى: ${fromSurahData.numberOfAyahs} آية`;
+    }
+    
+    if (!form.toVerse || form.toVerse < 1) {
+      newErrors.toVerse = 'رقم آية غير صالح';
+    } else if (toSurahData && form.toVerse > toSurahData.numberOfAyahs) {
+      newErrors.toVerse = `الحد الأقصى: ${toSurahData.numberOfAyahs} آية`;
+    }
+    
+    // Check logical sequence (Quran memorization goes forward: from lower to higher)
+    if (form.fromSurah === form.toSurah) {
+      // Same surah: from verse must be <= to verse (e.g., from verse 1 to verse 20)
+      if (form.fromVerse > form.toVerse) {
+        newErrors.fromVerse = 'يجب أن تكون الآية "من" أقل من أو تساوي الآية "إلى"';
+      }
+    } else {
+      // Different surahs: from surah must be <= to surah (e.g., from Surah 1 to Surah 3)
+      if (form.fromSurah > form.toSurah) {
+        newErrors.fromSurah = 'يجب أن تكون السورة "من" أقل من أو تساوي السورة "إلى"';
+      }
+    }
+    
+    // Check date
+    if (!form.date) {
+      newErrors.date = 'التاريخ مطلوب';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -105,6 +149,48 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
     e.preventDefault();
     if (!validate()) return;
     onSubmit(form);
+  };
+
+  // Check if form can be submitted
+  const canSubmit = (): boolean => {
+    // All fields must have values
+    if (!form.studentId || !form.fromSurah || !form.toSurah || !form.fromVerse || !form.toVerse || !form.date) {
+      return false;
+    }
+    
+    // Surahs must be valid
+    if (form.fromSurah < 1 || form.fromSurah > 114 || form.toSurah < 1 || form.toSurah > 114) {
+      return false;
+    }
+    
+    // Verses must be valid and within range
+    const fromSurahData = quranSurahs.find((s) => s.number === form.fromSurah);
+    const toSurahData = quranSurahs.find((s) => s.number === form.toSurah);
+    
+    if (form.fromVerse < 1 || form.toVerse < 1) {
+      return false;
+    }
+    
+    if (fromSurahData && form.fromVerse > fromSurahData.numberOfAyahs) {
+      return false;
+    }
+    
+    if (toSurahData && form.toVerse > toSurahData.numberOfAyahs) {
+      return false;
+    }
+    
+    // Check logical sequence
+    if (form.fromSurah === form.toSurah) {
+      if (form.fromVerse > form.toVerse) {
+        return false;
+      }
+    } else {
+      if (form.fromSurah > form.toSurah) {
+        return false;
+      }
+    }
+    
+    return true;
   };
 
   return (
@@ -118,7 +204,7 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading}>
             إلغاء
           </Button>
-          <Button size="sm" isLoading={isLoading} onClick={handleSubmit}>
+          <Button size="sm" isLoading={isLoading} onClick={handleSubmit} disabled={!canSubmit() || isLoading}>
             {isEditing ? 'حفظ التعديلات' : 'إضافة السجل'}
           </Button>
         </>
@@ -140,44 +226,68 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
 
         {/* Surah range */}
         <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="من سورة (رقم) *"
-            type="number"
-            min={1}
-            max={114}
+          <Select
+            label="من سورة *"
             value={form.fromSurah}
             onChange={(e) => set('fromSurah', Number(e.target.value))}
             error={errors.fromSurah}
+            options={[
+              { value: '', label: 'اختر السورة' },
+              ...quranSurahs.map((surah) => ({
+                value: String(surah.number),
+                label: `${surah.number}. ${surah.name}`,
+              })),
+            ]}
           />
-          <Input
-            label="إلى سورة (رقم) *"
-            type="number"
-            min={1}
-            max={114}
+          <Select
+            label="إلى سورة *"
             value={form.toSurah}
             onChange={(e) => set('toSurah', Number(e.target.value))}
             error={errors.toSurah}
+            options={[
+              { value: '', label: 'اختر السورة' },
+              ...quranSurahs.map((surah) => ({
+                value: String(surah.number),
+                label: `${surah.number}. ${surah.name}`,
+              })),
+            ]}
           />
         </div>
 
         {/* Verse range */}
         <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="من آية *"
-            type="number"
-            min={1}
-            value={form.fromVerse}
-            onChange={(e) => set('fromVerse', Number(e.target.value))}
-            error={errors.fromVerse}
-          />
-          <Input
-            label="إلى آية *"
-            type="number"
-            min={1}
-            value={form.toVerse}
-            onChange={(e) => set('toVerse', Number(e.target.value))}
-            error={errors.toVerse}
-          />
+          <div>
+            <Input
+              label="من آية *"
+              type="number"
+              min={1}
+              max={fromSurahData?.numberOfAyahs || 286}
+              value={form.fromVerse}
+              onChange={(e) => set('fromVerse', Number(e.target.value))}
+              error={errors.fromVerse}
+            />
+            {fromSurahData && (
+              <p className="text-xs text-gray-500 mt-1">
+                الحد الأقصى: {fromSurahData.numberOfAyahs} آية
+              </p>
+            )}
+          </div>
+          <div>
+            <Input
+              label="إلى آية *"
+              type="number"
+              min={1}
+              max={toSurahData?.numberOfAyahs || 286}
+              value={form.toVerse}
+              onChange={(e) => set('toVerse', Number(e.target.value))}
+              error={errors.toVerse}
+            />
+            {toSurahData && (
+              <p className="text-xs text-gray-500 mt-1">
+                الحد الأقصى: {toSurahData.numberOfAyahs} آية
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Type + Date */}
