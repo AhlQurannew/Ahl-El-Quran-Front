@@ -27,6 +27,7 @@ interface DashboardCard {
 interface StatsSummary {
   total_students: number;
   total_teachers: number;
+  total_supervisors: number;
   present_today: number;
   total_pages_memorized: number;
   total_lectures: number;
@@ -58,7 +59,7 @@ export function DashboardCards() {
   const statsCards: DashboardCard[] = [
     { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
     { title: 'المعلمين', count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
-    { title: 'المشرفين', count: 0, icon: <UserCheck className="w-16 h-16" />, href: '/supervisors', variant: 'stat' },
+    { title: 'المشرفين', count: stats?.total_supervisors || 0, icon: <UserCheck className="w-16 h-16" />, href: '/supervisors', variant: 'stat' },
     { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' }
   ];
 
