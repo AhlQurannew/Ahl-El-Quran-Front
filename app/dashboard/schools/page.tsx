@@ -251,7 +251,7 @@ export default function SchoolsManagementPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pr-10 pl-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-right"
-              style={{ focusRing: '2px solid rgba(200, 150, 62, 0.2)' }}
+
             />
           </div>
         </div>
