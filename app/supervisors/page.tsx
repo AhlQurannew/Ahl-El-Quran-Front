@@ -99,7 +99,7 @@ export default function SupervisorsPage() {
   const handleDeleteConfirm = async () => {
     try {
       for (const id of selectedIds) {
-        await supervisorAPI.deleteSupervisor(Number(id));
+        await supervisorAPI.deleteSupervisor(id);
       }
       showToast('success', `تم حذف ${selectedIds.length} مشرف بنجاح`);
       setSelectedIds([]);
@@ -116,7 +116,7 @@ export default function SupervisorsPage() {
     try {
       if (editingSupervisor) {
         // Update existing supervisor via API
-        await supervisorAPI.updateSupervisor(Number(editingSupervisor.id), data as SupervisorUpdatePayload);
+        await supervisorAPI.updateSupervisor(editingSupervisor.id, data as SupervisorUpdatePayload);
         showToast('success', `تم تعديل بيانات المشرف ${data.firstname} ${data.lastname}`);
         
         // Reload supervisors list

@@ -23,8 +23,8 @@ axiosGlobal.interceptors.request.use((config) => {
 
 // TYPES
 export interface Supervisor {
-    id: number;
-    user_id: number;
+    id: string;
+    user_id: string;
     firstname: string;
     lastname: string;
     email: string;
@@ -56,17 +56,17 @@ const getSupervisors = async (skip = 0, limit = 100): Promise<SupervisorListResp
     return res.data;
 };
 
-const getSupervisorById = async (supervisor_id: number): Promise<Supervisor> => {
+const getSupervisorById = async (supervisor_id: string): Promise<Supervisor> => {
     const res = await axiosGlobal.get(`/${supervisor_id}`);
     return res.data;
 };
 
-const updateSupervisor = async (supervisor_id: number, data: SupervisorUpdatePayload) => {
+const updateSupervisor = async (supervisor_id: string, data: SupervisorUpdatePayload) => {
     const res = await axiosGlobal.put(`/${supervisor_id}`, data);
     return res.data;
 };
 
-const deleteSupervisor = async (supervisor_id: number) => {
+const deleteSupervisor = async (supervisor_id: string) => {
     await axiosGlobal.delete(`/${supervisor_id}`);
 };
 

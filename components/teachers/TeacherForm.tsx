@@ -10,7 +10,7 @@ import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
 interface TeacherFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: TeacherCreatePayload | Partial<Teacher>) => void;
+  onSubmit: (data: TeacherCreatePayload) => void;
   editingTeacher?: Teacher | null;
   isSubmitting?: boolean;
 }
@@ -22,7 +22,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   editingTeacher,
   isSubmitting = false,
 }) => {
-  const [formData, setFormData] = useState<TeacherCreatePayload | Partial<Teacher>>({
+  const [formData, setFormData] = useState<TeacherCreatePayload>({
     firstname: '',
     lastname: '',
     email: '',
@@ -50,6 +50,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         lastname: editingTeacher.lastname,
         email: editingTeacher.email,
         riwaya: editingTeacher.riwaya,
+        password: '',
       });
     } else {
       // Create mode - include password
