@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { logout } from '@/utils/auth';
 
 interface TopbarProps {
   title: string;
@@ -24,20 +25,7 @@ export const Topbar: React.FC<TopbarProps> = ({ title, breadcrumb }) => {
   }, []);
 
   const handleLogout = () => {
-    // Clear auth store
-    clearAuth();
-
-    // Clear all tokens from localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('token');
-      localStorage.removeItem('jwt');
-      sessionStorage.removeItem('admin_viewing_school');
-    }
-
-    // Redirect to login page
-    router.push('/login');
+    logout();
   };
 
   return (

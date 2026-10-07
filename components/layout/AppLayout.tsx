@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { syncAuthCookies } from '@/utils/auth';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { useAdminView } from '@/contexts/AdminViewContext';
@@ -14,6 +15,16 @@ interface AppLayoutProps {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrumb }) => {
   const { isAdminViewing, viewingSchoolName, exitAdminView } = useAdminView();
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    const hasCookie = typeof document !== 'undefined' && document.cookie.includes('access_token=');
+    if (!token && !hasCookie) {
+      window.location.href = '/login';
+      return;
+    }
+    syncAuthCookies();
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden" dir="rtl">

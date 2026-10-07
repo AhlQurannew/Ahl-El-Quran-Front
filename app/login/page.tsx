@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -6,6 +6,7 @@ import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import Image from 'next/image';
 import authAPI from '@/app/API/auth';
 import { useAuthStore } from '@/store/authStore';
+import { setAuthCookies } from '@/utils/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -90,6 +91,7 @@ export default function LoginPage() {
           localStorage.setItem('refresh_token', res.refresh_token);
         }
         if (res.user) setUser(res.user);
+        setAuthCookies(res.access_token, role);
 
         showToast('تم تسجيل الدخول بنجاح', 'success');
         setTimeout(() => {
