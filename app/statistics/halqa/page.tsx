@@ -1,43 +1,89 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight } from 'lucide-react';
-
-const HALQAS = [
-  { label: 'اختر الحلقة', value: '' },
-  { label: 'حلقة أحمد الزينبي', value: 'حلقة أحمد الزينبي' },
-  { label: 'حلقة محمد الفاتح', value: 'حلقة محمد الفاتح' },
-  { label: 'حلقة نور البيان', value: 'حلقة نور البيان' },
-];
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import teacherAPI from '@/app/API/teacher';
+import lecturesAPI from '@/app/API/lectures';
+import reportsAPI from '@/app/API/reports';
 
 export default function HalqaStatsPage() {
+  const user = useAuthStore((s) => s.user);
+  const isTeacher = user?.role === 'TEACHER';
+
+  const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
+    { label: 'اختر الحلقة', value: '' },
+  ]);
+
   const [isShowingStats, setIsShowingStats] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [halqa, setHalqa] = useState('');
-  const [startDate, setStartDate] = useState('2026-06-26');
-  const [endDate, setEndDate] = useState('2026-07-26');
+  const [startDate, setStartDate] = useState('2026-01-01');
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Mock data for the chart: Pages memorized per student in the selected halqa
-  const chartData = [
-    { student: 'أحمد معتصم', pages: 33, color: 'bg-emerald-400' },
-    { student: 'رؤوف المعتصم', pages: 18, color: 'bg-emerald-400' },
-    { student: 'عبدو معتصم', pages: 25, color: 'bg-emerald-400' },
-    { student: 'جليل مطاطي', pages: 12, color: 'bg-emerald-400' },
-  ];
+  const [chartData, setChartData] = useState<{ student: string; pages: number; color: string }[]>([]);
 
-  const maxChartValue = 35; 
+  // Load teacher's assigned lectures (episodes)
+  useEffect(() => {
+    async function loadLectures() {
+      try {
+        let lectures: any[] = [];
+        if (isTeacher) {
+          lectures = await teacherAPI.getMyLectures();
+        } else {
+          lectures = await lecturesAPI.getAllLectures();
+        }
+        const options = [
+          { label: 'اختر الحلقة', value: '' },
+          ...lectures.map((l: any) => ({
+            label: l.lecture_name_ar || `حلقة ${l.lecture_id || l.id}`,
+            value: String(l.lecture_id || l.id),
+          })),
+        ];
+        setHalqaList(options);
+      } catch (err) {
+        console.error('Error loading lectures:', err);
+      }
+    }
+    loadLectures();
+  }, [isTeacher]);
 
-  const handleShowStats = (e: React.FormEvent) => {
+  const maxChartValue = Math.max(10, ...(chartData.map((d) => d.pages) || [0])) + 5;
+
+  const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!halqa || !startDate || !endDate) {
-      alert('يرجى تعبئة جميع الحقول');
+    if (!halqa) {
+      alert('يرجى اختيار الحلقة');
       return;
     }
-    setIsShowingStats(true);
+    try {
+      setLoading(true);
+      const res = await reportsAPI.getHalqaBreakdown({
+        lecture_id: Number(halqa),
+        start_date: startDate,
+        end_date: endDate,
+      });
+
+      const formatted = (res || []).map((item) => ({
+        student: item.student,
+        pages: item.pages || 0,
+        color: 'bg-emerald-400',
+      }));
+      setChartData(formatted);
+      setIsShowingStats(true);
+    } catch (err) {
+      console.error('Error fetching halqa stats:', err);
+      alert('حدث خطأ أثناء جلب إحصائيات الحلقة');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || halqa;
 
   return (
     <AppLayout title="إحصائيات الحلقة" breadcrumb="الشؤون الإدارية / الإحصاءات / إحصائيات الحلقة">
@@ -60,24 +106,23 @@ export default function HalqaStatsPage() {
           /* ─── FORM VIEW ─── */
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12">
             <form onSubmit={handleShowStats} className="max-w-2xl mx-auto space-y-8">
-              
               <div className="space-y-6">
                 <Select
-                  label="الحلقة"
+                  label="الحلقة *"
                   value={halqa}
                   onChange={(e) => setHalqa(e.target.value)}
-                  options={HALQAS}
+                  options={halqaList}
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <Input
-                    label="تاريخ البداية"
+                    label="تاريخ البداية *"
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                   <Input
-                    label="تاريخ النهاية"
+                    label="تاريخ النهاية *"
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -86,8 +131,8 @@ export default function HalqaStatsPage() {
               </div>
 
               <div className="pt-4 flex justify-center">
-                <Button type="submit" size="lg" className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
-                  عرض الإحصائيات
+                <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'عرض الإحصائيات'}
                 </Button>
               </div>
             </form>
@@ -95,10 +140,9 @@ export default function HalqaStatsPage() {
         ) : (
           /* ─── CHART VIEW ─── */
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12 space-y-12">
-            
             {/* Header Info */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-700 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <span>الحلقة: <span className="text-emerald-600">{halqa}</span></span>
+              <span>الحلقة: <span className="text-emerald-600">{selectedHalqaLabel}</span></span>
               <span className="text-gray-300">|</span>
               <span>من: <span className="text-emerald-600">{startDate}</span></span>
               <span className="text-gray-300">|</span>
@@ -111,45 +155,46 @@ export default function HalqaStatsPage() {
                 عدد الصفحات المحفوظة لكل طالب
               </h2>
 
-              <div className="relative h-80 max-w-4xl mx-auto flex items-end justify-around pb-8 border-b-2 border-gray-100 pt-10 px-4">
-                
-                {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium pr-4 border-r-2 border-gray-100 min-h-[300px] pb-4">
-                  <span>{Math.round(maxChartValue)}</span>
-                  <span>{Math.round(maxChartValue * 0.8)}</span>
-                  <span>{Math.round(maxChartValue * 0.6)}</span>
-                  <span>{Math.round(maxChartValue * 0.4)}</span>
-                  <span>{Math.round(maxChartValue * 0.2)}</span>
-                  <span>0</span>
-                </div>
+              {chartData.length === 0 ? (
+                <div className="p-8 text-center text-sm text-gray-500">لا يوجد طلاب أو إنجازات مسجلة في هذه الحلقة خلال الفترة المحددة</div>
+              ) : (
+                <div className="relative h-80 max-w-4xl mx-auto flex items-end justify-around pb-8 border-b-2 border-gray-100 pt-10 px-4">
+                  {/* Y-axis labels */}
+                  <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium pr-4 border-r-2 border-gray-100 min-h-[300px] pb-4">
+                    <span>{Math.round(maxChartValue)}</span>
+                    <span>{Math.round(maxChartValue * 0.8)}</span>
+                    <span>{Math.round(maxChartValue * 0.6)}</span>
+                    <span>{Math.round(maxChartValue * 0.4)}</span>
+                    <span>{Math.round(maxChartValue * 0.2)}</span>
+                    <span>0</span>
+                  </div>
 
-                {/* Bars */}
-                {chartData.map((item, index) => {
-                  const heightPercent = (item.pages / maxChartValue) * 100;
-                  return (
-                    <div key={index} className="h-full flex flex-col justify-end items-center gap-3 w-1/4 group relative">
-                      
-                      {/* Tooltip on hover */}
-                      <div className="absolute top-0 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none z-10 whitespace-nowrap shadow-lg mb-2">
-                        {item.student}: {item.pages} صفحة
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  {/* Bars */}
+                  {chartData.map((item, index) => {
+                    const heightPercent = (item.pages / maxChartValue) * 100;
+                    return (
+                      <div key={index} className="h-full flex flex-col justify-end items-center gap-3 w-1/4 group relative">
+                        {/* Tooltip on hover */}
+                        <div className="absolute top-0 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none z-10 whitespace-nowrap shadow-lg mb-2">
+                          {item.student}: {item.pages} صفحة
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                        </div>
+
+                        {/* The Bar */}
+                        <div
+                          className={`w-full max-w-[40px] sm:max-w-[50px] rounded-t-md ${item.color} transition-all duration-700 ease-out shadow-sm group-hover:brightness-110 cursor-pointer relative z-0`}
+                          style={{ height: `${heightPercent}%` }}
+                        ></div>
+
+                        {/* X-axis label (Student Name) */}
+                        <span className="text-xs sm:text-sm font-semibold text-gray-600 absolute -bottom-8 whitespace-nowrap text-center">
+                          {item.student}
+                        </span>
                       </div>
-
-                      {/* The Bar */}
-                      <div 
-                        className={`w-full max-w-[40px] sm:max-w-[50px] rounded-t-md ${item.color} transition-all duration-700 ease-out shadow-sm group-hover:brightness-110 cursor-pointer relative z-0`}
-                        style={{ height: `${heightPercent}%` }}
-                      ></div>
-                      
-                      {/* X-axis label (Student Name) */}
-                      <span className="text-xs sm:text-sm font-semibold text-gray-600 absolute -bottom-8 whitespace-nowrap text-center">
-                        {item.student}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}

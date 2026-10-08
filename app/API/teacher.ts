@@ -280,6 +280,67 @@ const deleteTeacherAttendance = async (
 };
 
 
+
+// ================= TEACHER STATISTICS =================
+
+const getTeacherStatsSummary = async (): Promise<any> => {
+    const res = await axiosGlobal.get("/statistics/summary");
+    return res.data;
+};
+
+const getTeacherAttendanceTrend = async (limit: number = 10): Promise<any> => {
+    const res = await axiosGlobal.get("/statistics/attendance-trend", { params: { limit } });
+    return res.data;
+};
+
+const getTeacherTopMemorizers = async (limit: number = 5): Promise<any> => {
+    const res = await axiosGlobal.get("/statistics/top-memorizers", { params: { limit } });
+    return res.data;
+};
+
+const getTeacherLectureDistribution = async (): Promise<any> => {
+    const res = await axiosGlobal.get("/statistics/lecture-distribution");
+    return res.data;
+};
+
+const getTeacherAchievementBreakdown = async (params?: {
+    lecture_id?: number;
+    student_id?: number;
+    start_date?: string;
+    end_date?: string;
+}): Promise<{ normal: number; small: number; big: number }> => {
+    const res = await axiosGlobal.get("/statistics/achievement-breakdown", { params });
+    return res.data;
+};
+
+const getTeacherAttendanceBreakdown = async (params?: {
+    lecture_id?: number;
+    student_id?: number;
+    start_date?: string;
+    end_date?: string;
+}): Promise<{ present: number; late: number; absent: number; excused: number; total: number }> => {
+    const res = await axiosGlobal.get("/statistics/attendance-breakdown", { params });
+    return res.data;
+};
+
+const getTeacherHalqaBreakdown = async (params: {
+    lecture_id: number;
+    start_date?: string;
+    end_date?: string;
+}): Promise<Array<{ student: string; pages: number }>> => {
+    const res = await axiosGlobal.get("/statistics/halqa-breakdown", { params });
+    return res.data;
+};
+
+const getTeacherProgressTimeline = async (params: {
+    student_id: number;
+    start_date?: string;
+    end_date?: string;
+}): Promise<Array<{ date: string; memorization: number; minorRev: number; majorRev: number }>> => {
+    const res = await axiosGlobal.get("/statistics/progress-timeline", { params });
+    return res.data;
+};
+
 const teacherAPI = {
     // CRUD
     createTeacher,
@@ -311,6 +372,15 @@ const teacherAPI = {
     getTeacherAttendance,
     updateTeacherAttendance,
     deleteTeacherAttendance,
+    // statistics
+    getTeacherStatsSummary,
+    getTeacherAttendanceTrend,
+    getTeacherTopMemorizers,
+    getTeacherLectureDistribution,
+    getTeacherAchievementBreakdown,
+    getTeacherAttendanceBreakdown,
+    getTeacherHalqaBreakdown,
+    getTeacherProgressTimeline,
 };
 
 export default teacherAPI;

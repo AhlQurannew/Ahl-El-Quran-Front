@@ -1,51 +1,127 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { BarChart2, ArrowRight } from 'lucide-react';
-
-const HALQAS = [
-  { label: 'اختر الحلقة', value: '' },
-  { label: 'حلقة أحمد الزينبي', value: 'حلقة أحمد الزينبي' },
-  { label: 'حلقة محمد الفاتح', value: 'حلقة محمد الفاتح' },
-  { label: 'حلقة نور البيان', value: 'حلقة نور البيان' },
-];
-
-const STUDENTS = [
-  { label: 'اختر الطالب', value: '' },
-  { label: 'أحمد معتصم', value: 'أحمد معتصم' },
-  { label: 'رؤوف المعتصم', value: 'رؤوف المعتصم' },
-  { label: 'عبدو معتصم', value: 'عبدو معتصم' },
-  { label: 'جليل مطاطي', value: 'جليل مطاطي' },
-];
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import teacherAPI from '@/app/API/teacher';
+import lecturesAPI from '@/app/API/lectures';
+import reportsAPI from '@/app/API/reports';
 
 export default function AchievementStatsPage() {
+  const user = useAuthStore((s) => s.user);
+  const isTeacher = user?.role === 'TEACHER';
+
+  const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
+    { label: 'اختر الحلقة', value: '' },
+  ]);
+  const [studentList, setStudentList] = useState<{ label: string; value: string }[]>([
+    { label: 'اختر الطالب', value: '' },
+  ]);
+
   const [isShowingStats, setIsShowingStats] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [halqa, setHalqa] = useState('');
   const [student, setStudent] = useState('');
-  const [startDate, setStartDate] = useState('2026-06-26');
-  const [endDate, setEndDate] = useState('2026-07-26');
+  const [startDate, setStartDate] = useState('2026-01-01');
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Mock data for the chart
-  const chartData = [
-    { label: 'حفظ', value: 22.0, color: 'bg-emerald-400' },
-    { label: 'مراجعة صغرى', value: 8.5, color: 'bg-amber-400' },
-    { label: 'مراجعة كبرى', value: 15.0, color: 'bg-blue-400' },
-  ];
+  const [chartData, setChartData] = useState([
+    { label: 'حفظ', value: 0, color: 'bg-emerald-400' },
+    { label: 'مراجعة صغرى', value: 0, color: 'bg-amber-400' },
+    { label: 'مراجعة كبرى', value: 0, color: 'bg-blue-400' },
+  ]);
 
-  const maxChartValue = Math.max(...chartData.map((d) => d.value)) + 5; // Add some padding to the top
+  // Load lectures (episodes) - scoped to teacher if teacher
+  useEffect(() => {
+    async function loadLectures() {
+      try {
+        let lectures: any[] = [];
+        if (isTeacher) {
+          lectures = await teacherAPI.getMyLectures();
+        } else {
+          lectures = await lecturesAPI.getAllLectures();
+        }
+        const options = [
+          { label: 'اختر الحلقة', value: '' },
+          ...lectures.map((l: any) => ({
+            label: l.lecture_name_ar || `حلقة ${l.lecture_id || l.id}`,
+            value: String(l.lecture_id || l.id),
+          })),
+        ];
+        setHalqaList(options);
+      } catch (err) {
+        console.error('Error loading lectures:', err);
+      }
+    }
+    loadLectures();
+  }, [isTeacher]);
 
-  const handleShowStats = (e: React.FormEvent) => {
+  // Load students when halqa changes or initially
+  useEffect(() => {
+    async function loadStudents() {
+      try {
+        let students: any[] = [];
+        const lectureIdNum = halqa ? Number(halqa) : undefined;
+        if (isTeacher) {
+          const res = await teacherAPI.getMyStudents({ lecture_id: lectureIdNum });
+          students = res.students || [];
+        } else {
+          const res = await teacherAPI.getMyStudents({ lecture_id: lectureIdNum }).catch(() => ({ students: [] }));
+          students = res.students || [];
+        }
+        const options = [
+          { label: 'اختر الطالب', value: '' },
+          ...students.map((s: any) => ({
+            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || `طالب ${s.id}`,
+            value: String(s.id),
+          })),
+        ];
+        setStudentList(options);
+        setStudent('');
+      } catch (err) {
+        console.error('Error loading students:', err);
+      }
+    }
+    loadStudents();
+  }, [halqa, isTeacher]);
+
+  const maxChartValue = Math.max(10, ...chartData.map((d) => d.value)) + 5;
+
+  const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!halqa || !student || !startDate || !endDate) {
-      alert('يرجى تعبئة جميع الحقول');
+    if (!halqa && !student) {
+      alert('يرجى اختيار حلقة أو طالب على الأقل');
       return;
     }
-    setIsShowingStats(true);
+    try {
+      setLoading(true);
+      const res = await reportsAPI.getAchievementBreakdown({
+        lecture_id: halqa ? Number(halqa) : undefined,
+        student_id: student ? Number(student) : undefined,
+        start_date: startDate,
+        end_date: endDate,
+      });
+
+      setChartData([
+        { label: 'حفظ', value: res.normal || 0, color: 'bg-emerald-400' },
+        { label: 'مراجعة صغرى', value: res.small || 0, color: 'bg-amber-400' },
+        { label: 'مراجعة كبرى', value: res.big || 0, color: 'bg-blue-400' },
+      ]);
+      setIsShowingStats(true);
+    } catch (err) {
+      console.error('Error fetching achievement stats:', err);
+      alert('حدث خطأ أثناء جلب بيانات الإنجاز');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || 'الكل';
+  const selectedStudentLabel = studentList.find((s) => s.value === student)?.label || 'الكل';
 
   return (
     <AppLayout title="إحصائيات الإنجاز" breadcrumb="الشؤون الإدارية / الإحصاءات / إحصائيات الإنجاز">
@@ -68,20 +144,19 @@ export default function AchievementStatsPage() {
           /* ─── FORM VIEW ─── */
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12">
             <form onSubmit={handleShowStats} className="max-w-2xl mx-auto space-y-8">
-              
               <div className="space-y-6">
                 <Select
                   label="الحلقة"
                   value={halqa}
                   onChange={(e) => setHalqa(e.target.value)}
-                  options={HALQAS}
+                  options={halqaList}
                 />
 
                 <Select
                   label="الطالب"
                   value={student}
                   onChange={(e) => setStudent(e.target.value)}
-                  options={STUDENTS}
+                  options={studentList}
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -101,8 +176,8 @@ export default function AchievementStatsPage() {
               </div>
 
               <div className="pt-4 flex justify-center">
-                <Button type="submit" size="lg" className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
-                  عرض الإحصائيات
+                <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'عرض الإحصائيات'}
                 </Button>
               </div>
             </form>
@@ -110,12 +185,11 @@ export default function AchievementStatsPage() {
         ) : (
           /* ─── CHART VIEW ─── */
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12 space-y-12">
-            
             {/* Header Info */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-700 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <span>الطالب: <span className="text-emerald-600">{student}</span></span>
+              <span>الطالب: <span className="text-emerald-600">{selectedStudentLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>الحلقة: <span className="text-emerald-600">{halqa}</span></span>
+              <span>الحلقة: <span className="text-emerald-600">{selectedHalqaLabel}</span></span>
               <span className="text-gray-300">|</span>
               <span>من: <span className="text-emerald-600">{startDate}</span></span>
               <span className="text-gray-300">|</span>
@@ -129,7 +203,6 @@ export default function AchievementStatsPage() {
               </h2>
 
               <div className="relative h-80 max-w-3xl mx-auto flex items-end justify-around pb-8 border-b-2 border-gray-100 pt-10 px-4">
-                
                 {/* Y-axis labels */}
                 <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium pr-4 border-r-2 border-gray-100">
                   <span>{Math.round(maxChartValue)}</span>
@@ -144,7 +217,6 @@ export default function AchievementStatsPage() {
                   const heightPercent = (item.value / maxChartValue) * 100;
                   return (
                     <div key={index} className="h-full flex flex-col justify-end items-center gap-3 w-1/4 group relative">
-                      
                       {/* Tooltip on hover */}
                       <div className="absolute top-0 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none z-10 whitespace-nowrap shadow-lg mb-2">
                         {item.label}: {item.value} صفحة
@@ -152,11 +224,11 @@ export default function AchievementStatsPage() {
                       </div>
 
                       {/* The Bar */}
-                      <div 
+                      <div
                         className={`w-full max-w-[60px] rounded-t-md ${item.color} transition-all duration-700 ease-out shadow-sm group-hover:brightness-110 cursor-pointer relative z-0`}
                         style={{ height: `${heightPercent}%` }}
                       ></div>
-                      
+
                       {/* X-axis label */}
                       <span className="text-sm font-semibold text-gray-600 absolute -bottom-8 whitespace-nowrap">
                         {item.label}
@@ -177,7 +249,6 @@ export default function AchievementStatsPage() {
                   </div>
                 ))}
               </div>
-
             </div>
           </div>
         )}

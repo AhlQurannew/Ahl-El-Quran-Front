@@ -1,45 +1,100 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, Users } from 'lucide-react';
-
-const HALQAS = [
-  { label: 'اختر الحلقة', value: '' },
-  { label: 'حلقة أحمد الزينبي', value: 'حلقة أحمد الزينبي' },
-  { label: 'حلقة محمد الفاتح', value: 'حلقة محمد الفاتح' },
-  { label: 'حلقة نور البيان', value: 'حلقة نور البيان' },
-];
-
-const STUDENTS = [
-  { label: 'جميع الطلاب (الكل)', value: 'الكل' },
-  { label: 'أحمد معتصم', value: 'أحمد معتصم' },
-  { label: 'رؤوف المعتصم', value: 'رؤوف المعتصم' },
-  { label: 'عبدو معتصم', value: 'عبدو معتصم' },
-  { label: 'جليل مطاطي', value: 'جليل مطاطي' },
-];
+import { ArrowRight, Users, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import teacherAPI from '@/app/API/teacher';
+import lecturesAPI from '@/app/API/lectures';
+import reportsAPI from '@/app/API/reports';
 
 export default function AttendanceStatsPage() {
+  const user = useAuthStore((s) => s.user);
+  const isTeacher = user?.role === 'TEACHER';
+
+  const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
+    { label: 'اختر الحلقة', value: '' },
+  ]);
+  const [studentList, setStudentList] = useState<{ label: string; value: string }[]>([
+    { label: 'جميع الطلاب (الكل)', value: '' },
+  ]);
+
   const [isShowingStats, setIsShowingStats] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [halqa, setHalqa] = useState('');
-  const [student, setStudent] = useState('الكل');
-  const [startDate, setStartDate] = useState('2026-06-26');
-  const [endDate, setEndDate] = useState('2026-07-26');
+  const [student, setStudent] = useState('');
+  const [startDate, setStartDate] = useState('2026-01-01');
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Mock data for attendance
-  const attendanceData = {
-    present: 145,
-    late: 22,
-    absent: 15,
-  };
+  const [attendanceData, setAttendanceData] = useState({
+    present: 0,
+    late: 0,
+    absent: 0,
+    excused: 0,
+    total: 0,
+  });
 
-  const totalSessions = attendanceData.present + attendanceData.late + attendanceData.absent;
-  const presentPct = Math.round((attendanceData.present / totalSessions) * 100);
-  const latePct = Math.round((attendanceData.late / totalSessions) * 100);
-  const absentPct = Math.round((attendanceData.absent / totalSessions) * 100);
+  // Load lectures (episodes) - scoped to teacher
+  useEffect(() => {
+    async function loadLectures() {
+      try {
+        let lectures: any[] = [];
+        if (isTeacher) {
+          lectures = await teacherAPI.getMyLectures();
+        } else {
+          lectures = await lecturesAPI.getAllLectures();
+        }
+        const options = [
+          { label: 'اختر الحلقة', value: '' },
+          ...lectures.map((l: any) => ({
+            label: l.lecture_name_ar || `حلقة ${l.lecture_id || l.id}`,
+            value: String(l.lecture_id || l.id),
+          })),
+        ];
+        setHalqaList(options);
+      } catch (err) {
+        console.error('Error loading lectures:', err);
+      }
+    }
+    loadLectures();
+  }, [isTeacher]);
+
+  // Load students for the selected halqa
+  useEffect(() => {
+    async function loadStudents() {
+      try {
+        let students: any[] = [];
+        const lectureIdNum = halqa ? Number(halqa) : undefined;
+        if (isTeacher) {
+          const res = await teacherAPI.getMyStudents({ lecture_id: lectureIdNum });
+          students = res.students || [];
+        } else {
+          const res = await teacherAPI.getMyStudents({ lecture_id: lectureIdNum }).catch(() => ({ students: [] }));
+          students = res.students || [];
+        }
+        const options = [
+          { label: 'جميع الطلاب (الكل)', value: '' },
+          ...students.map((s: any) => ({
+            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || `طالب ${s.id}`,
+            value: String(s.id),
+          })),
+        ];
+        setStudentList(options);
+        setStudent('');
+      } catch (err) {
+        console.error('Error loading students:', err);
+      }
+    }
+    loadStudents();
+  }, [halqa, isTeacher]);
+
+  const totalSessions = attendanceData.total || (attendanceData.present + attendanceData.late + attendanceData.absent + attendanceData.excused);
+  const presentPct = totalSessions > 0 ? Math.round((attendanceData.present / totalSessions) * 100) : 0;
+  const latePct = totalSessions > 0 ? Math.round((attendanceData.late / totalSessions) * 100) : 0;
+  const absentPct = totalSessions > 0 ? Math.round((attendanceData.absent / totalSessions) * 100) : 0;
 
   // SVG Donut Chart calculations
   const radius = 80;
@@ -50,19 +105,39 @@ export default function AttendanceStatsPage() {
   const lateOffset = circumference - (latePct / 100) * circumference;
   const absentOffset = circumference - (absentPct / 100) * circumference;
 
-  // Calculate starting points for SVG segments so they stack
-  const presentStart = 0;
-  const lateStart = (presentPct / 100) * circumference;
-  const absentStart = ((presentPct + latePct) / 100) * circumference;
-
-  const handleShowStats = (e: React.FormEvent) => {
+  const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!halqa || !startDate || !endDate) {
-      alert('يرجى تعبئة جميع الحقول المطلوبة');
+    if (!halqa && !student) {
+      alert('يرجى اختيار حلقة أو طالب على الأقل');
       return;
     }
-    setIsShowingStats(true);
+    try {
+      setLoading(true);
+      const res = await reportsAPI.getAttendanceBreakdown({
+        lecture_id: halqa ? Number(halqa) : undefined,
+        student_id: student ? Number(student) : undefined,
+        start_date: startDate,
+        end_date: endDate,
+      });
+
+      setAttendanceData({
+        present: res.present || 0,
+        late: res.late || 0,
+        absent: res.absent || 0,
+        excused: res.excused || 0,
+        total: res.total || 0,
+      });
+      setIsShowingStats(true);
+    } catch (err) {
+      console.error('Error fetching attendance stats:', err);
+      alert('حدث خطأ أثناء جلب بيانات المواظبة');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || 'الكل';
+  const selectedStudentLabel = studentList.find((s) => s.value === student)?.label || 'الكل';
 
   return (
     <AppLayout title="إحصائيات المواظبة" breadcrumb="الشؤون الإدارية / الإحصاءات / إحصائيات المواظبة">
@@ -85,20 +160,19 @@ export default function AttendanceStatsPage() {
           /* ─── FORM VIEW ─── */
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12">
             <form onSubmit={handleShowStats} className="max-w-2xl mx-auto space-y-8">
-              
               <div className="space-y-6">
                 <Select
                   label="الحلقة *"
                   value={halqa}
                   onChange={(e) => setHalqa(e.target.value)}
-                  options={HALQAS}
+                  options={halqaList}
                 />
 
                 <Select
                   label="الطالب (اختياري)"
                   value={student}
                   onChange={(e) => setStudent(e.target.value)}
-                  options={STUDENTS}
+                  options={studentList}
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -118,8 +192,8 @@ export default function AttendanceStatsPage() {
               </div>
 
               <div className="pt-4 flex justify-center">
-                <Button type="submit" size="lg" className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
-                  عرض الإحصائيات
+                <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'عرض الإحصائيات'}
                 </Button>
               </div>
             </form>
@@ -127,12 +201,11 @@ export default function AttendanceStatsPage() {
         ) : (
           /* ─── CHART VIEW ─── */
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12 space-y-12">
-            
             {/* Header Info */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-700 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <span>الطالب: <span className="text-emerald-600">{student}</span></span>
+              <span>الطالب: <span className="text-emerald-600">{selectedStudentLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>الحلقة: <span className="text-emerald-600">{halqa}</span></span>
+              <span>الحلقة: <span className="text-emerald-600">{selectedHalqaLabel}</span></span>
               <span className="text-gray-300">|</span>
               <span>من: <span className="text-emerald-600">{startDate}</span></span>
               <span className="text-gray-300">|</span>
@@ -141,35 +214,33 @@ export default function AttendanceStatsPage() {
 
             {/* Chart Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center max-w-4xl mx-auto">
-              
               {/* Donut Chart */}
               <div className="relative flex justify-center items-center">
                 <svg width="240" height="240" viewBox="0 0 200 200" className="transform -rotate-90">
-                  {/* Background Track */}
                   <circle cx="100" cy="100" r={radius} fill="none" stroke="#f3f4f6" strokeWidth={strokeWidth} />
                   
                   {/* Absent Segment */}
-                  <circle 
+                  <circle
                     cx="100" cy="100" r={radius} fill="none" stroke="#ef4444" strokeWidth={strokeWidth}
                     style={{ strokeDashoffset: absentOffset, strokeDasharray: circumference, transformOrigin: 'center', transform: `rotate(${(presentPct + latePct) * 3.6}deg)` }}
                     className="transition-all duration-1000 ease-out"
                   />
-                  
+
                   {/* Late Segment */}
-                  <circle 
+                  <circle
                     cx="100" cy="100" r={radius} fill="none" stroke="#f59e0b" strokeWidth={strokeWidth}
                     style={{ strokeDashoffset: lateOffset, strokeDasharray: circumference, transformOrigin: 'center', transform: `rotate(${presentPct * 3.6}deg)` }}
                     className="transition-all duration-1000 ease-out"
                   />
 
                   {/* Present Segment */}
-                  <circle 
+                  <circle
                     cx="100" cy="100" r={radius} fill="none" stroke="#10b981" strokeWidth={strokeWidth}
                     strokeDasharray={circumference} strokeDashoffset={presentOffset}
                     className="transition-all duration-1000 ease-out"
                   />
                 </svg>
-                
+
                 {/* Center Label */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <Users size={28} className="text-emerald-500 mb-1" />
@@ -181,7 +252,7 @@ export default function AttendanceStatsPage() {
               {/* Data Summary Stats */}
               <div className="space-y-6 bg-gray-50/50 p-6 sm:p-8 rounded-3xl border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-800 mb-6">ملخص المواظبة</h2>
-                
+
                 {/* Present stat */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -232,14 +303,13 @@ export default function AttendanceStatsPage() {
                     <p className="text-xs font-bold text-gray-400">{absentPct}%</p>
                   </div>
                 </div>
-                
+
                 {/* Total */}
                 <div className="pt-4 mt-4 border-t border-gray-200 flex justify-between items-center text-sm font-bold text-gray-600">
                   <span>إجمالي الجلسات المسجلة:</span>
                   <span>{totalSessions}</span>
                 </div>
               </div>
-
             </div>
           </div>
         )}
