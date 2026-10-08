@@ -1,3 +1,4 @@
+import { logout } from '@/utils/auth';
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 
@@ -35,6 +36,16 @@ axiosGlobal.interceptors.request.use((config) => {
     
     return config;
 });
+axiosGlobal.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 401) {
+            logout(true);
+        }
+        return Promise.reject(error);
+    }
+);
+
 
 
 // TYPES 
