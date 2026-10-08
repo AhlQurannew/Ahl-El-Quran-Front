@@ -7,6 +7,8 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import studentsAPI from '@/app/API/students';
 import lecturesAPI, { Lecture } from '@/app/API/lectures';
+import teacherAPI from '@/app/API/teacher';
+import { useAuthStore } from '@/store/authStore';
 import { quranSurahs } from '@/data/quran_data';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -136,6 +138,8 @@ async function deleteAchievement(studentId: number, achievementId: number): Prom
 }
 
 export default function MemorizationPage() {
+  const user = useAuthStore((state) => state.user);
+  const isTeacher = user?.role === 'TEACHER';
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [selectedLecture, setSelectedLecture] = useState<Lecture | null>(null);
   const [date, setDate] = useState('');
@@ -171,7 +175,8 @@ export default function MemorizationPage() {
     (async () => {
       setIsLoadingLectures(true);
       try {
-        const response = await lecturesAPI.getAllLectures();
+        const raw = isTeacher ? await teacherAPI.getMyLectures() : await lecturesAPI.getAllLectures();
+        const response = raw ? (Array.isArray(raw) ? raw : [raw]) : [];
         setLectures(response);
         if (response.length > 0) {
           setSelectedLecture(response[0]);
@@ -183,7 +188,7 @@ export default function MemorizationPage() {
         setIsLoadingLectures(false);
       }
     })();
-  }, []);
+  }, [isTeacher]);
 
   // Load students and achievements when lecture or date changes
   const loadData = useCallback(async () => {
@@ -195,13 +200,25 @@ export default function MemorizationPage() {
 
     setIsLoadingData(true);
     try {
-      // Load all students
-      const allStudents = await fetchStudents();
-      
-      // Filter students by selected lecture
-      const filteredStudents = allStudents.filter((student) =>
-        student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
-      );
+      // Load students for this lecture
+      let filteredStudents: ApiStudent[] = [];
+      if (isTeacher) {
+        const res = await teacherAPI.getMyStudents({ lecture_id: selectedLecture.lecture_id });
+        const raw = Array.isArray(res) ? res : res.students ?? [];
+        filteredStudents = raw.map((s: any) => ({
+          id: s.id ?? s.user_id,
+          firstname: s.personalInfo?.firstNameAr || s.firstname || '',
+          lastname: s.personalInfo?.lastNameAr || s.lastname || '',
+          name: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim(),
+          personalInfo: s.personalInfo,
+          lectures: s.lectures,
+        }));
+      } else {
+        const allStudents = await fetchStudents();
+        filteredStudents = allStudents.filter((student) =>
+          student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
+        );
+      }
 
       setStudents(filteredStudents);
 
@@ -210,10 +227,16 @@ export default function MemorizationPage() {
       await Promise.all(
         filteredStudents.map(async (student) => {
           try {
-            const studentAchievements = await fetchAchievements(student.id);
+            let studentAchievements: any[] = [];
+            if (isTeacher) {
+              const res = await teacherAPI.getAchievements(student.id);
+              studentAchievements = Array.isArray(res) ? res : res.achievements ?? [];
+            } else {
+              studentAchievements = await fetchAchievements(student.id);
+            }
             // Get the latest achievement for the selected date
             const dateAchievement = studentAchievements.find(
-              (a) => a.date === inputDateToApi(date)
+              (a: any) => a.date === inputDateToApi(date)
             );
             achievementsMap[student.id] = dateAchievement || null;
           } catch (err) {
@@ -266,12 +289,22 @@ export default function MemorizationPage() {
         date: inputDateToApi(data.date),
       };
 
-      if (editingAchievement) {
-        await updateAchievement(selectedStudent.id, editingAchievement.id, payload);
-        showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
+      if (isTeacher) {
+        if (editingAchievement) {
+          await teacherAPI.updateAchievement(selectedStudent.id, editingAchievement.id, payload);
+          showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
+        } else {
+          await teacherAPI.createAchievement(selectedStudent.id, payload);
+          showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
+        }
       } else {
-        await createAchievement(selectedStudent.id, payload);
-        showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
+        if (editingAchievement) {
+          await updateAchievement(selectedStudent.id, editingAchievement.id, payload);
+          showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
+        } else {
+          await createAchievement(selectedStudent.id, payload);
+          showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
+        }
       }
 
       setIsFormOpen(false);
@@ -289,7 +322,15 @@ export default function MemorizationPage() {
 
     setIsDeleting(true);
     try {
-      await deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
+      if (isTeacher) {
+        await teacherAPI.deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
+      } else {
+        if (isTeacher) {
+        await teacherAPI.deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
+      } else {
+        await deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
+      }
+      }
       showToast('success', 'تم حذف سجل الإنجاز بنجاح');
       setDeletingAchievement(null);
       loadData(); // Reload data
@@ -310,8 +351,8 @@ export default function MemorizationPage() {
     <AppLayout title="الحفظ والمراجعة" breadcrumb="الشؤون الإدارية / الحفظ والمراجعة">
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner */}
-        <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          متابعة الحفظ والمراجعة / الصفحة الرئيسية
+        <div className={`${isTeacher ? 'bg-sky-700' : 'bg-amber-500/85'} text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm`}>
+          {isTeacher ? 'الحفظ والمراجعة لطلابي / الصفحة الرئيسية' : 'متابعة الحفظ والمراجعة / الصفحة الرئيسية'}
         </div>
 
         {/* Lecture and Date Selection */}

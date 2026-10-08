@@ -7,6 +7,8 @@ import AddLectureModal from '@/components/lectures/AddLectureModal';
 import { DeleteConfirmModal } from '@/components/lectures/DeleteConfirmModal';
 import { Toast } from '@/components/ui/Toast';
 import lecturesAPI, { type Lecture } from '@/api/lectures';
+import teacherAPI from '@/app/API/teacher';
+import { useAuthStore } from '@/store/authStore';
 import { 
   Search, 
   Plus, 
@@ -20,6 +22,8 @@ import {
 } from 'lucide-react';
 
 export default function LecturesPage() {
+  const user = useAuthStore((state) => state.user);
+  const isTeacher = user?.role === 'TEACHER';
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -61,7 +65,9 @@ export default function LecturesPage() {
   const fetchLectures = async () => {
     setIsLoading(true);
     try {
-      const data = await lecturesAPI.getAllLectures();
+      // Teachers fetch only their lectures; others fetch all
+      const raw = isTeacher ? await teacherAPI.getMyLectures() : await lecturesAPI.getAllLectures();
+      const data = raw ? (Array.isArray(raw) ? raw : [raw]) : [];
       setLectures(data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des halaqat:', error);
@@ -72,7 +78,7 @@ export default function LecturesPage() {
 
   useEffect(() => {
     fetchLectures();
-  }, []);
+  }, [isTeacher]);
 
   const filteredLectures = lectures.filter((lecture) =>
     lecture.lecture_name_ar?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -244,8 +250,8 @@ export default function LecturesPage() {
 
       <div className="space-y-6">
         
-        <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          <h2>إدارة الحلقات / الصفحة الرئيسية</h2>
+        <div className={`${isTeacher ? 'bg-sky-700' : 'bg-amber-500/85'} text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm`}>
+          <h2>{isTeacher ? 'حلقاتي / الحلقات المسندة إلي' : 'إدارة الحلقات / الصفحة الرئيسية'}</h2>
         </div>
 
 
@@ -266,39 +272,43 @@ export default function LecturesPage() {
         
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleOpenAddModal}
-              className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
-            >
-              <Plus size={14} />
-              إضافة
-            </button>
+            {!isTeacher && (
+              <>
+                <button
+                  onClick={handleOpenAddModal}
+                  className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus size={14} />
+                  إضافة
+                </button>
 
-            <button
-              onClick={handleOpenEditModal}
-              disabled={selectedIds.length !== 1}
-              className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 ${
-                selectedIds.length === 1
-                  ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <Edit size={14} />
-              تعديل
-            </button>
+                <button
+                  onClick={handleOpenEditModal}
+                  disabled={selectedIds.length !== 1}
+                  className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 ${
+                    selectedIds.length === 1
+                      ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <Edit size={14} />
+                  تعديل
+                </button>
 
-            <button
-              onClick={() => setIsDeleteModalOpen(true)}
-              disabled={selectedIds.length === 0}
-              className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 ${
-                selectedIds.length > 0
-                  ? 'bg-red-500 hover:bg-red-600 text-white cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <Trash2 size={14} />
-              حذف
-            </button>
+                <button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  disabled={selectedIds.length === 0}
+                  className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 ${
+                    selectedIds.length > 0
+                      ? 'bg-red-500 hover:bg-red-600 text-white cursor-pointer'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <Trash2 size={14} />
+                  حذف
+                </button>
+              </>
+            )}
 
             <button
               onClick={handleToggleSelectAll}

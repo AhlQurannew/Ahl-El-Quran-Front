@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { AttendanceDialog } from '@/components/students/AttendanceDialog';
 import studentsAPI from '@/app/API/students';
+import teacherAPI from '@/app/API/teacher';
+import { useAuthStore } from '@/store/authStore';
 import { Calendar, Users, Search, Download, Check, X, Clock, FileText } from 'lucide-react';
 import { Attendance, AttendanceMapper } from '@/types/attendance.types';
 import { cn } from '@/utils/cn';
@@ -30,6 +32,8 @@ type AttendanceRecord = {
 };
 
 export default function AttendancePage() {
+  const user = useAuthStore((state) => state.user);
+  const isTeacher = user?.role === 'TEACHER';
   const today = new Date().toISOString().split('T')[0];
   
   const [selectedDate, setSelectedDate] = useState(today);
@@ -53,7 +57,7 @@ export default function AttendancePage() {
 
   useEffect(() => {
     loadStudents();
-  }, []);
+  }, [isTeacher]);
 
   useEffect(() => {
     if (students.length > 0) {
@@ -64,7 +68,7 @@ export default function AttendancePage() {
   const loadStudents = async () => {
     setIsLoading(true);
     try {
-      const res = await studentsAPI.getStudents();
+      const res = isTeacher ? await teacherAPI.getMyStudents() : await studentsAPI.getStudents();
       const list = Array.isArray(res) ? res : res.students ?? [];
       
       console.log('📊 Raw student data sample:', list.slice(0, 2));
@@ -98,9 +102,9 @@ export default function AttendancePage() {
         students.map(async (student) => {
           try {
             console.log(`🔍 Fetching attendance for student ID ${student.id}, date ${apiDate}`);
-            const response = await studentsAPI.getAttendance(student.id, {
-              date: apiDate,
-            });
+            const response = isTeacher
+              ? await teacherAPI.getStudentAttendance(student.id, { date: apiDate })
+              : await studentsAPI.getAttendance(student.id, { date: apiDate });
             
             console.log(`📦 Response for student ${student.id}:`, response);
             

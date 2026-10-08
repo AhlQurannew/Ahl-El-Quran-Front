@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -69,6 +69,31 @@ const presidentNavGroups: NavGroup[] = [
   },
 ];
 
+// Teacher navigation - only what a teacher can access
+const teacherNavGroups: NavGroup[] = [
+  {
+    items: [
+      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+    ],
+  },
+  {
+    groupLabel: 'الشؤون التعليمية',
+    items: [
+      { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
+      { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
+      { label: 'حضور الطلاب', href: '/attendance', icon: <UserCheck size={18} /> },
+      { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
+    ],
+  },
+  {
+    groupLabel: 'التقارير والإحصاءات',
+    items: [
+      { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
+      { label: 'التقارير', href: '/reports', icon: <BookOpen size={18} /> },
+    ],
+  },
+];
+
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -80,16 +105,19 @@ export const Sidebar: React.FC = () => {
   // Determine if we're on admin pages (but not when viewing as school)
   const isAdmin = pathname.startsWith('/dashboard') && !isAdminViewing;
   
-  // Choose navigation based on role - if admin is viewing, show president nav
-  const navGroups = isAdmin ? adminNavGroups : presidentNavGroups;
+  // Determine if logged-in user is a teacher
+  const isTeacher = user?.role === 'TEACHER';
 
-  // Set sidebar colors based on role - if admin is viewing, use emerald green
-  const sidebarGradient = isAdmin 
-    ? 'linear-gradient(to bottom, #C8963E, #B8832E)' // Golden for admin
-    : 'linear-gradient(to bottom, #047857, #064e3b)'; // Emerald green (700-900) for others
-  
-  const sidebarColor = isAdmin ? '#C8963E' : '#047857';
+  // Choose navigation based on role
+  const navGroups = isAdmin ? adminNavGroups : isTeacher ? teacherNavGroups : presidentNavGroups;
+  // Set sidebar colors based on role
+  const sidebarGradient = isAdmin
+    ? 'linear-gradient(to bottom, #C8963E, #B8832E)'
+    : isTeacher
+    ? 'linear-gradient(to bottom, #0369a1, #075985)'
+    : 'linear-gradient(to bottom, #047857, #064e3b)';
 
+  const sidebarColor = isAdmin ? '#C8963E' : isTeacher ? '#0369a1' : '#047857';
   // Get user display data
   const userName = user ? `${user.firstname} ${user.lastname}` : 'مستخدم';
   const userInitial = user?.firstname ? user.firstname.charAt(0).toUpperCase() : 'م';

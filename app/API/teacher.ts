@@ -175,11 +175,15 @@ const deleteStudentAttendance = async (
 
 const createAchievement = async (
     student_id: number,
-    data: AchievementPayload
+    data: any
 ) => {
+    const payload = {
+        student_id: data.student_id ?? student_id,
+        ...data,
+    };
     const res = await axiosGlobal.post(
         `/my-students/${student_id}/achievements`,
-        data
+        payload
     );
     return res.data;
 };

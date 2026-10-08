@@ -5,6 +5,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Check, Clock, X, FileText } from 'lucide-react';
 import studentsAPI from '@/app/API/students';
+import teacherAPI from '@/app/API/teacher';
+import { useAuthStore } from '@/store/authStore';
 import { Attendance, AttendanceMapper } from '@/types/attendance.types';
 import { cn } from '@/utils/cn';
 
@@ -64,6 +66,7 @@ const statusOptions: AttendanceStatusOption[] = [
 ];
 
 export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
+  /* teacher check */
   isOpen,
   onClose,
   studentId,
@@ -71,6 +74,8 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
   date,
   onSaved,
 }) => {
+  const user = useAuthStore((state) => state.user);
+  const isTeacher = user?.role === 'TEACHER';
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [currentAttendance, setCurrentAttendance] = useState<Attendance | null>(null);
@@ -94,7 +99,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const response = await studentsAPI.getAttendance(studentId, { date });
+      const response = isTeacher ? await teacherAPI.getStudentAttendance(studentId, { date }) : await studentsAPI.getAttendance(studentId, { date });
       
       // Handle both response formats: { attendances: [...] } or [...]
       let attendanceArray = [];
@@ -170,7 +175,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
       console.log('Will be sent with student_id added:', studentId);
 
       console.log('Sending attendance request...');
-      const savedAttendance = await studentsAPI.createAttendance(studentId, attendanceData);
+      const savedAttendance = isTeacher ? await teacherAPI.createStudentAttendance(studentId, attendanceData) : await studentsAPI.createAttendance(studentId, attendanceData);
 
       console.log('✅ Attendance saved successfully!');
       console.log('✅ Response ID:', savedAttendance.id);

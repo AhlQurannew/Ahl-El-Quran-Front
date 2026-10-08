@@ -10,6 +10,8 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Student } from '@/types/student';
 import studentsAPI, { CreateStudentPayload } from '@/app/API/students';
+import teacherAPI from '@/app/API/teacher';
+import { useAuthStore } from '@/store/authStore';
 import { getTodayApiDate } from '@/utils/dateHelpers';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
@@ -92,6 +94,8 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
 }
 
 export default function StudentsPage() {
+  const user = useAuthStore((state) => state.user);
+  const isTeacher = user?.role === 'TEACHER';
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -124,8 +128,14 @@ export default function StudentsPage() {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const res = await studentsAPI.getStudents();
-      const list = Array.isArray(res) ? res : res.students ?? [];
+      let list: any[];
+      if (isTeacher) {
+        const res = await teacherAPI.getMyStudents();
+        list = Array.isArray(res) ? res : res.students ?? [];
+      } else {
+        const res = await studentsAPI.getStudents();
+        list = Array.isArray(res) ? res : res.students ?? [];
+      }
       setStudents(list.map(apiStudentToStudent));
     } catch (err) {
       setLoadError(errMsg(err, 'فشل تحميل بيانات الطلاب'));
@@ -136,7 +146,7 @@ export default function StudentsPage() {
 
   useEffect(() => {
     loadStudents();
-  }, []);
+  }, [isTeacher]);
 
   // Update selected student details when students data changes
   useEffect(() => {
@@ -278,22 +288,50 @@ export default function StudentsPage() {
   return (
     <AppLayout title="الطلاب" breadcrumb="الشؤون الإدارية / الطلاب">
       <div className="space-y-6 max-w-7xl mx-auto">
-        <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          إدارة الطلاب / الصفحة الرئيسية
+        <div className={`${isTeacher ? 'bg-sky-700' : 'bg-amber-500/85'} text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm`}>
+          {isTeacher ? 'طلابي / قائمة طلاب الحلقات' : 'إدارة الطلاب / الصفحة الرئيسية'}
         </div>
 
-        <StudentSearch
-          query={query}
-          onQueryChange={setQuery}
-          selectedCount={selectedIds.length}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={() => setIsConfirmOpen(true)}
-          onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
-          onCancelSelection={() => setSelectedIds([])}
-          onPrint={handlePrint}
-          onExportExcel={handleExportExcel}
-        />
+        {isTeacher ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="relative flex-1 min-w-[260px]">
+              <input
+                type="text"
+                placeholder="البحث عن طالب بالاسم، الكنية، اسم المستخدم..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all shadow-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportExcel}
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+              >
+                تصدير Excel
+              </button>
+              <button
+                onClick={handlePrint}
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-sky-600 text-sky-700 hover:bg-sky-50 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+              >
+                طباعة
+              </button>
+            </div>
+          </div>
+        ) : (
+          <StudentSearch
+            query={query}
+            onQueryChange={setQuery}
+            selectedCount={selectedIds.length}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={() => setIsConfirmOpen(true)}
+            onSelectAll={() => setSelectedIds(filtered.map((s) => s.id))}
+            onCancelSelection={() => setSelectedIds([])}
+            onPrint={handlePrint}
+            onExportExcel={handleExportExcel}
+          />
+        )}
 
         {isLoading ? (
           <div className="text-center py-10 text-gray-500">جاري تحميل بيانات الطلاب...</div>
@@ -307,9 +345,9 @@ export default function StudentsPage() {
         ) : (
           <StudentTable
             students={filtered}
-            selectedIds={selectedIds}
-            onToggleSelect={handleToggleSelect}
-            onToggleSelectAll={handleToggleSelectAll}
+            selectedIds={isTeacher ? [] : selectedIds}
+            onToggleSelect={isTeacher ? () => {} : handleToggleSelect}
+            onToggleSelectAll={isTeacher ? () => {} : handleToggleSelectAll}
             onPlusClick={handlePlusClick}
           />
         )}
