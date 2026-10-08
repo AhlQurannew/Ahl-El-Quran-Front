@@ -1,5 +1,6 @@
-import { logout } from '@/utils/auth';
 'use client';
+
+import { logout } from '@/utils/auth';
 
 import { useState, useEffect } from 'react';
 import { 
