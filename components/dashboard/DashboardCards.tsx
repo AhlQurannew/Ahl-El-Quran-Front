@@ -1,3 +1,4 @@
+import { logout } from '@/utils/auth';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -47,6 +48,10 @@ export function DashboardCards() {
         setStats(data);
       } catch (err: any) {
         console.error('Error fetching dashboard stats:', err);
+        if (err.response?.status === 401) {
+          logout(true);
+          return;
+        }
         setError(err.response?.data?.detail || err.message || 'فشل تحميل الإحصائيات');
       } finally {
         setIsLoading(false);
