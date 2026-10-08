@@ -32,7 +32,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     }
 
     // Determine WebSocket URL from environment
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL)?.replace('/api/v1', '') || 'http://localhost:8000';
     // Remove /api/v1 suffix if present to get base URL
     const baseUrl = apiUrl.replace(/\/api\/v1$/, '');
     const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';

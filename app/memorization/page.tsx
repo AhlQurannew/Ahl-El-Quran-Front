@@ -9,7 +9,7 @@ import studentsAPI from '@/app/API/students';
 import lecturesAPI, { Lecture } from '@/app/API/lectures';
 import { quranSurahs } from '@/data/quran_data';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 function authHeaders(json = true): HeadersInit {
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
