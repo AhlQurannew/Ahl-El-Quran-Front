@@ -130,7 +130,8 @@ export function BulkAttendanceDialog({
         }
         // Case 2: Status is not null - SAVE/UPDATE
         else if (currentStatus !== null) {
-          const payload: AttendancePayload = {
+          const payload: any = {
+            student_id: Number(student.id),
             date: date,
             status: currentStatus,
           };

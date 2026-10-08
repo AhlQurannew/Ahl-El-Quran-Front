@@ -155,6 +155,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
     try {
       const trimmedNotes = notes.trim();
       const attendanceData: any = {
+        student_id: Number(studentId),
         date,
         status: selectedStatus,
       };

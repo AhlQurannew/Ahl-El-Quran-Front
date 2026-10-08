@@ -87,7 +87,8 @@ export function AttendanceDialog({
     setIsSaving(true);
 
     try {
-      const payload: AttendancePayload = {
+      const payload: any = {
+        student_id: Number(student.id),
         date: date,
         status: status,
         notes: notes || undefined,

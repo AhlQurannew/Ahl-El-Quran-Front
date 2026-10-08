@@ -138,7 +138,11 @@ const createStudentAttendance = async (
     student_id: number,
     data: StudentAttendancePayload
 ) => {
-    const res = await axiosGlobal.post(`/my-students/${student_id}/attendance`, data);
+    const payload = {
+        student_id: Number(student_id),
+        ...data,
+    };
+    const res = await axiosGlobal.post(`/my-students/${student_id}/attendance`, payload);
     return res.data;
 };
 
@@ -175,9 +179,13 @@ const createAchievement = async (
     student_id: number,
     data: AchievementPayload
 ) => {
+    const payload = {
+        student_id: (data as any).student_id ?? Number(student_id),
+        ...data,
+    };
     const res = await axiosGlobal.post(
         `/my-students/${student_id}/achievements`,
-        data
+        payload
     );
     return res.data;
 };

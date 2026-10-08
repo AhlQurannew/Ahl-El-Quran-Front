@@ -58,6 +58,7 @@ export interface TeacherListResponse {
 }
 
 export interface StudentAttendancePayload {
+    student_id?: number;
     date: string;
     status: string;
     notes?: string;
@@ -150,7 +151,11 @@ const createStudentAttendance = async (
     student_id: number,
     data: StudentAttendancePayload
 ) => {
-    const res = await axiosGlobal.post(`/my-students/${student_id}/attendance`, data);
+    const payload = {
+        student_id: Number(student_id),
+        ...data,
+    };
+    const res = await axiosGlobal.post(`/my-students/${student_id}/attendance`, payload);
     return res.data;
 };
 
