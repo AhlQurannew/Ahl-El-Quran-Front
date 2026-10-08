@@ -6,6 +6,7 @@ const axiosGlobal = axios.create({
     baseURL: `${API_URL}/lectures`,
     headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
     },
 });
 axiosGlobal.interceptors.request.use(

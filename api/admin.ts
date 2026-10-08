@@ -6,6 +6,7 @@ const axiosGlobal = axios.create({
     baseURL: `${API_URL}/admin`,
     headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
     },
 });
 
@@ -16,6 +17,7 @@ axiosGlobal.interceptors.request.use(
             const token = localStorage.getItem("access_token");
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
+    config.headers['ngrok-skip-browser-warning'] = 'true';
                 console.log("🔑 Auth token attached to request:", config.url); // Debug log
             } else {
                 console.warn("⚠️ No auth token found for request:", config.url); // Debug log

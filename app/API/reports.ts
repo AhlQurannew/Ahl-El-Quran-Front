@@ -7,6 +7,7 @@ const axiosGlobal = axios.create({
     baseURL: `${API_URL}/president`,
     headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
     },
 });
 
@@ -17,6 +18,7 @@ axiosGlobal.interceptors.request.use((config) => {
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    config.headers['ngrok-skip-browser-warning'] = 'true';
     }
     return config;
 });

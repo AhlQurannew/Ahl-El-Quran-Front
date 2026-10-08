@@ -18,6 +18,7 @@ apiClient.interceptors.request.use(
     const token = useAuthStore.getState().accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    config.headers['ngrok-skip-browser-warning'] = 'true';
     }
     
     // Check if admin is viewing a school (from session storage)

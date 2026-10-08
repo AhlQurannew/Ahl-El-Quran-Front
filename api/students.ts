@@ -7,6 +7,7 @@ const axiosGlobal = axios.create({
     baseURL: `${API_URL}/students`,
     headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
     },
 });
 

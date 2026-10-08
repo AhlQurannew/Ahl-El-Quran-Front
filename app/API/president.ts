@@ -8,6 +8,7 @@ const axiosGlobal = axios.create({
     baseURL: `${API_URL}/president`,
     headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
     },
 });
 
@@ -15,6 +16,7 @@ axiosGlobal.interceptors.request.use((config) => {
     const token = useAuthStore.getState().accessToken;
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    config.headers['ngrok-skip-browser-warning'] = 'true';
     }
     
     // Check if admin is viewing a school (from session storage)
