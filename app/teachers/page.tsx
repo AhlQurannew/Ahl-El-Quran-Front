@@ -29,7 +29,7 @@ export default function TeachersPage() {
 
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
 
-  // ── Load teachers from API ──
+  // â”€â”€ Load teachers from API â”€â”€
   const loadTeachers = async () => {
     setIsLoading(true);
     setLoadError(null);
@@ -39,7 +39,7 @@ export default function TeachersPage() {
       setTeachers(teachersList);
     } catch (err: any) {
       console.error('Error loading teachers:', err);
-      setLoadError(err.response?.data?.detail || err.message || 'فشل تحميل بيانات المعلمين');
+      setLoadError(err.response?.data?.detail || err.message || 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†');
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +49,7 @@ export default function TeachersPage() {
     loadTeachers();
   }, []);
 
-  // ── Derived filtered list ──
+  // â”€â”€ Derived filtered list â”€â”€
   const filtered = useMemo(() => {
     return teachers.filter((t) => {
       const q = query.toLowerCase();
@@ -62,7 +62,7 @@ export default function TeachersPage() {
     });
   }, [teachers, query]);
 
-  // ── Helpers ──
+  // â”€â”€ Helpers â”€â”€
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
 
@@ -98,7 +98,7 @@ export default function TeachersPage() {
     // Note: Backend delete endpoint may not exist yet
     // For now, we'll just remove from local state
     setTeachers((prev) => prev.filter((t) => t.id !== selectedIds[0]));
-    showToast('success', `تم حذف المعلم بنجاح`);
+    showToast('success', `ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ø¹Ù„Ù… Ø¨Ù†Ø¬Ø§Ø­`);
     setSelectedIds([]);
     setIsConfirmOpen(false);
   };
@@ -108,15 +108,21 @@ export default function TeachersPage() {
     try {
       if (editingTeacher) {
         // Update existing teacher via API
-        const updateData = {
+        const updateData: Record<string, string | undefined> = {
           firstname: data.firstname,
           lastname: data.lastname,
           email: data.email,
           riwaya: data.riwaya,
         };
+
+        // Include password only if the supervisor set a new one (via "reset password" section)
+        const newPassword = (data as TeacherCreatePayload).password;
+        if (newPassword && newPassword.trim()) {
+          updateData.password = newPassword.trim();
+        }
         
         await teacherAPI.updateTeacher(Number(editingTeacher.id), updateData);
-        showToast('success', `تم تعديل بيانات المعلم ${data.firstname} ${data.lastname}`);
+        showToast('success', تم تعديل بيانات المعلم ${data.firstname} ${data.lastname});
         
         // Reload teachers list
         await loadTeachers();
@@ -125,7 +131,7 @@ export default function TeachersPage() {
         const createData = data as TeacherCreatePayload;
         await presidentAPI.registerTeacher(createData);
         
-        showToast('success', `تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح`);
+        showToast('success', تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح);
         
         // Reload teachers list
         await loadTeachers();
@@ -134,14 +140,14 @@ export default function TeachersPage() {
       setSelectedIds([]);
     } catch (err: any) {
       console.error('Error saving teacher:', err);
-      showToast('error', err.response?.data?.detail || err.message || 'فشل حفظ بيانات المعلم');
+      showToast('error', err.response?.data?.detail || err.message || 'ÙØ´Ù„ Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù…');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handlePlusClick = (teacher: Teacher) => {
-    showToast('info', `عرض تفاصيل المعلم: ${teacher.firstname} ${teacher.lastname}`);
+    showToast('info', `Ø¹Ø±Ø¶ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ø¹Ù„Ù…: ${teacher.firstname} ${teacher.lastname}`);
   };
 
   const handlePrint = () => {
@@ -150,25 +156,25 @@ export default function TeachersPage() {
 
   const handleExportExcel = () => {
     const exportData = filtered.map((t) => ({
-      'الاسم الأول': t.firstname,
-      'اللقب': t.lastname,
-      'البريد الإلكتروني': t.email,
-      'الرواية': t.riwaya || '-',
-      'تاريخ التعيين': t.hire_date ? new Date(t.hire_date).toLocaleDateString('ar-EG') : '-',
-      'الحالة': t.is_active ? 'نشط' : 'غير نشط',
+      'Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ø£ÙˆÙ„': t.firstname,
+      'Ø§Ù„Ù„Ù‚Ø¨': t.lastname,
+      'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ': t.email,
+      'Ø§Ù„Ø±ÙˆØ§ÙŠØ©': t.riwaya || '-',
+      'ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ¹ÙŠÙŠÙ†': t.hire_date ? new Date(t.hire_date).toLocaleDateString('ar-EG') : '-',
+      'Ø§Ù„Ø­Ø§Ù„Ø©': t.is_active ? 'Ù†Ø´Ø·' : 'ØºÙŠØ± Ù†Ø´Ø·',
     }));
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعلمين');
-    XLSX.writeFile(workbook, 'قائمة_المعلمين.xlsx');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†');
+    XLSX.writeFile(workbook, 'Ù‚Ø§Ø¦Ù…Ø©_Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†.xlsx');
   };
 
   return (
-    <AppLayout title="المعلمين" breadcrumb="الشؤون الإدارية / المعلمين">
+    <AppLayout title="Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†" breadcrumb="Ø§Ù„Ø´Ø¤ÙˆÙ† Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ© / Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†">
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          إدارة المعلمين / الصفحة الرئيسية
+          Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ† / Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
         </div>
 
         {/* Loading State */}
@@ -186,7 +192,7 @@ export default function TeachersPage() {
               onClick={loadTeachers}
               className="mr-4 underline hover:no-underline"
             >
-              إعادة المحاولة
+              Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©
             </button>
           </div>
         )}
@@ -237,10 +243,10 @@ export default function TeachersPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="تأكيد حذف المعلمين"
-        message={`هل أنت متأكد من حذف عدد ${selectedIds.length} معلم من السجلات؟ لا يمكن التراجع عن هذا الإجراء.`}
-        confirmText="نعم، احذف"
-        cancelText="إلغاء"
+        title="ØªØ£ÙƒÙŠØ¯ Ø­Ø°Ù Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†"
+        message={`Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ø¹Ø¯Ø¯ ${selectedIds.length} Ù…Ø¹Ù„Ù… Ù…Ù† Ø§Ù„Ø³Ø¬Ù„Ø§ØªØŸ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù† Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡.`}
+        confirmText="Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°Ù"
+        cancelText="Ø¥Ù„ØºØ§Ø¡"
         variant="danger"
       />
 
