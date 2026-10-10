@@ -122,7 +122,7 @@ export default function TeachersPage() {
         }
         
         await teacherAPI.updateTeacher(Number(editingTeacher.id), updateData);
-        showToast('success', تم تعديل بيانات المعلم ${data.firstname} ${data.lastname});
+        showToast('success', `تم تعديل بيانات المعلم ${data.firstname} ${data.lastname}`);
         
         // Reload teachers list
         await loadTeachers();
@@ -131,7 +131,7 @@ export default function TeachersPage() {
         const createData = data as TeacherCreatePayload;
         await presidentAPI.registerTeacher(createData);
         
-        showToast('success', تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح);
+        showToast('success', `تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح`);
         
         // Reload teachers list
         await loadTeachers();
