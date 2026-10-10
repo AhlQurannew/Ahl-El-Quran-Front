@@ -17,8 +17,9 @@ import doorIllustration from '../../assets/illustration/welcome-sign.svg';
 import './login.css';
 
 const ROLES = [
-  { value: 'ADMIN', label: 'المشرف العام' },
+  { value: 'ADMIN', label: 'المسؤول' },
   { value: 'PRESIDENT', label: 'الرئيس' },
+  { value: 'CHIEF_SUPERVISOR', label: 'المشرف العام' },
   { value: 'SUPERVISOR', label: 'المشرف' },
   { value: 'TEACHER', label: 'المعلم' },
   { value: 'GUARDIAN', label: 'ولي الأمر' },
@@ -73,7 +74,7 @@ export default function LoginPage() {
         res = await authAPI.loginAdmin({ user: loginId, email: loginId, password });
       } else if (role === 'PRESIDENT') {
         res = await authAPI.loginPresident({ email: loginId, password });
-      } else if (role === 'SUPERVISOR') {
+      } else if (role === 'CHIEF_SUPERVISOR' || role === 'SUPERVISOR') {
         res = await authAPI.loginSupervisor({ email: loginId, password });
       } else if (role === 'TEACHER') {
         res = await authAPI.loginTeacher({ email: loginId, password });
