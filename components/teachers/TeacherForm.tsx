@@ -101,11 +101,14 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
     e.preventDefault();
     if (validate()) {
       // Only include password in payload if it's create mode or password reset is enabled
-      const submitData = { ...formData };
       if (editingTeacher && !showPasswordReset) {
-        delete submitData.password; // Don't send password if not resetting
+        // Edit mode without password reset - omit password
+        const { password, ...submitData } = formData;
+        onSubmit(submitData as TeacherCreatePayload);
+      } else {
+        // Create mode or edit mode with password reset - include password
+        onSubmit(formData);
       }
-      onSubmit(submitData);
     }
   };
 
