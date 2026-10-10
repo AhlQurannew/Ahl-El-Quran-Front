@@ -39,7 +39,7 @@ export default function TeachersPage() {
       setTeachers(teachersList);
     } catch (err: any) {
       console.error('Error loading teachers:', err);
-      setLoadError(err.response?.data?.detail || err.message || 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†');
+      setLoadError(err.response?.data?.detail || err.message || 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª المعلمين');
     } finally {
       setIsLoading(false);
     }
@@ -165,16 +165,16 @@ export default function TeachersPage() {
     }));
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†');
-    XLSX.writeFile(workbook, 'Ù‚Ø§Ø¦Ù…Ø©_Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†.xlsx');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعلمين');
+    XLSX.writeFile(workbook, 'Ù‚Ø§Ø¦Ù…Ø©_المعلمين.xlsx');
   };
 
   return (
-    <AppLayout title="Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†" breadcrumb="Ø§Ù„Ø´Ø¤ÙˆÙ† Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ© / Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†">
+    <AppLayout title="المعلمين" breadcrumb="الشؤون الإدارية / المعلمين">
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ† / Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
+          Ø¥Ø¯Ø§Ø±Ø© المعلمين / Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
         </div>
 
         {/* Loading State */}
@@ -243,10 +243,10 @@ export default function TeachersPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="ØªØ£ÙƒÙŠØ¯ Ø­Ø°Ù Ø§Ù„Ù…Ø¹Ù„Ù…ÙŠÙ†"
-        message={`Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ø¹Ø¯Ø¯ ${selectedIds.length} Ù…Ø¹Ù„Ù… Ù…Ù† Ø§Ù„Ø³Ø¬Ù„Ø§ØªØŸ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù† Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡.`}
-        confirmText="Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°Ù"
-        cancelText="Ø¥Ù„ØºØ§Ø¡"
+        title="ØªØ£ÙƒÙŠØ¯ Ø­Ø°Ù المعلمين"
+        message={`Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ø¹Ø¯Ø¯ ${selectedIds.length} معلم من السجلات؟ لا يمكن التراجع عن هذا الإجراء.`}
+        confirmText="نعم، احذف"
+        cancelText="إلغاء"
         variant="danger"
       />
 
