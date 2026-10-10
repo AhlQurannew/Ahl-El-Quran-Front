@@ -17,7 +17,6 @@ import doorIllustration from '../../assets/illustration/welcome-sign.svg';
 import './login.css';
 
 const ROLES = [
-  { value: 'ADMIN', label: 'المسؤول' },
   { value: 'PRESIDENT', label: 'الرئيس' },
   { value: 'CHIEF_SUPERVISOR', label: 'المشرف العام' },
   { value: 'SUPERVISOR', label: 'المشرف' },
