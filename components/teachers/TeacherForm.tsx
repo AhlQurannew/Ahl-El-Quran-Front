@@ -31,6 +31,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   // Generate random password
   const generatePassword = () => {
@@ -52,6 +53,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         riwaya: editingTeacher.riwaya,
         password: '',
       });
+      setShowPasswordReset(false); // Hide password reset by default
     } else {
       // Create mode - include password
       setFormData({
@@ -61,6 +63,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         riwaya: 'حفص عن عاصم',
         password: generatePassword(),
       });
+      setShowPasswordReset(false);
     }
     setErrors({});
   }, [editingTeacher, isOpen]);
@@ -83,10 +86,10 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
       newErrors.riwaya = 'الرواية مطلوبة';
     }
     
-    // Password is only required in create mode
+    // Password is only required in create mode OR if password reset is enabled in edit mode
     if (!editingTeacher && !formData.password?.trim()) {
       newErrors.password = 'كلمة المرور مطلوبة';
-    } else if (!editingTeacher && formData.password && formData.password.length < 6) {
+    } else if ((!editingTeacher || showPasswordReset) && formData.password && formData.password.length < 6) {
       newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
     }
 
@@ -97,7 +100,12 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onSubmit(formData);
+      // Only include password in payload if it's create mode or password reset is enabled
+      const submitData = { ...formData };
+      if (editingTeacher && !showPasswordReset) {
+        delete submitData.password; // Don't send password if not resetting
+      }
+      onSubmit(submitData);
     }
   };
 
@@ -188,8 +196,9 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
           )}
         </div>
 
-        {/* Password - Only show in create mode */}
-        {!editingTeacher && (
+        {/* Password - Show in create mode OR when reset password is enabled in edit mode */}
+        {!editingTeacher ? (
+          // Create mode - always show password
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               كلمة المرور <span className="text-red-500">*</span>
@@ -217,6 +226,74 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
             </div>
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+            )}
+          </div>
+        ) : (
+          // Edit mode - show reset password option
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-bold text-gray-800">إعادة تعيين كلمة المرور</h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  {showPasswordReset 
+                    ? 'قم بإدخال كلمة مرور جديدة للمعلم' 
+                    : 'في حال نسيان المعلم لكلمة المرور، يمكنك إعادة تعيينها'}
+                </p>
+              </div>
+              {!showPasswordReset && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordReset(true);
+                    setFormData((prev) => ({ ...prev, password: generatePassword() }));
+                  }}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting}
+                >
+                  إعادة تعيين كلمة المرور
+                </button>
+              )}
+            </div>
+
+            {showPasswordReset && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.password || ''}
+                    onChange={(e) => handleChange('password', e.target.value)}
+                    placeholder="أدخل كلمة المرور الجديدة"
+                    error={errors.password}
+                    required
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleGeneratePassword}
+                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="توليد كلمة مرور"
+                    disabled={isSubmitting}
+                  >
+                    <RefreshCw size={18} />
+                    توليد
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordReset(false);
+                    setFormData((prev) => ({ ...prev, password: '' }));
+                    setErrors((prev) => ({ ...prev, password: '' }));
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-800 underline disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting}
+                >
+                  إلغاء إعادة التعيين
+                </button>
+              </div>
             )}
           </div>
         )}
