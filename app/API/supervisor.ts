@@ -58,6 +58,11 @@ const getSupervisors = async (skip = 0, limit = 100): Promise<SupervisorListResp
     return res.data;
 };
 
+const createSupervisor = async (data: SupervisorCreatePayload): Promise<Supervisor> => {
+    const res = await axiosGlobal.post("/", data);
+    return res.data;
+};
+
 const getSupervisorById = async (supervisor_id: string): Promise<Supervisor> => {
     const res = await axiosGlobal.get(`/${supervisor_id}`);
     return res.data;
@@ -74,6 +79,7 @@ const deleteSupervisor = async (supervisor_id: string) => {
 
 const supervisorAPI = {
     getSupervisors,
+    createSupervisor,
     getSupervisorById,
     updateSupervisor,
     deleteSupervisor,

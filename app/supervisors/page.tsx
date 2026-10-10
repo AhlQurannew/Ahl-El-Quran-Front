@@ -11,7 +11,6 @@ import { SupervisorDetailsDialog } from '@/components/supervisors/SupervisorDeta
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Supervisor, SupervisorCreatePayload, SupervisorUpdatePayload } from '@/types/supervisor';
-import presidentAPI from '@/app/API/president';
 import supervisorAPI from '@/app/API/supervisor';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
@@ -124,7 +123,7 @@ export default function SupervisorsPage() {
       } else {
         // Create new supervisor via API
         const createData = data as SupervisorCreatePayload;
-        await presidentAPI.registerSupervisor(createData);
+        await supervisorAPI.createSupervisor(createData);
         
         showToast('success', `تمت إضافة المشرف ${data.firstname} ${data.lastname} بنجاح`);
         
