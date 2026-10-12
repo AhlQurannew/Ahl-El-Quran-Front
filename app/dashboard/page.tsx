@@ -13,7 +13,8 @@ import {
   ChevronLeft
 } from "lucide-react";
 import Link from "next/link";
-import adminAPI from "@/api/admin";
+import { useRouter } from "next/navigation";
+import adminAPI from "@/app/API/admin";
 
 interface Statistics {
   total_schools: number;
@@ -35,6 +36,7 @@ interface SchoolsStatistics {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<Statistics | null>(null);
   const [schoolsStats, setSchoolsStats] = useState<SchoolsStatistics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +47,7 @@ export default function AdminDashboard() {
     const fetchStatistics = async () => {
       try {
         setIsLoading(true);
-        const data = await adminAPI.getStatistics();
+        const data = await adminAPI.getAdminStatistics();
         setStats(data);
       } catch (err: any) {
         console.error("Error fetching statistics:", err);
@@ -171,7 +173,9 @@ export default function AdminDashboard() {
                 {schoolsStats?.total_students || 0} طالب في المجموع
               </p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-colors"
+            <button 
+              onClick={() => router.push('/dashboard/schools')}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-colors"
               style={{ color: '#C8963E', backgroundColor: 'rgba(200, 150, 62, 0.1)' }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.15)'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.1)'}>
@@ -219,10 +223,12 @@ export default function AdminDashboard() {
                 )}
               </button>
             </Link>
-            <button className="w-full text-right px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-sm font-medium text-gray-700 flex items-center gap-3">
-              <School size={18} className="text-gray-500" />
-              إدارة المدارس
-            </button>
+            <Link href="/dashboard/schools">
+              <button className="w-full text-right px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-sm font-medium text-gray-700 flex items-center gap-3">
+                <School size={18} className="text-gray-500" />
+                إدارة المدارس
+              </button>
+            </Link>
             <button className="w-full text-right px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-sm font-medium text-gray-700 flex items-center gap-3">
               <TrendingUp size={18} className="text-gray-500" />
               التقارير والإحصاءات

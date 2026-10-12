@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useAdminView } from "@/contexts/AdminViewContext";
 import { 
   School,
   Users,
@@ -12,9 +14,10 @@ import {
   Loader2,
   MoreVertical,
   Eye,
-  UserX
+  UserX,
+  ArrowLeft
 } from "lucide-react";
-import adminAPI from "@/api/admin";
+import adminAPI from "@/app/API/admin";
 
 interface SchoolData {
   id: number;
@@ -43,6 +46,8 @@ interface RoleStats {
 }
 
 export default function SchoolsManagementPage() {
+  const router = useRouter();
+  const { setSelectedSchool: setAdminSchool } = useAdminView();
   const [schools, setSchools] = useState<SchoolData[]>([]);
   const [filteredSchools, setFilteredSchools] = useState<SchoolData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,6 +126,14 @@ export default function SchoolsManagementPage() {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  const handleEnterSchool = (school: SchoolData) => {
+    // Set the selected school in admin context
+    setAdminSchool(school.id, school.school_name);
+    
+    // Navigate to the main page (which will show supervisor/president view)
+    router.push('/');
   };
 
   const calculateRoleStats = (school: SchoolData): RoleStats[] => {
@@ -338,22 +351,28 @@ export default function SchoolsManagementPage() {
                   </div>
 
                   {/* Card Footer */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-2">
+                    <button
+                      onClick={() => handleEnterSchool(school)}
+                      className="flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
+                      style={{ color: '#ffffff', background: 'linear-gradient(to right, #C8963E, #B8832E)' }}
+                    >
+                      <ArrowLeft size={16} />
+                      دخول
+                    </button>
                     <button
                       onClick={() => setSelectedSchool(school)}
-                      className="w-full px-4 py-2 rounded-lg font-medium transition-all text-sm"
+                      className="flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm"
                       style={{ color: '#C8963E', backgroundColor: 'rgba(200, 150, 62, 0.1)' }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.15)';
-                        e.currentTarget.style.transform = 'scale(1.02)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.1)';
-                        e.currentTarget.style.transform = 'scale(1)';
                       }}
                     >
                       <Eye size={16} className="inline ml-1" />
-                      عرض التفاصيل الكاملة
+                      تفاصيل
                     </button>
                   </div>
                 </div>
@@ -433,10 +452,18 @@ export default function SchoolsManagementPage() {
               </div>
 
               {/* Actions */}
-              <div className="pt-4">
+              <div className="pt-4 flex gap-3">
+                <button
+                  onClick={() => handleEnterSchool(selectedSchool)}
+                  className="flex-1 px-4 py-2.5 text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(to right, #C8963E, #B8832E)' }}
+                >
+                  <ArrowLeft size={18} />
+                  دخول المدرسة
+                </button>
                 <button
                   onClick={() => setSelectedSchool(null)}
-                  className="w-full px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
                 >
                   إغلاق
                 </button>

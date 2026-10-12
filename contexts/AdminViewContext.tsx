@@ -7,6 +7,7 @@ interface AdminViewContextType {
   isAdminViewing: boolean;
   viewingSchoolId: number | null;
   viewingSchoolName: string | null;
+  setSelectedSchool: (schoolId: number, schoolName: string) => void;
   exitAdminView: () => void;
 }
 
@@ -14,6 +15,7 @@ const AdminViewContext = createContext<AdminViewContextType>({
   isAdminViewing: false,
   viewingSchoolId: null,
   viewingSchoolName: null,
+  setSelectedSchool: () => {},
   exitAdminView: () => {},
 });
 
@@ -66,12 +68,25 @@ export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     window.location.href = '/dashboard';
   };
 
+  const setSelectedSchool = (schoolId: number, schoolName: string) => {
+    setIsAdminViewing(true);
+    setViewingSchoolId(schoolId);
+    setViewingSchoolName(schoolName);
+    
+    // Persist to session storage
+    sessionStorage.setItem('admin_viewing_school', JSON.stringify({
+      id: schoolId,
+      name: schoolName
+    }));
+  };
+
   return (
     <AdminViewContext.Provider 
       value={{ 
         isAdminViewing, 
         viewingSchoolId, 
         viewingSchoolName,
+        setSelectedSchool,
         exitAdminView 
       }}
     >

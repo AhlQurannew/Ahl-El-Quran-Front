@@ -51,14 +51,38 @@ const deactivateUser = async (user_id: number) => {
     return res.data;
 };
 
+// School Management
+const getAllSchools = async () => {
+    const res = await axiosGlobal.get("/schools");
+    return res.data;
+};
 
+const getSchoolPresident = async (school_id: number) => {
+    const res = await axiosGlobal.get(`/school/${school_id}/president`);
+    return res.data;
+};
+
+// Statistics
+const getAdminStatistics = async () => {
+    const res = await axiosGlobal.get("/statistics/overview");
+    return res.data;
+};
+
+const getSchoolsStatistics = async (limit: number = 3) => {
+    const res = await axiosGlobal.get(`/statistics/schools?limit=${limit}`);
+    return res.data;
+};
 
 const adminAPI = {
     getPendingPresidents,
     approvePresident,
     rejectPresident,
     getAllUsers,
-    deactivateUser
+    deactivateUser,
+    getAllSchools,
+    getSchoolPresident,
+    getAdminStatistics,
+    getSchoolsStatistics
 };
 
 export default adminAPI;
