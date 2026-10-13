@@ -16,9 +16,16 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
+    const effectiveRole = useAuthStore.getState().effectiveRole;
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    config.headers['ngrok-skip-browser-warning'] = 'true';
+      config.headers['ngrok-skip-browser-warning'] = 'true';
+      
+      // If admin is viewing as CHIEF_SUPERVISOR, add role override header
+      if (effectiveRole) {
+        config.headers['X-Role-Override'] = effectiveRole;
+      }
     }
     
     // Check if admin is viewing a school (from session storage)
