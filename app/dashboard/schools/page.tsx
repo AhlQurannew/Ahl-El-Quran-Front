@@ -249,7 +249,6 @@ export default function SchoolsManagementPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pr-10 pl-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-right"
-              style={{ focusRingColor: '#C8963E' }}
             />
           </div>
         </div>
@@ -343,7 +342,6 @@ export default function SchoolsManagementPage() {
                   value={formData.school_name}
                   onChange={(e) => setFormData({...formData, school_name: e.target.value})}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                  style={{ focusRingColor: '#C8963E' }}
                 />
                 <div className="grid grid-cols-2 gap-4">
                   <input

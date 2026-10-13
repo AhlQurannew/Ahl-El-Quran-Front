@@ -57,6 +57,35 @@ const getAllSchools = async () => {
     return res.data;
 };
 
+const createSchool = async (schoolData: {
+    school_name: string;
+    president_firstname: string;
+    president_lastname: string;
+    email: string;
+    password: string;
+    phone_number?: string;
+}) => {
+    const res = await axiosGlobal.post("/schools", schoolData);
+    return res.data;
+};
+
+const updateSchool = async (schoolId: number, schoolData: {
+    school_name?: string;
+    president_firstname?: string;
+    president_lastname?: string;
+    email?: string;
+    password?: string;
+    phone_number?: string;
+}) => {
+    const res = await axiosGlobal.put(`/schools/${schoolId}`, schoolData);
+    return res.data;
+};
+
+const deleteSchool = async (schoolId: number) => {
+    const res = await axiosGlobal.delete(`/schools/${schoolId}`);
+    return res.data;
+};
+
 const getSchoolPresident = async (school_id: number) => {
     const res = await axiosGlobal.get(`/school/${school_id}/president`);
     return res.data;
@@ -80,6 +109,9 @@ const adminAPI = {
     getAllUsers,
     deactivateUser,
     getAllSchools,
+    createSchool,
+    updateSchool,
+    deleteSchool,
     getSchoolPresident,
     getAdminStatistics,
     getSchoolsStatistics
