@@ -425,15 +425,15 @@ export default function SchoolsManagementPage() {
                   <input
                     type="text"
                     placeholder="الاسم الأول"
-                    value={formData.president_firstname}
-                    onChange={(e) => setFormData({...formData, president_firstname: e.target.value})}
+                    value={formData.chief_supervisor_firstname}
+                    onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
                   />
                   <input
                     type="text"
                     placeholder="اسم العائلة"
-                    value={formData.president_lastname}
-                    onChange={(e) => setFormData({...formData, president_lastname: e.target.value})}
+                    value={formData.chief_supervisor_lastname}
+                    onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
                   />
                 </div>
