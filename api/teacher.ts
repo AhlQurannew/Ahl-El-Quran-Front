@@ -48,8 +48,12 @@ const createTeacher = async (data: {
     return res.data;
 };
 
-const getTeachers = async (skip = 0, limit = 100): Promise<TeacherListResponse> => {
-    const res = await axiosGlobal.get("/", { params: { skip, limit } });
+const getTeachers = async (skip = 0, limit = 100, school_id?: number): Promise<TeacherListResponse> => {
+    const params: any = { skip, limit };
+    if (school_id !== undefined) {
+        params.school_id = school_id;
+    }
+    const res = await axiosGlobal.get("/", { params });
     return res.data;
 };
 
