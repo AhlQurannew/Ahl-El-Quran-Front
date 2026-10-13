@@ -27,12 +27,13 @@ apiClient.interceptors.request.use(
       const adminViewData = sessionStorage.getItem('admin_viewing_school');
       if (adminViewData) {
         try {
-          const { id } = JSON.parse(adminViewData);
-          console.log('[API Client] Admin viewing school:', id);
+          const parsed = JSON.parse(adminViewData);
+          const { id } = parsed;
+          console.log('[API Client v2] Admin viewing school:', id);
+          console.log('[API Client v2] Adding X-Role-Override header');
           
           // Add role override header when admin is viewing a school
-          config.headers['X-Role-Override'] = 'CHIEF_SUPERVISOR';
-          console.log('[API Client] Set X-Role-Override: CHIEF_SUPERVISOR');
+          config.headers['x-role-override'] = 'CHIEF_SUPERVISOR';
           
           // Add school_id as query parameter for GET requests
           // or as body parameter for POST/PUT/PATCH requests
@@ -44,8 +45,10 @@ apiClient.interceptors.request.use(
             }
           }
         } catch (e) {
-          console.error('Error parsing admin view data:', e);
+          console.error('[API Client v2] Error parsing admin view data:', e);
         }
+      } else {
+        console.log('[API Client v2] No admin_viewing_school in sessionStorage');
       }
     }
     
