@@ -92,7 +92,41 @@ const adminAPI = {
     deactivateUser,
     getStatistics,
     getSchoolsStatistics,
-    getAllSchools
+    getAllSchools,
+    createSchool,
+    updateSchool,
+    deleteSchool
 };
 
 export default adminAPI;
+
+
+// School CRUD operations
+const createSchool = async (schoolData: {
+    school_name: string;
+    president_firstname: string;
+    president_lastname: string;
+    email: string;
+    password: string;
+    phone_number?: string;
+}) => {
+    const res = await axiosGlobal.post("/schools", schoolData);
+    return res.data;
+};
+
+const updateSchool = async (schoolId: number, schoolData: {
+    school_name?: string;
+    president_firstname?: string;
+    president_lastname?: string;
+    email?: string;
+    password?: string;
+    phone_number?: string;
+}) => {
+    const res = await axiosGlobal.put(`/schools/${schoolId}`, schoolData);
+    return res.data;
+};
+
+const deleteSchool = async (schoolId: number) => {
+    const res = await axiosGlobal.delete(`/schools/${schoolId}`);
+    return res.data;
+};

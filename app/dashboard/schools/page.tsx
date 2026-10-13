@@ -6,16 +6,13 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { 
   School,
-  Users,
-  Mail,
-  Phone,
-  Calendar,
   Search,
   Loader2,
-  MoreVertical,
   Eye,
-  UserX,
-  ArrowLeft
+  Edit,
+  Trash2,
+  Plus,
+  X
 } from "lucide-react";
 import adminAPI from "@/app/API/admin";
 
@@ -27,22 +24,18 @@ interface SchoolData {
   email: string;
   phone_number: string;
   student_count: number;
-  approval_date: string | null;
-  created_at: string | null;
-  is_active: boolean;
-  // Role counts for circular progress
-  president_count?: number;
-  supervisor_count?: number;
   teacher_count?: number;
-  guardian_count?: number;
+  supervisor_count?: number;
+  is_active: boolean;
 }
 
-interface RoleStats {
-  label: string;
-  count: number;
-  total: number;
-  percentage: number;
-  color: string;
+interface SchoolFormData {
+  school_name: string;
+  president_firstname: string;
+  president_lastname: string;
+  email: string;
+  password: string;
+  phone_number: string;
 }
 
 export default function SchoolsManagementPage() {
@@ -53,7 +46,23 @@ export default function SchoolsManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Dialog states
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState<SchoolData | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form data
+  const [formData, setFormData] = useState<SchoolFormData>({
+    school_name: "",
+    president_firstname: "",
+    president_lastname: "",
+    email: "",
+    password: "",
+    phone_number: ""
+  });
 
   useEffect(() => {
     fetchSchools();
@@ -77,162 +86,131 @@ export default function SchoolsManagementPage() {
       setIsLoading(true);
       setError("");
       const data = await adminAPI.getAllSchools();
-      console.log("Schools API response:", data); // Debug log
       
       if (data && data.schools) {
-        console.log(`Found ${data.schools.length} schools`); // Debug log
         setSchools(data.schools);
         setFilteredSchools(data.schools);
       } else {
-        console.warn("Unexpected response structure:", data); // Debug log
         setSchools([]);
         setFilteredSchools([]);
       }
     } catch (err: any) {
       console.error("Error fetching schools:", err);
-      console.error("Error details:", {
-        message: err.message,
-        response: err.response,
-        status: err.response?.status,
-        data: err.response?.data
-      }); // Detailed debug log
-      
-      // More detailed error message
-      if (err.response) {
-        // Server responded with error
-        if (err.response.status === 401) {
-          setError("غير مصرح لك بالوصول. الرجاء تسجيل الدخول كمسؤول.");
-        } else if (err.response.status === 403) {
-          setError("ليس لديك صلاحية الوصول إلى هذه الصفحة.");
-        } else {
-          setError(`خطأ في الخادم: ${err.response.status} - ${err.response.data?.detail || err.message}`);
-        }
-      } else if (err.request) {
-        // Request made but no response
-        setError("تعذر الاتصال بالخادم. تأكد من تشغيل الخادم.");
-      } else {
-        setError(`خطأ: ${err.message}`);
-      }
+      setError("فشل تحميل المدارس");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "غير محدد";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-DZ', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+  const handleCreate = async () => {
+    if (!formData.school_name || !formData.president_firstname || !formData.president_lastname || 
+        !formData.email || !formData.password) {
+      setError("يرجى ملء جميع الحقول المطلوبة");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setError("");
+      await adminAPI.createSchool(formData);
+      setShowCreateDialog(false);
+      resetForm();
+      fetchSchools();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "فشل إنشاء المدرسة");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!selectedSchool) return;
+
+    try {
+      setIsSubmitting(true);
+      setError("");
+      const updateData: any = {};
+      
+      if (formData.school_name) updateData.school_name = formData.school_name;
+      if (formData.president_firstname) updateData.president_firstname = formData.president_firstname;
+      if (formData.president_lastname) updateData.president_lastname = formData.president_lastname;
+      if (formData.email) updateData.email = formData.email;
+      if (formData.password) updateData.password = formData.password;
+      if (formData.phone_number) updateData.phone_number = formData.phone_number;
+
+      await adminAPI.updateSchool(selectedSchool.id, updateData);
+      setShowEditDialog(false);
+      resetForm();
+      setSelectedSchool(null);
+      fetchSchools();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "فشل تحديث المدرسة");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedSchool) return;
+
+    try {
+      setIsSubmitting(true);
+      setError("");
+      await adminAPI.deleteSchool(selectedSchool.id);
+      setShowDeleteDialog(false);
+      setSelectedSchool(null);
+      fetchSchools();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "فشل حذف المدرسة");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openEditDialog = (school: SchoolData) => {
+    setSelectedSchool(school);
+    const [firstname, ...lastname] = school.president_name.split(" ");
+    setFormData({
+      school_name: school.school_name,
+      president_firstname: firstname || "",
+      president_lastname: lastname.join(" ") || "",
+      email: school.email,
+      password: "",
+      phone_number: school.phone_number
     });
+    setShowEditDialog(true);
+  };
+
+  const openDeleteDialog = (school: SchoolData) => {
+    setSelectedSchool(school);
+    setShowDeleteDialog(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      school_name: "",
+      president_firstname: "",
+      president_lastname: "",
+      email: "",
+      password: "",
+      phone_number: ""
+    });
+    setError("");
   };
 
   const handleEnterSchool = (school: SchoolData) => {
-    // Set the selected school in admin context
     setAdminSchool(school.id, school.school_name);
-    
-    // Navigate to the main page (which will show supervisor/president view)
     router.push('/');
-  };
-
-  const calculateRoleStats = (school: SchoolData): RoleStats[] => {
-    const total = (school.president_count || 1) + 
-                  (school.supervisor_count || 0) + 
-                  (school.teacher_count || 0) + 
-                  (school.guardian_count || 0) + 
-                  school.student_count;
-
-    return [
-      {
-        label: 'الرؤساء',
-        count: school.president_count || 1,
-        total,
-        percentage: ((school.president_count || 1) / total) * 100,
-        color: '#C8963E' // Golden
-      },
-      {
-        label: 'المشرفين',
-        count: school.supervisor_count || 0,
-        total,
-        percentage: ((school.supervisor_count || 0) / total) * 100,
-        color: '#3b82f6' // Blue
-      },
-      {
-        label: 'المعلمين',
-        count: school.teacher_count || 0,
-        total,
-        percentage: ((school.teacher_count || 0) / total) * 100,
-        color: '#10b981' // Emerald
-      },
-      {
-        label: 'أولياء الأمور',
-        count: school.guardian_count || 0,
-        total,
-        percentage: ((school.guardian_count || 0) / total) * 100,
-        color: '#8b5cf6' // Purple
-      },
-      {
-        label: 'الطلاب',
-        count: school.student_count,
-        total,
-        percentage: (school.student_count / total) * 100,
-        color: '#f59e0b' // Amber
-      }
-    ];
-  };
-
-  const CircularProgress = ({ percentage, color, size = 120 }: { percentage: number; color: string; size?: number }) => {
-    const strokeWidth = 8;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (percentage / 100) * circumference;
-
-    return (
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="transform -rotate-90">
-          {/* Background circle */}
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke="#f3f4f6"
-            strokeWidth={strokeWidth}
-          />
-          {/* Progress circle */}
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
-          />
-        </svg>
-        {/* Percentage text */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{Math.round(percentage)}%</div>
-            <div className="text-xs text-gray-500">مكتمل</div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
     <AppLayout title="إدارة المدارس" breadcrumb="لوحة التحكم / إدارة المدارس">
       <div className="space-y-6">
-        {/* Header Section */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg"
-              style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)', boxShadow: '0 10px 15px -3px rgba(200, 150, 62, 0.2)' }}>
+              style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}>
               <School size={24} />
             </div>
             <div>
@@ -241,15 +219,22 @@ export default function SchoolsManagementPage() {
             </div>
           </div>
 
-          <div className="text-right">
-            <div className="text-2xl font-bold text-gray-900">{schools.length}</div>
-            <div className="text-sm text-gray-500">مدرسة مسجلة</div>
-          </div>
+          <button
+            onClick={() => {
+              resetForm();
+              setShowCreateDialog(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-all"
+            style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}
+          >
+            <Plus size={20} />
+            إضافة مدرسة
+          </button>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
             {error}
           </div>
         )}
@@ -260,218 +245,278 @@ export default function SchoolsManagementPage() {
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="ابحث عن مدرسة، رئيس أو بريد إلكتروني..."
+              placeholder="ابحث عن مدرسة..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pr-10 pl-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-right"
-
+              style={{ focusRingColor: '#C8963E' }}
             />
           </div>
         </div>
 
-        {/* Schools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Schools Table */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           {isLoading ? (
-            <div className="col-span-full flex items-center justify-center py-20">
+            <div className="flex items-center justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8963E' }} />
             </div>
           ) : filteredSchools.length === 0 ? (
-            <div className="col-span-full text-center py-16 text-gray-400">
+            <div className="text-center py-16 text-gray-400">
               <School size={48} className="mx-auto mb-3 text-gray-300" />
               <p className="text-sm">
                 {searchQuery ? "لا توجد نتائج للبحث" : "لا توجد مدارس مسجلة حالياً"}
               </p>
             </div>
           ) : (
-            filteredSchools.map((school) => {
-              const roleStats = calculateRoleStats(school);
-              
-              return (
-                <div 
-                  key={school.id} 
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group"
-                >
-                  {/* Card Header */}
-                  <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center" 
-                          style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}>
-                          <School size={24} className="text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">{school.school_name}</h3>
-                          <p className="text-sm text-gray-500">{school.president_name}</p>
-                        </div>
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">اسم المدرسة</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">الرئيس</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">البريد الإلكتروني</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">رقم الهاتف</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">الطلاب</th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredSchools.map((school) => (
+                  <tr key={school.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">{school.school_name}</div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600">{school.president_name}</td>
+                    <td className="px-6 py-4 text-gray-600">{school.email}</td>
+                    <td className="px-6 py-4 text-gray-600">{school.phone_number}</td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {school.student_count} طالب
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleEnterSchool(school)}
+                          className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="دخول المدرسة"
+                        >
+                          <Eye size={18} className="text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => openEditDialog(school)}
+                          className="p-2 hover:bg-yellow-50 rounded-lg transition-colors"
+                          title="تعديل"
+                        >
+                          <Edit size={18} className="text-yellow-600" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteDialog(school)}
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          title="حذف"
+                        >
+                          <Trash2 size={18} className="text-red-600" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setSelectedSchool(school)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="عرض التفاصيل"
-                      >
-                        <MoreVertical size={20} className="text-gray-400 hover:text-gray-600" />
-                      </button>
-                    </div>
-
-                    {/* Contact Info */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Mail size={14} className="text-gray-400" />
-                        <span className="truncate">{school.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Phone size={14} className="text-gray-400" />
-                        <span>{school.phone_number}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar size={14} className="text-gray-400" />
-                        <span>{formatDate(school.approval_date)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Role Statistics with Circular Progress */}
-                  <div className="p-6">
-                    <h4 className="text-sm font-bold text-gray-700 mb-4">توزيع الأدوار</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      {roleStats.map((role, index) => (
-                        <div key={index} className="flex flex-col items-center">
-                          <CircularProgress 
-                            percentage={role.percentage} 
-                            color={role.color}
-                            size={85}
-                          />
-                          <div className="mt-3 text-center">
-                            <p className="text-xs font-medium text-gray-700">{role.label}</p>
-                            <p className="text-xs text-gray-500">{role.count} عضو</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Card Footer */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-2">
-                    <button
-                      onClick={() => handleEnterSchool(school)}
-                      className="flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
-                      style={{ color: '#ffffff', background: 'linear-gradient(to right, #C8963E, #B8832E)' }}
-                    >
-                      <ArrowLeft size={16} />
-                      دخول
-                    </button>
-                    <button
-                      onClick={() => setSelectedSchool(school)}
-                      className="flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm"
-                      style={{ color: '#C8963E', backgroundColor: 'rgba(200, 150, 62, 0.1)' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.1)';
-                      }}
-                    >
-                      <Eye size={16} className="inline ml-1" />
-                      تفاصيل
-                    </button>
-                  </div>
-                </div>
-              );
-            })
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
-      </div>
 
-      {/* School Details Modal */}
-      {selectedSchool && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-xl border border-gray-100 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}>
-                  <School size={28} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{selectedSchool.school_name}</h3>
-                  <p className="text-sm text-gray-500">تفاصيل المدرسة والرئيس</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedSchool(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <span className="text-2xl">×</span>
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {/* School Information */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <School size={16} style={{ color: '#C8963E' }} />
-                  معلومات المدرسة
-                </h4>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span className="text-sm text-gray-500">اسم المدرسة</span>
-                    <span className="text-sm font-semibold text-gray-900">{selectedSchool.school_name}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">عدد الطلاب</span>
-                    <span className="text-sm font-semibold" style={{ color: '#C8963E' }}>
-                      {selectedSchool.student_count} طالب
-                    </span>
-                  </div>
-                </div>
+        {/* Create Dialog */}
+        {showCreateDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">إضافة مدرسة جديدة</h3>
+                <button onClick={() => setShowCreateDialog(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
               </div>
 
-              {/* President Information */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <Users size={16} style={{ color: '#C8963E' }} />
-                  معلومات الرئيس
-                </h4>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span className="text-sm text-gray-500">الاسم الكامل</span>
-                    <span className="text-sm font-semibold text-gray-900">{selectedSchool.president_name}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span className="text-sm text-gray-500">البريد الإلكتروني</span>
-                    <span className="text-sm font-semibold text-gray-900">{selectedSchool.email}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span className="text-sm text-gray-500">رقم الهاتف</span>
-                    <span className="text-sm font-semibold text-gray-900">{selectedSchool.phone_number}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">تاريخ القبول</span>
-                    <span className="text-sm font-semibold text-gray-900">{formatDate(selectedSchool.approval_date)}</span>
-                  </div>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="اسم المدرسة *"
+                  value={formData.school_name}
+                  onChange={(e) => setFormData({...formData, school_name: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                  style={{ focusRingColor: '#C8963E' }}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="الاسم الأول *"
+                    value={formData.president_firstname}
+                    onChange={(e) => setFormData({...formData, president_firstname: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                  />
+                  <input
+                    type="text"
+                    placeholder="اسم العائلة *"
+                    value={formData.president_lastname}
+                    onChange={(e) => setFormData({...formData, president_lastname: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                  />
                 </div>
+                <input
+                  type="email"
+                  placeholder="البريد الإلكتروني *"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                />
+                <input
+                  type="password"
+                  placeholder="كلمة المرور *"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                />
+                <input
+                  type="tel"
+                  placeholder="رقم الهاتف"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                />
               </div>
 
-              {/* Actions */}
-              <div className="pt-4 flex gap-3">
+              <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => handleEnterSchool(selectedSchool)}
-                  className="flex-1 px-4 py-2.5 text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2"
-                  style={{ background: 'linear-gradient(to right, #C8963E, #B8832E)' }}
+                  onClick={handleCreate}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2.5 rounded-lg text-white font-medium disabled:opacity-50"
+                  style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}
                 >
-                  <ArrowLeft size={18} />
-                  دخول المدرسة
+                  {isSubmitting ? "جاري الإضافة..." : "إضافة"}
                 </button>
                 <button
-                  onClick={() => setSelectedSchool(null)}
-                  className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                  onClick={() => setShowCreateDialog(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
                 >
-                  إغلاق
+                  إلغاء
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Edit Dialog */}
+        {showEditDialog && selectedSchool && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">تعديل المدرسة</h3>
+                <button onClick={() => setShowEditDialog(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="اسم المدرسة"
+                  value={formData.school_name}
+                  onChange={(e) => setFormData({...formData, school_name: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="الاسم الأول"
+                    value={formData.president_firstname}
+                    onChange={(e) => setFormData({...formData, president_firstname: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                  />
+                  <input
+                    type="text"
+                    placeholder="اسم العائلة"
+                    value={formData.president_lastname}
+                    onChange={(e) => setFormData({...formData, president_lastname: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                  />
+                </div>
+                <input
+                  type="email"
+                  placeholder="البريد الإلكتروني"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                />
+                <input
+                  type="password"
+                  placeholder="كلمة مرور جديدة (اختياري)"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                />
+                <input
+                  type="tel"
+                  placeholder="رقم الهاتف"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
+                />
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleEdit}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2.5 rounded-lg text-white font-medium disabled:opacity-50"
+                  style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}
+                >
+                  {isSubmitting ? "جاري التحديث..." : "تحديث"}
+                </button>
+                <button
+                  onClick={() => setShowEditDialog(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Dialog */}
+        {showDeleteDialog && selectedSchool && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">تأكيد الحذف</h3>
+                <button onClick={() => setShowDeleteDialog(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <p className="text-gray-600 mb-6">
+                هل أنت متأكد من حذف مدرسة <strong>{selectedSchool.school_name}</strong>؟ 
+                سيتم حذف جميع البيانات المرتبطة بها (المعلمين، الطلاب، إلخ). هذا الإجراء لا يمكن التراجع عنه.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium disabled:opacity-50"
+                >
+                  {isSubmitting ? "جاري الحذف..." : "حذف"}
+                </button>
+                <button
+                  onClick={() => setShowDeleteDialog(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </AppLayout>
   );
 }
