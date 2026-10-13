@@ -16,19 +16,10 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
-    const effectiveRole = useAuthStore.getState().effectiveRole;
-    
-    console.log('[API Client] effectiveRole:', effectiveRole);
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       config.headers['ngrok-skip-browser-warning'] = 'true';
-      
-      // If admin is viewing as CHIEF_SUPERVISOR, add role override header
-      if (effectiveRole) {
-        console.log('[API Client] Setting X-Role-Override:', effectiveRole);
-        config.headers['X-Role-Override'] = effectiveRole;
-      }
     }
     
     // Check if admin is viewing a school (from session storage)
@@ -37,7 +28,12 @@ apiClient.interceptors.request.use(
       if (adminViewData) {
         try {
           const { id } = JSON.parse(adminViewData);
-          console.log('[API Client] school_id:', id);
+          console.log('[API Client] Admin viewing school:', id);
+          
+          // Add role override header when admin is viewing a school
+          config.headers['X-Role-Override'] = 'CHIEF_SUPERVISOR';
+          console.log('[API Client] Set X-Role-Override: CHIEF_SUPERVISOR');
+          
           // Add school_id as query parameter for GET requests
           // or as body parameter for POST/PUT/PATCH requests
           if (config.method?.toLowerCase() === 'get') {
