@@ -1,10 +1,55 @@
-import apiClient from "./client";
+import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
+import { logout } from '@/utils/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-const axiosGlobal = apiClient;
+const axiosGlobal = axios.create({
+    baseURL: `${API_URL}/teacher`,
+    headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+    },
+});
 
-// Interceptors are already configured in client.ts
+axiosGlobal.interceptors.request.use((config) => {
+    const token = useAuthStore.getState().accessToken;
+    
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        config.headers['ngrok-skip-browser-warning'] = 'true';
+    }
+    
+    // Check if admin is viewing a school (from session storage)
+    if (typeof window !== 'undefined') {
+        const adminViewData = sessionStorage.getItem('admin_viewing_school');
+        if (adminViewData) {
+            try {
+                const { id } = JSON.parse(adminViewData);
+                // Add school_id as query parameter for GET requests
+                if (config.method?.toLowerCase() === 'get') {
+                    config.params = { ...config.params, school_id: id };
+                }
+            } catch (e) {
+                console.error('Error parsing admin view data:', e);
+            }
+        }
+    }
+    
+    return config;
+});
+
+axiosGlobal.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 401) {
+            logout(true);
+        }
+        return Promise.reject(error);
+    }
+);
+
+// Interceptors are configured above
 
 export interface Teacher {
     id: number;
