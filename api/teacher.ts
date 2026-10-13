@@ -1,53 +1,10 @@
-import axios from "axios";
+import apiClient from "./client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-const axiosGlobal = axios.create({
-    baseURL: `${API_URL}/teacher`,
-    headers: {
-        "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
-    },
-});
+const axiosGlobal = apiClient;
 
-axiosGlobal.interceptors.request.use(
-    (config) => {
-        if (typeof window !== "undefined") {
-            const token = 
-                localStorage.getItem("access_token") || 
-                localStorage.getItem("token") || 
-                localStorage.getItem("jwt");
-
-            if (token) {
-                const cleanToken = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
-                config.headers.Authorization = cleanToken;
-            }
-
-            // Check if admin is viewing a school (from session storage)
-            const adminViewData = sessionStorage.getItem('admin_viewing_school');
-            if (adminViewData) {
-                try {
-                    const { id } = JSON.parse(adminViewData);
-                    // Add school_id as query parameter for GET requests
-                    // or as body parameter for POST/PUT/PATCH requests
-                    if (config.method?.toLowerCase() === 'get') {
-                        config.params = { ...config.params, school_id: id };
-                    } else if (['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '')) {
-                        if (config.data && typeof config.data === 'object') {
-                            config.data = { ...config.data, school_id: id };
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error parsing admin view data:', e);
-                }
-            }
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
+// Interceptors are already configured in client.ts
 
 export interface Teacher {
     id: number;

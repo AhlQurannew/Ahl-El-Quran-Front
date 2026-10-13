@@ -1,15 +1,9 @@
-import axios from "axios";
+import apiClient from "./client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-// axios 
-const axiosGlobal = axios.create({
-    baseURL: `${API_URL}/students`,
-    headers: {
-        "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
-    },
-});
+// Use the shared apiClient which has interceptors
+const axiosGlobal = apiClient;
 
 // TYPES 
 
