@@ -63,7 +63,7 @@ export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setEffectiveRole('CHIEF_SUPERVISOR'); // Admin acts as CHIEF_SUPERVISOR
       }
     }
-  }, [searchParams, pathname]);
+  }, [searchParams, pathname, setEffectiveRole]);
 
   const exitAdminView = () => {
     setIsAdminViewing(false);
