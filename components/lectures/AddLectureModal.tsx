@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Plus, Trash2, Clock, BookOpen, UserCheck, X } from 'lucide-react';
 import lecturesAPI, { Lecture, LecturePayload, Schedule, TeacherRef } from '@/api/lectures';
 import teacherAPI, { Teacher } from '@/api/teacher';
+import { useAuthStore } from '@/store/authStore';
 
 interface AddLectureModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export default function AddLectureModal({
   initialData,
 }: AddLectureModalProps) {
   const [loading, setLoading] = useState(false);
+  const user = useAuthStore((state) => state.user);
   
   
   const [errors, setErrors] = useState<{
@@ -79,19 +81,32 @@ export default function AddLectureModal({
       setErrors({});
       const fetchTeachers = async () => {
         try {
-          const res = await teacherAPI.getTeachers(0, 100);
+          // Get admin viewing school context if user is admin
+          let school_id: number | undefined;
+          if (user?.role === 'ADMIN') {
+            const viewingSchool = typeof window !== 'undefined' 
+              ? sessionStorage.getItem('admin_viewing_school')
+              : null;
+            if (viewingSchool) {
+              const parsed = JSON.parse(viewingSchool);
+              school_id = parsed.id;
+            }
+          }
+
+          const res = await teacherAPI.getTeachers(0, 100, school_id);
           const teachersData = res.teachers || [];
+          console.log('Teachers loaded:', teachersData.length, teachersData);
           setAvailableTeachers(teachersData);
           if (teachersData.length > 0) {
             setSelectedTeacherId(teachersData[0].id.toString());
           }
         } catch (error) {
-          console.error("Erreur lors de la récupération des enseignants:", error);
+          console.error("Error loading teachers:", error);
         }
       };
       fetchTeachers();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   
   useEffect(() => {
