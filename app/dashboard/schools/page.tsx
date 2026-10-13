@@ -31,8 +31,8 @@ interface SchoolData {
 
 interface SchoolFormData {
   school_name: string;
-  president_firstname: string;
-  president_lastname: string;
+  chief_supervisor_firstname: string;
+  chief_supervisor_lastname: string;
   email: string;
   password: string;
   phone_number: string;
@@ -57,8 +57,8 @@ export default function SchoolsManagementPage() {
   // Form data
   const [formData, setFormData] = useState<SchoolFormData>({
     school_name: "",
-    president_firstname: "",
-    president_lastname: "",
+    chief_supervisor_firstname: "",
+    chief_supervisor_lastname: "",
     email: "",
     password: "",
     phone_number: ""
@@ -103,7 +103,7 @@ export default function SchoolsManagementPage() {
   };
 
   const handleCreate = async () => {
-    if (!formData.school_name || !formData.president_firstname || !formData.president_lastname || 
+    if (!formData.school_name || !formData.chief_supervisor_firstname || !formData.chief_supervisor_lastname || 
         !formData.email || !formData.password) {
       setError("يرجى ملء جميع الحقول المطلوبة");
       return;
@@ -132,8 +132,8 @@ export default function SchoolsManagementPage() {
       const updateData: any = {};
       
       if (formData.school_name) updateData.school_name = formData.school_name;
-      if (formData.president_firstname) updateData.president_firstname = formData.president_firstname;
-      if (formData.president_lastname) updateData.president_lastname = formData.president_lastname;
+      if (formData.chief_supervisor_firstname) updateData.chief_supervisor_firstname = formData.chief_supervisor_firstname;
+      if (formData.chief_supervisor_lastname) updateData.chief_supervisor_lastname = formData.chief_supervisor_lastname;
       if (formData.email) updateData.email = formData.email;
       if (formData.password) updateData.password = formData.password;
       if (formData.phone_number) updateData.phone_number = formData.phone_number;
@@ -172,8 +172,8 @@ export default function SchoolsManagementPage() {
     const [firstname, ...lastname] = school.president_name.split(" ");
     setFormData({
       school_name: school.school_name,
-      president_firstname: firstname || "",
-      president_lastname: lastname.join(" ") || "",
+      chief_supervisor_firstname: firstname || "",
+      chief_supervisor_lastname: lastname.join(" ") || "",
       email: school.email,
       password: "",
       phone_number: school.phone_number
@@ -189,8 +189,8 @@ export default function SchoolsManagementPage() {
   const resetForm = () => {
     setFormData({
       school_name: "",
-      president_firstname: "",
-      president_lastname: "",
+      chief_supervisor_firstname: "",
+      chief_supervisor_lastname: "",
       email: "",
       password: "",
       phone_number: ""
@@ -346,16 +346,16 @@ export default function SchoolsManagementPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <input
                     type="text"
-                    placeholder="الاسم الأول *"
-                    value={formData.president_firstname}
-                    onChange={(e) => setFormData({...formData, president_firstname: e.target.value})}
+                    placeholder="الاسم الأول (المشرف العام) *"
+                    value={formData.chief_supervisor_firstname}
+                    onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
                   />
                   <input
                     type="text"
-                    placeholder="اسم العائلة *"
-                    value={formData.president_lastname}
-                    onChange={(e) => setFormData({...formData, president_lastname: e.target.value})}
+                    placeholder="اسم العائلة (المشرف العام) *"
+                    value={formData.chief_supervisor_lastname}
+                    onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
                   />
                 </div>

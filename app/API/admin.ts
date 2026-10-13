@@ -59,8 +59,8 @@ const getAllSchools = async () => {
 
 const createSchool = async (schoolData: {
     school_name: string;
-    president_firstname: string;
-    president_lastname: string;
+    chief_supervisor_firstname: string;
+    chief_supervisor_lastname: string;
     email: string;
     password: string;
     phone_number?: string;
@@ -71,8 +71,8 @@ const createSchool = async (schoolData: {
 
 const updateSchool = async (schoolId: number, schoolData: {
     school_name?: string;
-    president_firstname?: string;
-    president_lastname?: string;
+    chief_supervisor_firstname?: string;
+    chief_supervisor_lastname?: string;
     email?: string;
     password?: string;
     phone_number?: string;
