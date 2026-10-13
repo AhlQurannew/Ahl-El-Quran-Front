@@ -33,7 +33,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('ADMIN');
+  const [role, setRole] = useState('PRESIDENT');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState<{
@@ -60,7 +60,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const loginId = role === 'ADMIN' ? (username || email) : email;
+    const loginId = (role === 'ADMIN' || role === 'PRESIDENT') ? (username || email) : email;
     if (!loginId || !password) {
       showToast('يرجى ملء جميع الحقول', 'error');
       return;
@@ -69,10 +69,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       let res: any;
-      if (role === 'ADMIN') {
+      // PRESIDENT (الرئيس) should use admin login (admins table)
+      if (role === 'ADMIN' || role === 'PRESIDENT') {
         res = await authAPI.loginAdmin({ user: loginId, email: loginId, password });
-      } else if (role === 'PRESIDENT') {
-        res = await authAPI.loginPresident({ email: loginId, password });
       } else if (role === 'CHIEF_SUPERVISOR' || role === 'SUPERVISOR') {
         res = await authAPI.loginSupervisor({ email: loginId, password });
       } else if (role === 'TEACHER') {
@@ -95,10 +94,8 @@ export default function LoginPage() {
 
         showToast('تم تسجيل الدخول بنجاح', 'success');
         setTimeout(() => {
-          if (role === 'ADMIN') {
+          if (role === 'ADMIN' || role === 'PRESIDENT') {
             router.push('/dashboard');
-          } else if (role === 'PRESIDENT') {
-            router.push('/');
           } else {
             router.push('/students');
           }
@@ -163,7 +160,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="login-form space-y-4">
 
-            {role === 'ADMIN' ? (
+            {(role === 'ADMIN' || role === 'PRESIDENT') ? (
               <Input
                 type="text"
                 label="اسم المستخدم / البريد الإلكتروني"
