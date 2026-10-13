@@ -75,10 +75,12 @@ export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const setSelectedSchool = (schoolId: number, schoolName: string) => {
+    console.log('[AdminView] Setting school:', schoolId, schoolName);
     setIsAdminViewing(true);
     setViewingSchoolId(schoolId);
     setViewingSchoolName(schoolName);
     setEffectiveRole('CHIEF_SUPERVISOR'); // Admin acts as CHIEF_SUPERVISOR
+    console.log('[AdminView] Set effectiveRole to CHIEF_SUPERVISOR');
     
     // Persist to session storage
     sessionStorage.setItem('admin_viewing_school', JSON.stringify({

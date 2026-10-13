@@ -18,12 +18,15 @@ apiClient.interceptors.request.use(
     const token = useAuthStore.getState().accessToken;
     const effectiveRole = useAuthStore.getState().effectiveRole;
     
+    console.log('[API Client] effectiveRole:', effectiveRole);
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       config.headers['ngrok-skip-browser-warning'] = 'true';
       
       // If admin is viewing as CHIEF_SUPERVISOR, add role override header
       if (effectiveRole) {
+        console.log('[API Client] Setting X-Role-Override:', effectiveRole);
         config.headers['X-Role-Override'] = effectiveRole;
       }
     }
@@ -34,6 +37,7 @@ apiClient.interceptors.request.use(
       if (adminViewData) {
         try {
           const { id } = JSON.parse(adminViewData);
+          console.log('[API Client] school_id:', id);
           // Add school_id as query parameter for GET requests
           // or as body parameter for POST/PUT/PATCH requests
           if (config.method?.toLowerCase() === 'get') {
