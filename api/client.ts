@@ -22,18 +22,23 @@ apiClient.interceptors.request.use(
       config.headers['ngrok-skip-browser-warning'] = 'true';
     }
     
+    // FORCE CACHE BUST - version 3
+    console.log('[API Client v3] Interceptor running');
+    
     // Check if admin is viewing a school (from session storage)
     if (typeof window !== 'undefined') {
       const adminViewData = sessionStorage.getItem('admin_viewing_school');
+      console.log('[API Client v3] admin_viewing_school:', adminViewData);
+      
       if (adminViewData) {
         try {
           const parsed = JSON.parse(adminViewData);
           const { id } = parsed;
-          console.log('[API Client v2] Admin viewing school:', id);
-          console.log('[API Client v2] Adding X-Role-Override header');
+          console.log('[API Client v3] Adding X-Role-Override for school:', id);
           
           // Add role override header when admin is viewing a school
           config.headers['x-role-override'] = 'CHIEF_SUPERVISOR';
+          console.log('[API Client v3] Headers:', config.headers);
           
           // Add school_id as query parameter for GET requests
           // or as body parameter for POST/PUT/PATCH requests
@@ -45,10 +50,10 @@ apiClient.interceptors.request.use(
             }
           }
         } catch (e) {
-          console.error('[API Client v2] Error parsing admin view data:', e);
+          console.error('[API Client v3] Error parsing admin view data:', e);
         }
       } else {
-        console.log('[API Client v2] No admin_viewing_school in sessionStorage');
+        console.log('[API Client v3] No admin_viewing_school in sessionStorage');
       }
     }
     
