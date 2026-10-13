@@ -84,23 +84,6 @@ const getAllSchools = async () => {
     return res.data;
 };
 
-const adminAPI = {
-    getPendingPresidents,
-    approvePresident,
-    rejectPresident,
-    getAllUsers,
-    deactivateUser,
-    getStatistics,
-    getSchoolsStatistics,
-    getAllSchools,
-    createSchool,
-    updateSchool,
-    deleteSchool
-};
-
-export default adminAPI;
-
-
 // School CRUD operations
 const createSchool = async (schoolData: {
     school_name: string;
@@ -130,3 +113,19 @@ const deleteSchool = async (schoolId: number) => {
     const res = await axiosGlobal.delete(`/schools/${schoolId}`);
     return res.data;
 };
+
+const adminAPI = {
+    getPendingPresidents,
+    approvePresident,
+    rejectPresident,
+    getAllUsers,
+    deactivateUser,
+    getStatistics,
+    getSchoolsStatistics,
+    getAllSchools,
+    createSchool,
+    updateSchool,
+    deleteSchool
+};
+
+export default adminAPI;
