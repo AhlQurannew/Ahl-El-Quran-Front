@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import * as XLSX from 'xlsx';
@@ -39,7 +39,7 @@ export default function TeachersPage() {
       setTeachers(teachersList);
     } catch (err: any) {
       console.error('Error loading teachers:', err);
-      setLoadError(err.response?.data?.detail || err.message || 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª المعلمين');
+      setLoadError(err.response?.data?.detail || err.message || 'فشل تحميل بيانات المعلمين');
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +98,7 @@ export default function TeachersPage() {
     // Note: Backend delete endpoint may not exist yet
     // For now, we'll just remove from local state
     setTeachers((prev) => prev.filter((t) => t.id !== selectedIds[0]));
-    showToast('success', `ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ø¹Ù„Ù… Ø¨Ù†Ø¬Ø§Ø­`);
+    showToast('success', `تم حذف المعلم بنجاح`);
     setSelectedIds([]);
     setIsConfirmOpen(false);
   };
@@ -140,14 +140,14 @@ export default function TeachersPage() {
       setSelectedIds([]);
     } catch (err: any) {
       console.error('Error saving teacher:', err);
-      showToast('error', err.response?.data?.detail || err.message || 'ÙØ´Ù„ Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù…');
+      showToast('error', err.response?.data?.detail || err.message || 'فشل حفظ بيانات المعلم');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handlePlusClick = (teacher: Teacher) => {
-    showToast('info', `Ø¹Ø±Ø¶ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ø¹Ù„Ù…: ${teacher.firstname} ${teacher.lastname}`);
+    showToast('info', `عرض تفاصيل المعلم: ${teacher.firstname} ${teacher.lastname}`);
   };
 
   const handlePrint = () => {
@@ -156,17 +156,17 @@ export default function TeachersPage() {
 
   const handleExportExcel = () => {
     const exportData = filtered.map((t) => ({
-      'Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ø£ÙˆÙ„': t.firstname,
-      'Ø§Ù„Ù„Ù‚Ø¨': t.lastname,
-      'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ': t.email,
-      'Ø§Ù„Ø±ÙˆØ§ÙŠØ©': t.riwaya || '-',
-      'ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ¹ÙŠÙŠÙ†': t.hire_date ? new Date(t.hire_date).toLocaleDateString('ar-EG') : '-',
-      'Ø§Ù„Ø­Ø§Ù„Ø©': t.is_active ? 'Ù†Ø´Ø·' : 'ØºÙŠØ± Ù†Ø´Ø·',
+      'الاسم الأول': t.firstname,
+      'اللقب': t.lastname,
+      'البريد الإلكتروني': t.email,
+      'الرواية': t.riwaya || '-',
+      'تاريخ التعيين': t.hire_date ? new Date(t.hire_date).toLocaleDateString('ar-EG') : '-',
+      'الحالة': t.is_active ? 'نشط' : 'غير نشط',
     }));
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'المعلمين');
-    XLSX.writeFile(workbook, 'Ù‚Ø§Ø¦Ù…Ø©_المعلمين.xlsx');
+    XLSX.writeFile(workbook, 'قائمة_المعلمين.xlsx');
   };
 
   return (
@@ -174,7 +174,7 @@ export default function TeachersPage() {
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          Ø¥Ø¯Ø§Ø±Ø© المعلمين / Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
+          إدارة المعلمين / الصفحة الرئيسية
         </div>
 
         {/* Loading State */}
@@ -192,7 +192,7 @@ export default function TeachersPage() {
               onClick={loadTeachers}
               className="mr-4 underline hover:no-underline"
             >
-              Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©
+              إعادة المحاولة
             </button>
           </div>
         )}
@@ -243,8 +243,8 @@ export default function TeachersPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="ØªØ£ÙƒÙŠØ¯ Ø­Ø°Ù المعلمين"
-        message={`Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ø¹Ø¯Ø¯ ${selectedIds.length} معلم من السجلات؟ لا يمكن التراجع عن هذا الإجراء.`}
+        title="تأكيد حذف المعلمين"
+        message={`هل أنت متأكد من حذف عدد ${selectedIds.length} معلم من السجلات؟ لا يمكن التراجع عن هذا الإجراء.`}
         confirmText="نعم، احذف"
         cancelText="إلغاء"
         variant="danger"
