@@ -16,7 +16,26 @@ axiosGlobal.interceptors.request.use((config) => {
     const token = useAuthStore.getState().accessToken;
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-    config.headers['ngrok-skip-browser-warning'] = 'true';
+        config.headers['ngrok-skip-browser-warning'] = 'true';
+    }
+
+    if (typeof window !== 'undefined') {
+        const adminViewData = sessionStorage.getItem('admin_viewing_school');
+        if (adminViewData) {
+            try {
+                const { id } = JSON.parse(adminViewData);
+                if (config.method?.toLowerCase() === 'get' || config.method?.toLowerCase() === 'delete') {
+                    config.params = { ...config.params, school_id: id };
+                } else if (['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '')) {
+                    config.params = { ...config.params, school_id: id };
+                    if (config.data && typeof config.data === 'object') {
+                        config.data = { ...config.data, school_id: id };
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing admin view data:', e);
+            }
+        }
     }
     return config;
 });

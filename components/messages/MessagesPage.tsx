@@ -32,9 +32,12 @@ export const MessagesPage: React.FC = () => {
   
   const user = useAuthStore((state) => state.user);
   const userId = user?.id;
-  const rawRole = user?.role?.toLowerCase();
-  const userRole = (rawRole === 'teacher' || rawRole === 'supervisor' || rawRole === 'president') ? (rawRole as SenderRole) : undefined;
-  const isReadOnly = rawRole === 'supervisor' || rawRole === 'admin';
+  const rawRole = (user?.role || '').toLowerCase();
+  const userRole: SenderRole = (rawRole === 'supervisor' || rawRole === 'chief_supervisor')
+    ? 'supervisor'
+    : (rawRole === 'president' || rawRole === 'admin')
+    ? 'president'
+    : 'teacher';
 
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
@@ -147,10 +150,6 @@ export const MessagesPage: React.FC = () => {
   }, []);
 
   const handleSendMessage = (messageText: string) => {
-    if (isReadOnly) {
-      showToast('error', 'وضع القراءة فقط: غير مسموح بإرسال الرسائل');
-      return;
-    }
     if (!userRole) {
       showToast('error', 'غير قادر على تحديد دورك');
       return;
@@ -294,22 +293,15 @@ export const MessagesPage: React.FC = () => {
         )}
       </div>
 
-            {/* Input Area — read-only for supervisor & admin */}
-      {!isReadOnly && (
-        <div className="flex-shrink-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg">
-          <MessageInput
-            onSend={handleSendMessage}
-            onTyping={handleTyping}
-            disabled={!isConnected && reconnectCount === 0}
-            placeholder={isConnected ? 'اكتب رسالتك هنا...' : 'غير متصل - جاري إعادة الاتصال...'}
-          />
-        </div>
-      )}
-      {isReadOnly && (
-        <div className="flex-shrink-0 bg-gray-50 border-t border-gray-200 px-6 py-4 text-center text-sm font-medium text-gray-500">
-          أنت في وضع القراءة فقط — لا يمكنك إرسال رسائل في هذه الغرفة
-        </div>
-      )}
+            {/* Input Area — enabled for all roles (teacher, supervisor, president, admin) */}
+      <div className="flex-shrink-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg">
+        <MessageInput
+          onSend={handleSendMessage}
+          onTyping={handleTyping}
+          disabled={!isConnected && reconnectCount === 0}
+          placeholder={isConnected ? 'اكتب رسالتك هنا...' : 'غير متصل - جاري إعادة الاتصال...'}
+        />
+      </div>
 
       <ConfirmDialog
         isOpen={deleteConfirmMessageId !== null}

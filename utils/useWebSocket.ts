@@ -37,7 +37,17 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     const baseUrl = apiUrl.replace(/\/api\/v1$/, '');
     const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
     const wsHost = baseUrl.replace(/^https?:\/\//, '');
-    const wsUrl = `${wsProtocol}://${wsHost}/ws/messages?token=${accessToken}`;
+    let schoolIdParam = '';
+    if (typeof window !== 'undefined') {
+      const adminView = sessionStorage.getItem('admin_viewing_school');
+      if (adminView) {
+        try {
+          const { id } = JSON.parse(adminView);
+          if (id) schoolIdParam = `&school_id=${id}`;
+        } catch (_) {}
+      }
+    }
+    const wsUrl = `${wsProtocol}://${wsHost}/ws/messages?token=${accessToken}${schoolIdParam}`;
 
     try {
       console.log('[WebSocket] Connecting...');
