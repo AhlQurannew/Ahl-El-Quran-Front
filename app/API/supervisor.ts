@@ -18,8 +18,31 @@ axiosGlobal.interceptors.request.use((config) => {
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-    config.headers['ngrok-skip-browser-warning'] = 'true';
+        config.headers['ngrok-skip-browser-warning'] = 'true';
     }
+
+    // Check if admin is viewing a school (from session storage)
+    if (typeof window !== 'undefined') {
+        const adminViewData = sessionStorage.getItem('admin_viewing_school');
+        if (adminViewData) {
+            try {
+                const { id } = JSON.parse(adminViewData);
+                // Add school_id as query parameter for GET/DELETE requests
+                // or as body/query parameter for POST/PUT/PATCH requests
+                if (config.method?.toLowerCase() === 'get' || config.method?.toLowerCase() === 'delete') {
+                    config.params = { ...config.params, school_id: id };
+                } else if (['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '')) {
+                    config.params = { ...config.params, school_id: id };
+                    if (config.data && typeof config.data === 'object') {
+                        config.data = { ...config.data, school_id: id };
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing admin view data:', e);
+            }
+        }
+    }
+
     return config;
 });
 
@@ -53,28 +76,36 @@ export interface SupervisorUpdatePayload {
     password?: string;
 }
 
-const getSupervisors = async (skip = 0, limit = 100): Promise<SupervisorListResponse> => {
-    const res = await axiosGlobal.get("/", { params: { skip, limit } });
+const getSupervisors = async (skip = 0, limit = 100, school_id?: number): Promise<SupervisorListResponse> => {
+    const params: Record<string, any> = { skip, limit };
+    if (school_id) {
+        params.school_id = school_id;
+    }
+    const res = await axiosGlobal.get("/", { params });
     return res.data;
 };
 
-const createSupervisor = async (data: SupervisorCreatePayload): Promise<Supervisor> => {
-    const res = await axiosGlobal.post("/", data);
+const createSupervisor = async (data: SupervisorCreatePayload, school_id?: number): Promise<Supervisor> => {
+    const params = school_id ? { school_id } : undefined;
+    const res = await axiosGlobal.post("/", data, { params });
     return res.data;
 };
 
-const getSupervisorById = async (supervisor_id: string): Promise<Supervisor> => {
-    const res = await axiosGlobal.get(`/${supervisor_id}`);
+const getSupervisorById = async (supervisor_id: string, school_id?: number): Promise<Supervisor> => {
+    const params = school_id ? { school_id } : undefined;
+    const res = await axiosGlobal.get(`/${supervisor_id}`, { params });
     return res.data;
 };
 
-const updateSupervisor = async (supervisor_id: string, data: SupervisorUpdatePayload) => {
-    const res = await axiosGlobal.put(`/${supervisor_id}`, data);
+const updateSupervisor = async (supervisor_id: string, data: SupervisorUpdatePayload, school_id?: number) => {
+    const params = school_id ? { school_id } : undefined;
+    const res = await axiosGlobal.put(`/${supervisor_id}`, data, { params });
     return res.data;
 };
 
-const deleteSupervisor = async (supervisor_id: string) => {
-    await axiosGlobal.delete(`/${supervisor_id}`);
+const deleteSupervisor = async (supervisor_id: string, school_id?: number) => {
+    const params = school_id ? { school_id } : undefined;
+    await axiosGlobal.delete(`/${supervisor_id}`, { params });
 };
 
 const supervisorAPI = {

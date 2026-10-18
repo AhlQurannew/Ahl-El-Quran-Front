@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Supervisor, SupervisorCreatePayload, SupervisorUpdatePayload } from '@/types/supervisor';
 import supervisorAPI from '@/app/API/supervisor';
+import { useAdminView } from '@/contexts/AdminViewContext';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -30,13 +31,14 @@ export default function SupervisorsPage() {
   const [selectedSupervisor, setSelectedSupervisor] = useState<Supervisor | null>(null);
 
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
+  const { viewingSchoolId } = useAdminView();
 
   // ── Load supervisors from API ──
   const loadSupervisors = async () => {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const response = await supervisorAPI.getSupervisors();
+      const response = await supervisorAPI.getSupervisors(0, 100, viewingSchoolId ?? undefined);
       const supervisorsList = Array.isArray(response) ? response : response.supervisors || [];
       setSupervisors(supervisorsList);
     } catch (err: any) {
@@ -49,7 +51,7 @@ export default function SupervisorsPage() {
 
   useEffect(() => {
     loadSupervisors();
-  }, []);
+  }, [viewingSchoolId]);
 
   // ── Derived filtered list ──
   const filtered = useMemo(() => {
@@ -146,7 +148,59 @@ export default function SupervisorsPage() {
   };
 
   const handlePrint = () => {
-    window.print();
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8"/>
+        <title>قائمة المشرفين</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #111; }
+          h1 { font-size: 18px; margin-bottom: 4px; }
+          p.subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+          th { background: #047857; color: white; padding: 8px 12px; text-align: right; border: 1px solid #047857; }
+          td { padding: 8px 12px; border: 1px solid #e5e7eb; }
+          tr:nth-child(even) td { background: #f9fafb; }
+          .footer { margin-top: 24px; font-size: 12px; color: #666; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h1>قائمة المشرفين</h1>
+        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الاسم الأول</th>
+              <th>الاسم الأخير</th>
+              <th>البريد الإلكتروني</th>
+              <th>الحالة</th>
+              <th>تاريخ الإنشاء</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map((s, i) => `<tr>
+              <td>${i + 1}</td>
+              <td>${s.firstname || ''}</td>
+              <td>${s.lastname || ''}</td>
+              <td>${s.email || ''}</td>
+              <td>${s.is_active ? 'نشط' : 'غير نشط'}</td>
+              <td>${s.created_at ? new Date(s.created_at).toLocaleDateString('ar-EG') : '-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <p class="footer">المجموع: ${filtered.length} مشرف</p>
+      </body>
+      </html>
+    `;
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (win) {
+      win.document.write(printContent);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
   };
 
   const handleExportExcel = () => {

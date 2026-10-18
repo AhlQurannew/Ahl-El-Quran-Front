@@ -151,7 +151,59 @@ export default function TeachersPage() {
   };
 
   const handlePrint = () => {
-    window.print();
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8"/>
+        <title>قائمة المعلمين</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #111; }
+          h1 { font-size: 18px; margin-bottom: 4px; }
+          p.subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+          th { background: #b45309; color: white; padding: 8px 12px; text-align: right; border: 1px solid #b45309; }
+          td { padding: 8px 12px; border: 1px solid #e5e7eb; }
+          tr:nth-child(even) td { background: #f9fafb; }
+          .footer { margin-top: 24px; font-size: 12px; color: #666; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h1>قائمة المعلمين</h1>
+        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الاسم الأول</th>
+              <th>اللقب</th>
+              <th>البريد الإلكتروني</th>
+              <th>الرواية</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map((t, i) => `<tr>
+              <td>${i + 1}</td>
+              <td>${t.firstname || ''}</td>
+              <td>${t.lastname || ''}</td>
+              <td>${t.email || ''}</td>
+              <td>${t.riwaya || '-'}</td>
+              <td>${t.is_active ? 'نشط' : 'غير نشط'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <p class="footer">المجموع: ${filtered.length} معلم</p>
+      </body>
+      </html>
+    `;
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (win) {
+      win.document.write(printContent);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
   };
 
   const handleExportExcel = () => {

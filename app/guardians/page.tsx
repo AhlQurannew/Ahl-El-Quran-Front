@@ -179,7 +179,68 @@ export default function GuardiansPage() {
   };
 
   const handlePrint = () => {
-    window.print();
+    const relMap: Record<string, string> = {
+      father: 'أب',
+      mother: 'أم',
+      uncle: 'عم / خال',
+      aunt: 'عمة / خالة',
+      other: 'غير ذلك',
+    };
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8"/>
+        <title>قائمة أولياء الأمور</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #111; }
+          h1 { font-size: 18px; margin-bottom: 4px; }
+          p.subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+          th { background: #4f46e5; color: white; padding: 8px 12px; text-align: right; border: 1px solid #4f46e5; }
+          td { padding: 8px 12px; border: 1px solid #e5e7eb; }
+          tr:nth-child(even) td { background: #f9fafb; }
+          .footer { margin-top: 24px; font-size: 12px; color: #666; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h1>قائمة أولياء الأمور</h1>
+        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الاسم الأول</th>
+              <th>اللقب</th>
+              <th>صلة القرابة</th>
+              <th>المهنة</th>
+              <th>البريد الإلكتروني</th>
+              <th>العنوان</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map((g, i) => `<tr>
+              <td>${i + 1}</td>
+              <td>${g.firstName || ''}</td>
+              <td>${g.lastName || ''}</td>
+              <td>${relMap[g.relationship || ''] || g.relationship || '-'}</td>
+              <td>${g.job || '-'}</td>
+              <td>${g.email || '-'}</td>
+              <td>${g.homeAddress || '-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <p class="footer">المجموع: ${filtered.length} ولي أمر</p>
+      </body>
+      </html>
+    `;
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (win) {
+      win.document.write(printContent);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
   };
 
   const handleExportExcel = () => {

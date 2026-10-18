@@ -283,7 +283,48 @@ export default function StudentsPage() {
     setIsDetailsDialogOpen(true);
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8"/>
+        <title>قائمة الطلاب</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #111; }
+          h1 { font-size: 18px; margin-bottom: 4px; }
+          p.subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; font-size: 13px; }
+          th { background: #0f766e; color: white; padding: 8px 12px; text-align: right; }
+          td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; }
+          tr:nth-child(even) td { background: #f9fafb; }
+          .footer { margin-top: 20px; font-size: 11px; color: #888; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h1>قائمة الطلاب</h1>
+        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <table>
+          <thead><tr><th>#</th><th>الاسم</th><th>الكنية</th><th>الجنس</th><th>الحلقة</th><th>تاريخ الميلاد</th><th>الجنسية</th></tr></thead>
+          <tbody>
+            ${filtered.map((s, i) => `<tr>
+              <td>${i + 1}</td>
+              <td>${s.firstName}</td>
+              <td>${s.lastName}</td>
+              <td>${s.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
+              <td>${s.halqa || '-'}</td>
+              <td>${s.dob || '-'}</td>
+              <td>${s.nationality || '-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <p class="footer">المجموع: ${filtered.length} طالب</p>
+      </body>
+      </html>
+    `;
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (win) { win.document.write(printContent); win.document.close(); win.print(); }
+  };
 
   return (
     <AppLayout title="الطلاب" breadcrumb="الشؤون الإدارية / الطلاب">
