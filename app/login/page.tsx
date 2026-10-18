@@ -1,20 +1,15 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import authAPI from '@/app/API/auth';
 import { useAuthStore } from '@/store/authStore';
 import { setAuthCookies } from '@/utils/auth';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { Toast } from '@/components/ui/Toast';
 import logo from '../../assets/logo.png';
-import doorIllustration from '../../assets/illustration/welcome-sign.svg';
-import './login.css';
 
 const ROLES = [
   { value: 'PRESIDENT', label: 'الرئيس' },
@@ -36,6 +31,7 @@ export default function LoginPage() {
   const [role, setRole] = useState('PRESIDENT');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<{
     visible: boolean;
     message: string;
@@ -45,6 +41,8 @@ export default function LoginPage() {
     message: '',
     type: 'error',
   });
+
+  useEffect(() => { setMounted(true); }, []);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     setToast({ visible: true, message, type });
@@ -69,7 +67,6 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       let res: any;
-      // PRESIDENT (الرئيس) should use admin login (admins table)
       if (role === 'ADMIN' || role === 'PRESIDENT') {
         res = await authAPI.loginAdmin({ user: loginId, email: loginId, password });
       } else if (role === 'CHIEF_SUPERVISOR' || role === 'SUPERVISOR') {
@@ -112,137 +109,202 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ background: 'linear-gradient(to right, #C8963E, #d6a75c)' }}
-    >
+    <div className="min-h-screen flex" dir="rtl">
       <Toast
         type={toast.type}
         message={toast.message}
         isVisible={toast.visible}
         onClose={() => setToast((prev) => ({ ...prev, visible: false }))}
       />
-      
-      <div className="hidden lg:flex flex-1 items-center justify-center">
+
+      {/* ── Left Panel: Mosque Photo ── */}
+      <div className="hidden lg:flex flex-1 relative overflow-hidden">
         <Image
-          src={doorIllustration}
-          alt="illustration"
-          width={400}
-          height={400}
-          className="object-contain"
+          src="/masjid.jpg"
+          alt="المسجد النبوي الشريف"
+          fill
+          className="object-cover"
+          priority
         />
+        {/* Gradient overlay — dark at bottom for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+        {/* Floating caption */}
+        <div className="absolute bottom-10 right-8 left-8 text-white">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300 mb-2">
+            منصة أهل القرآن
+          </p>
+          <h2 className="text-4xl font-bold leading-snug drop-shadow-lg">
+            المسجد النبوي<br />الشريف
+          </h2>
+          <p className="text-sm text-white/70 mt-2">المدينة المنورة، المملكة العربية السعودية</p>
+        </div>
       </div>
-      
-      <div className="flex flex-1 items-center justify-center p-8" style={{ background: '#d6a75c' }}>
+
+      {/* ── Right Panel: Login Form ── */}
+      <div
+        className="flex flex-1 items-center justify-center p-6 relative"
+        style={{
+          background: 'linear-gradient(135deg, #1a1209 0%, #2d1f0a 40%, #3d2b10 100%)',
+        }}
+      >
+        {/* Subtle pattern overlay */}
         <div
-          className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
-          dir="rtl"
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C8963E' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+
+        {/* Card */}
+        <div
+          className={`relative w-full max-w-md transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
-          <div className="text-center mb-6">
-            <div className="flex justify-center mb-2">
-              <Image
-                src={logo}
-                alt="أهل القرآن"
-                width={64}
-                height={64}
-              />
+          {/* Glow ring */}
+          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-amber-500/40 to-amber-700/20 blur-sm" />
+
+          <div className="relative bg-[#1e1409]/90 backdrop-blur-xl rounded-2xl border border-amber-800/30 shadow-2xl p-8">
+            {/* Logo + Title */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-md scale-125" />
+                  <div className="relative bg-amber-900/40 border border-amber-600/40 rounded-full p-3">
+                    <Image src={logo} alt="أهل القرآن" width={52} height={52} className="rounded-full" />
+                  </div>
+                </div>
+              </div>
+              <h1 className="text-2xl font-bold text-amber-400 tracking-wide">أهل القرآن</h1>
+              <p className="text-amber-200/50 text-sm mt-1">منصة إدارة المدارس القرآنية</p>
+              <div className="mt-4 h-px bg-gradient-to-r from-transparent via-amber-700/50 to-transparent" />
             </div>
-            <h1
-              className="text-xl font-bold"
-              style={{ color: '#C8963E' }}
-            >
-              أهل القرآن
-            </h1>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">
-              تسجيل الدخول
-            </h2>
-          </div>
 
-          <form onSubmit={handleSubmit} className="login-form space-y-4">
+            <h2 className="text-lg font-bold text-white text-center mb-6">تسجيل الدخول</h2>
 
-            {(role === 'ADMIN' || role === 'PRESIDENT') ? (
-              <Input
-                type="text"
-                label="اسم المستخدم / البريد الإلكتروني"
-                placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
-                value={username || email}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setEmail(e.target.value);
-                }}
-                leftIcon={<User size={18} />}
-                className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
-              />
-            ) : (
-              <Input
-                type="email"
-                label="البريد الإلكتروني"
-                placeholder="البريد الإلكتروني"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                leftIcon={<Mail size={18} />}
-                className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
-              />
-            )}
+            <form onSubmit={handleSubmit} className="space-y-5">
 
-            <Input
-              type={showPassword ? 'text' : 'password'}
-              label="كلمة المرور"
-              placeholder="ادخل كلمة المرور"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              leftIcon={<Lock size={18} />}
-              className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
-              rightIcon={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-400 hover:text-gray-600 pointer-events-auto"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              }
-            />
-
-            <Select
-              label="نوع الحساب"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              options={ROLES}
-              className="focus:!ring-[#C8963E]/30 focus:!border-[#C8963E]"
-            />
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              disabled={isLoading}
-              className="w-full !bg-none !bg-[#C8963E] hover:!bg-[#B8832A] !shadow-none !ring-0 focus-visible:!ring-[#C8963E]"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Spinner size="sm" />
-                  جاري التحميل...
-                </span>
+              {/* Email / Username */}
+              {(role === 'ADMIN' || role === 'PRESIDENT') ? (
+                <div className="space-y-1.5">
+                  <label className="text-amber-200/70 text-sm font-medium block">
+                    اسم المستخدم / البريد الإلكتروني
+                  </label>
+                  <div className="relative">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500/60">
+                      <User size={17} />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="أدخل اسم المستخدم أو البريد"
+                      value={username || email}
+                      onChange={(e) => { setUsername(e.target.value); setEmail(e.target.value); }}
+                      className="w-full bg-white/5 border border-amber-800/40 rounded-xl pr-10 pl-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-amber-500/70 focus:bg-white/8 transition-all"
+                    />
+                  </div>
+                </div>
               ) : (
-                'تسجيل الدخول'
+                <div className="space-y-1.5">
+                  <label className="text-amber-200/70 text-sm font-medium block">
+                    البريد الإلكتروني
+                  </label>
+                  <div className="relative">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500/60">
+                      <Mail size={17} />
+                    </span>
+                    <input
+                      type="email"
+                      placeholder="example@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-amber-800/40 rounded-xl pr-10 pl-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-amber-500/70 focus:bg-white/8 transition-all"
+                    />
+                  </div>
+                </div>
               )}
-            </Button>
 
-            <div className="text-center mt-4">
-              <p className="text-gray-600 text-sm">
+              {/* Password */}
+              <div className="space-y-1.5">
+                <label className="text-amber-200/70 text-sm font-medium block">
+                  كلمة المرور
+                </label>
+                <div className="relative">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500/60">
+                    <Lock size={17} />
+                  </span>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white/5 border border-amber-800/40 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-amber-500/70 focus:bg-white/8 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500/50 hover:text-amber-400 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Role selector */}
+              <div className="space-y-1.5">
+                <label className="text-amber-200/70 text-sm font-medium block">
+                  نوع الحساب
+                </label>
+                <div className="relative">
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full appearance-none bg-white/5 border border-amber-800/40 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/70 transition-all cursor-pointer"
+                  >
+                    {ROLES.map((r) => (
+                      <option key={r.value} value={r.value} className="bg-[#2d1f0a] text-white">
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500/50 pointer-events-none">
+                    <ChevronDown size={16} />
+                  </span>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full relative overflow-hidden rounded-xl py-3 text-sm font-bold text-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed group"
+                style={{
+                  background: 'linear-gradient(135deg, #C8963E 0%, #a87030 100%)',
+                  boxShadow: '0 4px 24px rgba(200, 150, 62, 0.35)',
+                }}
+              >
+                <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Spinner size="sm" />
+                    جاري التحميل...
+                  </span>
+                ) : (
+                  'تسجيل الدخول'
+                )}
+              </button>
+
+              {/* Register link */}
+              <p className="text-center text-white/40 text-xs mt-2">
                 ليس لديك حساب؟{' '}
                 <button
                   type="button"
                   onClick={() => router.push('/register')}
-                  className="font-bold hover:underline bg-transparent border-0 p-0 cursor-pointer text-[#C8963E]"
+                  className="text-amber-400 hover:text-amber-300 font-semibold transition-colors"
                 >
                   أنشئ حساباً الآن
                 </button>
               </p>
-            </div>
-
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     </div>
