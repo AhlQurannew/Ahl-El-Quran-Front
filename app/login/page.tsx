@@ -67,7 +67,15 @@ export default function LoginPage() {
         setAccessToken(res.access_token);
         localStorage.setItem('access_token', res.access_token);
         if (res.refresh_token) { setRefreshToken(res.refresh_token); localStorage.setItem('refresh_token', res.refresh_token); }
-        if (res.user) setUser(res.user);
+        const loggedUser = res.user || {
+          id: (role === 'ADMIN' || role === 'PRESIDENT') ? 1 : 0,
+          email: loginId,
+          firstname: (role === 'ADMIN' || role === 'PRESIDENT') ? 'الرئيس' : '',
+          lastname: '',
+          role: role,
+          is_active: true
+        };
+        setUser(loggedUser);
         setAuthCookies(res.access_token, role);
         showToast('تم تسجيل الدخول بنجاح', 'success');
         setTimeout(() => router.push(role === 'ADMIN' || role === 'PRESIDENT' ? '/dashboard' : '/students'), 500);

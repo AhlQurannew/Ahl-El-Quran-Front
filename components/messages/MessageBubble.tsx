@@ -17,8 +17,31 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   isOwn,
   onDelete,
 }) => {
-  const roleColor = getSenderRoleColor(message.sender_role);
-  const roleLabel = getSenderRoleLabel(message.sender_role);
+  const isSenderAdmin =
+    message.sender_role === 'president' ||
+    (message.sender_role as string) === 'admin' ||
+    message.sender_name?.trim() === 'الرئيس' ||
+    message.sender_name?.toLowerCase() === 'admin' ||
+    message.sender_name === 'مسؤول النظام';
+
+  const isSenderSupervisor =
+    !isSenderAdmin && (
+      message.sender_role === 'supervisor' ||
+      (message.sender_role as string) === 'chief_supervisor' ||
+      message.sender_name?.includes('مشرف')
+    );
+
+  const roleColor = isSenderAdmin
+    ? '#E53935'
+    : isSenderSupervisor
+    ? '#2196F3'
+    : getSenderRoleColor(message.sender_role);
+
+  const roleLabel = isSenderAdmin
+    ? 'الرئيس'
+    : isSenderSupervisor
+    ? 'مشرف عام'
+    : getSenderRoleLabel(message.sender_role);
   const timeLabel = formatMessageTime(message.created_at);
 
   return (

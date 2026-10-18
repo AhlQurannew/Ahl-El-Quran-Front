@@ -34,29 +34,33 @@ export interface WebSocketMessage {
 }
 
 // Utility functions
-export const getSenderRoleColor = (role: SenderRole): string => {
-  switch (role) {
+export const getSenderRoleColor = (role: SenderRole | string): string => {
+  switch (role?.toLowerCase()) {
     case 'teacher':
       return '#4CAF50'; // Green
     case 'supervisor':
+    case 'chief_supervisor':
       return '#2196F3'; // Blue
     case 'president':
+    case 'admin':
       return '#E53935'; // Red
     default:
       return '#9E9E9E'; // Gray
   }
 };
 
-export const getSenderRoleLabel = (role: SenderRole): string => {
-  switch (role) {
+export const getSenderRoleLabel = (role: SenderRole | string): string => {
+  switch (role?.toLowerCase()) {
     case 'teacher':
       return 'معلم';
     case 'supervisor':
-      return 'مشرف';
+    case 'chief_supervisor':
+      return 'مشرف عام';
     case 'president':
-      return 'رئيس';
+    case 'admin':
+      return 'الرئيس';
     default:
-      return role;
+      return role || 'عضو';
   }
 };
 

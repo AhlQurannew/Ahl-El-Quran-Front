@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MessageCircle, WifiOff, Wifi, RefreshCw } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
@@ -9,6 +9,7 @@ import { Toast } from '@/components/ui/Toast';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useWebSocket } from '@/utils/useWebSocket';
 import { useAuthStore } from '@/store/authStore';
+import { useAdminView } from '@/contexts/AdminViewContext';
 import messagesAPI from '@/app/API/messages';
 import type { Message, WebSocketMessage, SenderRole } from '@/types/message';
 import { cn } from '@/utils/cn';
@@ -32,12 +33,30 @@ export const MessagesPage: React.FC = () => {
   
   const user = useAuthStore((state) => state.user);
   const userId = user?.id;
-  const rawRole = (user?.role || '').toLowerCase();
-  const userRole: SenderRole = (rawRole === 'supervisor' || rawRole === 'chief_supervisor')
-    ? 'supervisor'
-    : (rawRole === 'president' || rawRole === 'admin')
-    ? 'president'
-    : 'teacher';
+  const { isAdminViewing } = useAdminView();
+  const effectiveRole = useAuthStore((state) => state.effectiveRole);
+
+  const userRole: SenderRole = useMemo(() => {
+    const rawUserRole = (user?.role || '').toLowerCase();
+    const rawEffRole = (effectiveRole || '').toLowerCase();
+    
+    let hasAdminSession = false;
+    if (typeof window !== 'undefined') {
+      const adminView = sessionStorage.getItem('admin_viewing_school');
+      if (adminView) hasAdminSession = true;
+    }
+
+    if (rawUserRole === 'admin' || rawUserRole === 'president' || rawEffRole === 'admin' || hasAdminSession || isAdminViewing) {
+      return 'president';
+    }
+    if (rawUserRole === 'supervisor' || rawUserRole === 'chief_supervisor' || rawEffRole === 'chief_supervisor') {
+      return 'supervisor';
+    }
+    if (rawUserRole === 'teacher') {
+      return 'teacher';
+    }
+    return 'president';
+  }, [user?.role, effectiveRole, isAdminViewing]);
 
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });

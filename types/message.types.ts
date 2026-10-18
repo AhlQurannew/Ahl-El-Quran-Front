@@ -6,8 +6,8 @@ export type SenderRole = 'teacher' | 'supervisor' | 'president';
 // Mappings pour centraliser les rôles, les libellés arabes et les couleurs hexadécimales
 export const SenderRoleDetails: Record<SenderRole, { displayName: string; color: string }> = {
   teacher: { displayName: 'معلم', color: '#4CAF50' },
-  supervisor: { displayName: 'مشرف', color: '#2196F3' },
-  president: { displayName: 'رئيس', color: '#E53935' },
+  supervisor: { displayName: 'مشرف عام', color: '#2196F3' },
+  president: { displayName: 'الرئيس', color: '#E53935' },
 };
 
 export const getSenderRoleFromString = (role: string): SenderRole => {
