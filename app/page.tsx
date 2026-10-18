@@ -11,14 +11,15 @@ export default function HomePage() {
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    if (user?.role === 'TEACHER' || user?.role === 'SUPERVISOR' || user?.role === 'GUARDIAN') {
-      router.replace('/students');
-    } else if (user?.role === 'ADMIN') {
+    // Only redirect system ADMIN to admin dashboard, and GUARDIAN to /guardians
+    if (user?.role === 'ADMIN') {
       router.replace('/dashboard');
+    } else if (user?.role === 'GUARDIAN') {
+      router.replace('/guardians');
     }
   }, [user, router]);
 
-  if (user?.role && user.role !== 'PRESIDENT') {
+  if (user?.role === 'ADMIN' || user?.role === 'GUARDIAN') {
     return null;
   }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { logout } from '@/utils/auth';
-
 import { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -13,10 +12,13 @@ import {
   CheckCircle2,
   Calendar,
   UserCheck,
+  MessageSquare,
   Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import presidentAPI from '@/app/API/president';
+import teacherAPI from '@/app/API/teacher';
+import { useAuthStore } from '@/store/authStore';
 
 interface DashboardCard {
   title: string;
@@ -36,6 +38,11 @@ interface StatsSummary {
 }
 
 export function DashboardCards() {
+  const user = useAuthStore((state) => state.user);
+  const isTeacher = user?.role === 'TEACHER';
+  const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT';
+  const isSupervisor = user?.role === 'SUPERVISOR';
+
   const [stats, setStats] = useState<StatsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +51,17 @@ export function DashboardCards() {
     const fetchStats = async () => {
       try {
         setIsLoading(true);
-        const data = await presidentAPI.getStatisticsSummary();
-        console.log('Dashboard stats received:', data); // Debug log
+        let data: any;
+        if (isTeacher) {
+          try {
+            data = await teacherAPI.getTeacherStatsSummary();
+          } catch {
+            data = { total_students: 0, total_teachers: 0, total_supervisors: 0, present_today: 0, total_pages_memorized: 0, total_lectures: 0 };
+          }
+        } else {
+          data = await presidentAPI.getStatisticsSummary();
+        }
+        console.log('Dashboard stats received:', data);
         setStats(data);
       } catch (err: any) {
         console.error('Error fetching dashboard stats:', err);
@@ -60,9 +76,16 @@ export function DashboardCards() {
     };
 
     fetchStats();
-  }, []);
+  }, [isTeacher]);
 
-  const statsCards: DashboardCard[] = [
+  const statsCards: DashboardCard[] = isTeacher ? [
+    { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
+    { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' },
+  ] : isSupervisor ? [
+    { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
+    { title: 'المعلمين', count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
+    { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' }
+  ] : [
     { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
     { title: 'المعلمين', count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
     { title: 'المشرفين', count: stats?.total_supervisors || 0, icon: <UserCheck className="w-16 h-16" />, href: '/supervisors', variant: 'stat' },
@@ -76,7 +99,11 @@ export function DashboardCards() {
     <BookOpen className="w-4 h-4" key="stat-icon-3" />
   ];
 
-  const actionCards: DashboardCard[] = [
+  const actionCards: DashboardCard[] = isTeacher ? [
+    { title: 'حضور الطلاب', icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
+    { title: 'الخطة والمراجعة', icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
+    { title: 'غرفة المحادثة', icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'action' },
+  ] : [
     { title: 'حضور الطلاب', icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
     { title: 'حضور المعلمين', icon: <ClipboardCheck className="w-16 h-16" />, href: '/teacher-attendance', variant: 'action' },
     { title: 'الخطة والمراجعة', icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' }
@@ -91,21 +118,27 @@ export function DashboardCards() {
   const reportCards: DashboardCard[] = [
     { title: 'التقارير', icon: <FileText className="w-16 h-16" />, href: '/reports', variant: 'report' },
     { title: 'الإحصائيات', icon: <BarChart3 className="w-16 h-16" />, href: '/statistics', variant: 'report' },
-    { title: 'المتابعات (قريباً)', icon: <CheckCircle2 className="w-16 h-16" />, href: '#', variant: 'disabled' }
+    { title: 'غرفة المحادثة', icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'report' }
   ];
 
   const reportSmallIcons: React.ReactNode[] = [
     <FileText className="w-4 h-4" key="report-icon-0" />,
     <BarChart3 className="w-4 h-4" key="report-icon-1" />,
-    <CheckCircle2 className="w-4 h-4" key="report-icon-2" />
+    <MessageSquare className="w-4 h-4" key="report-icon-2" />
   ];
+
+  const bannerGradient = isChiefSupervisor
+    ? 'from-[#831843] to-[#500724]'
+    : isTeacher
+    ? 'from-sky-700 to-sky-800'
+    : 'from-emerald-500 to-emerald-600';
 
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-l from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-md">
+      <div className={`bg-gradient-to-l ${bannerGradient} rounded-xl p-6 shadow-md`}>
         <h2 className="text-white text-xl font-bold mb-2">مرحبا بكم في نظام أهل القرآن</h2>
-        <p className="text-emerald-50 text-sm">
+        <p className="text-white/90 text-sm">
           مرحبا بك في نظام المتابعة، نتمنى لك أيام مديدة ومقبولة لك عند الله إيمانا واحتسابا
         </p>
       </div>

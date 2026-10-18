@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -70,9 +70,32 @@ const presidentNavGroups: NavGroup[] = [
 ];
 
 // Teacher navigation - only what a teacher can access
+// Supervisor navigation
+const supervisorNavGroups: NavGroup[] = [
+  {
+    items: [
+      { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
+      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الإعدادات', href: '/settings', icon: <Settings size={18} /> },
+    ],
+  },
+  {
+    groupLabel: 'الشؤون الإدارية',
+    items: [
+      { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
+      { label: 'المعلمين', href: '/teachers', icon: <UserCheck size={18} /> },
+      { label: 'أولياء الأمور', href: '/guardians', icon: <Shield size={18} /> },
+      { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
+      { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
+      { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
+    ],
+  },
+];
+
 const teacherNavGroups: NavGroup[] = [
   {
     items: [
+      { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
       { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
     ],
   },
@@ -107,17 +130,39 @@ export const Sidebar: React.FC = () => {
   
   // Determine if logged-in user is a teacher
   const isTeacher = user?.role === 'TEACHER';
+  const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT';
+  const isSupervisor = user?.role === 'SUPERVISOR';
 
   // Choose navigation based on role
-  const navGroups = isAdmin ? adminNavGroups : isTeacher ? teacherNavGroups : presidentNavGroups;
-  // Set sidebar colors based on role
+  const navGroups = isAdmin
+    ? adminNavGroups
+    : isTeacher
+    ? teacherNavGroups
+    : isSupervisor
+    ? supervisorNavGroups
+    : presidentNavGroups;
+
+  // Set sidebar colors based on role:
+  // - المشرف العام (CHIEF_SUPERVISOR / PRESIDENT): Deep Burgundy / Wine
+  // - المشرف (SUPERVISOR): Emerald Green
+  // - المعلم (TEACHER): Sky Blue
+  // - المسؤول (ADMIN): Gold / Amber
   const sidebarGradient = isAdmin
     ? 'linear-gradient(to bottom, #C8963E, #B8832E)'
+    : isChiefSupervisor
+    ? 'linear-gradient(to bottom, #831843, #500724)'
     : isTeacher
     ? 'linear-gradient(to bottom, #0369a1, #075985)'
     : 'linear-gradient(to bottom, #047857, #064e3b)';
 
-  const sidebarColor = isAdmin ? '#C8963E' : isTeacher ? '#0369a1' : '#047857';
+  const sidebarColor = isAdmin
+    ? '#C8963E'
+    : isChiefSupervisor
+    ? '#831843'
+    : isTeacher
+    ? '#0369a1'
+    : '#047857';
+
   // Get user display data
   const userName = user ? `${user.firstname} ${user.lastname}` : 'مستخدم';
   const userInitial = user?.firstname ? user.firstname.charAt(0).toUpperCase() : 'م';
@@ -125,7 +170,8 @@ export const Sidebar: React.FC = () => {
   // Role labels in Arabic
   const roleLabels: Record<string, string> = {
     ADMIN: 'المسؤول',
-    PRESIDENT: 'الرئيس',
+    PRESIDENT: 'المشرف العام',
+    CHIEF_SUPERVISOR: 'المشرف العام',
     SUPERVISOR: 'المشرف',
     TEACHER: 'المعلم',
     GUARDIAN: 'ولي الأمر',

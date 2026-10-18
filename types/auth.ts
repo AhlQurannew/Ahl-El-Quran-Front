@@ -1,9 +1,9 @@
-export interface User {
+﻿export interface User {
   id: number;
   email: string;
   firstname: string;
   lastname: string;
-  role: 'ADMIN' | 'PRESIDENT' | 'SUPERVISOR' | 'TEACHER' | 'GUARDIAN' | 'STUDENT';
+  role: 'ADMIN' | 'PRESIDENT' | 'CHIEF_SUPERVISOR' | 'SUPERVISOR' | 'TEACHER' | 'GUARDIAN' | 'STUDENT';
   is_active: boolean;
 }
 

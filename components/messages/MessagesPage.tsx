@@ -6,6 +6,7 @@ import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 import { TypingIndicator } from './TypingIndicator';
 import { Toast } from '@/components/ui/Toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useWebSocket } from '@/utils/useWebSocket';
 import { useAuthStore } from '@/store/authStore';
 import messagesAPI from '@/app/API/messages';
@@ -24,6 +25,7 @@ export const MessagesPage: React.FC = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
+  const [deleteConfirmMessageId, setDeleteConfirmMessageId] = useState<number | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
@@ -172,16 +174,26 @@ export const MessagesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteMessage = (messageId: number) => {
+  const handleRequestDelete = (messageId: number) => {
+    setDeleteConfirmMessageId(messageId);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteConfirmMessageId) return;
+    const messageId = deleteConfirmMessageId;
+    setDeleteConfirmMessageId(null);
+
     const success = sendDeleteMessage(messageId);
-    
-    if (!success) {
+    if (success) {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      showToast('success', 'تم حذف الرسالة بنجاح');
+    } else {
       // Fallback to REST API
       messagesAPI
         .deleteMessage(messageId)
         .then(() => {
           setMessages((prev) => prev.filter((m) => m.id !== messageId));
-          showToast('success', 'تم حذف الرسالة');
+          showToast('success', 'تم حذف الرسالة بنجاح');
         })
         .catch((err) => {
           console.error('Failed to delete message via REST:', err);
@@ -267,7 +279,7 @@ export const MessagesPage: React.FC = () => {
                 key={message.id}
                 message={message}
                 isOwn={message.sender_id === userId}
-                onDelete={handleDeleteMessage}
+                onDelete={handleRequestDelete}
               />
             ))}
             <TypingIndicator typingUsers={typingUsers} />
@@ -285,6 +297,17 @@ export const MessagesPage: React.FC = () => {
           placeholder={isConnected ? 'اكتب رسالتك هنا...' : 'غير متصل - جاري إعادة الاتصال...'}
         />
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmMessageId !== null}
+        onClose={() => setDeleteConfirmMessageId(null)}
+        onConfirm={handleConfirmDelete}
+        title="تأكيد حذف الرسالة"
+        message="هل أنت متأكد من حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء."
+        confirmText="نعم، احذف"
+        cancelText="إلغاء"
+        variant="danger"
+      />
 
       <Toast
         type={toast.type}

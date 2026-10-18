@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, LogOut, School, X, ArrowRight } from 'lucide-react';
+import { LogOut, School, X, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAdminView } from '@/contexts/AdminViewContext';
 import { logout } from '@/utils/auth';
@@ -34,11 +34,6 @@ export const Topbar: React.FC<TopbarProps> = ({ title, breadcrumb }) => {
 
         {/* Right: actions */}
         <div className="flex items-center gap-3">
-          {/* Notifications */}
-          <button className="relative w-9 h-9 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">
-            <Bell size={18} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
-          </button>
 
           {/* Logout - disabled when admin is viewing a school */}
           <button 
