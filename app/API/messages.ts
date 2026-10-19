@@ -1,4 +1,4 @@
-import axios from "axios";
+﻿import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -46,7 +46,7 @@ axiosGlobal.interceptors.request.use((config) => {
 
 export interface MessagePayload {
     message: string;
-    sender_role: "teacher" | "supervisor" | "president";
+    sender_role: "teacher" | "supervisor" | "chief_supervisor" | "president";
 }
 
 export interface Message {

@@ -179,7 +179,7 @@ export const MessagesPage: React.FC = () => {
     }
 
     // Validate role is allowed to send messages
-    const allowedRoles: SenderRole[] = ['teacher', 'supervisor', 'president'];
+    const allowedRoles: SenderRole[] = ['teacher', 'supervisor', 'chief_supervisor', 'president'];
     if (!allowedRoles.includes(userRole)) {
       showToast('error', 'غير مسموح لك بإرسال الرسائل');
       return;
