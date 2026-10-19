@@ -20,7 +20,7 @@ export interface MessagePayload {
 }
 
 export interface WebSocketMessage {
-  type: 'message' | 'delete' | 'typing' | 'connected' | 'error';
+  type: 'message' | 'delete' | 'typing' | 'connected' | 'error' | 'pong';
   id?: number;
   sender_id?: number;
   sender_name?: string;
