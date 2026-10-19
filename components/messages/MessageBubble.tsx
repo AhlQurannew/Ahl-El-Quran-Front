@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Trash2, User } from 'lucide-react';
@@ -24,24 +24,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     message.sender_name?.toLowerCase() === 'admin' ||
     message.sender_name === 'مسؤول النظام';
 
+  const isSenderChiefSupervisor =
+    !isSenderAdmin &&
+    (message.sender_role as string) === 'chief_supervisor';
+
   const isSenderSupervisor =
-    !isSenderAdmin && (
-      message.sender_role === 'supervisor' ||
-      (message.sender_role as string) === 'chief_supervisor' ||
-      message.sender_name?.includes('مشرف')
-    );
+    !isSenderAdmin &&
+    !isSenderChiefSupervisor &&
+    message.sender_role === 'supervisor';
 
   const roleColor = isSenderAdmin
     ? '#E53935'
-    : isSenderSupervisor
+    : isSenderChiefSupervisor || isSenderSupervisor
     ? '#2196F3'
     : getSenderRoleColor(message.sender_role);
 
   const roleLabel = isSenderAdmin
     ? 'الرئيس'
-    : isSenderSupervisor
+    : isSenderChiefSupervisor
     ? 'مشرف عام'
+    : isSenderSupervisor
+    ? 'مشرف'
     : getSenderRoleLabel(message.sender_role);
+
   const timeLabel = formatMessageTime(message.created_at);
 
   return (

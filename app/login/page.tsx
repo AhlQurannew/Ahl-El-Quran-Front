@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -217,16 +217,6 @@ export default function LoginPage() {
               ) : 'تسجيل الدخول'}
             </button>
 
-            <p className="text-center text-gray-400 text-[12px] pt-1">
-              ليس لديك حساب؟{' '}
-              <button
-                type="button"
-                onClick={() => router.push('/register')}
-                className="text-amber-600 hover:text-amber-700 font-semibold transition-colors underline underline-offset-2"
-              >
-                أنشئ حساباً الآن
-              </button>
-            </p>
           </form>
         </div>
       </div>

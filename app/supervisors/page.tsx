@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import * as XLSX from 'xlsx';
@@ -167,7 +167,7 @@ export default function SupervisorsPage() {
       </head>
       <body>
         <h1>قائمة المشرفين</h1>
-        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG-u-nu-latn', { year:'numeric', month:'long', day:'numeric' })}</p>
         <table>
           <thead>
             <tr>

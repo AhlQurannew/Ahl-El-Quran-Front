@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MessageCircle, WifiOff, Wifi, RefreshCw } from 'lucide-react';
@@ -49,7 +49,10 @@ export const MessagesPage: React.FC = () => {
     if (rawUserRole === 'admin' || rawUserRole === 'president' || rawEffRole === 'admin' || hasAdminSession || isAdminViewing) {
       return 'president';
     }
-    if (rawUserRole === 'supervisor' || rawUserRole === 'chief_supervisor' || rawEffRole === 'chief_supervisor') {
+    if (rawUserRole === 'chief_supervisor' || rawEffRole === 'chief_supervisor') {
+      return 'chief_supervisor' as SenderRole;
+    }
+    if (rawUserRole === 'supervisor' || rawEffRole === 'supervisor') {
       return 'supervisor';
     }
     if (rawUserRole === 'teacher') {
@@ -138,8 +141,9 @@ export const MessagesPage: React.FC = () => {
     showToast('success', 'تم الاتصال بالدردشة');
   }, []);
 
-  const handleError = useCallback(() => {
-    showToast('error', 'حدث خطأ في الاتصال');
+  const handleError = useCallback((error: Event) => {
+    console.warn('[Chat] WebSocket error', error);
+    // Don't show error toast - the connection status indicator in the header handles this
   }, []);
 
   const {
@@ -302,7 +306,7 @@ export const MessagesPage: React.FC = () => {
               <MessageBubble
                 key={message.id}
                 message={message}
-                isOwn={message.sender_id === userId}
+                isOwn={message.sender_id === userId || (userRole === 'president' && message.sender_role === 'president')}
                 onDelete={handleRequestDelete}
               />
             ))}

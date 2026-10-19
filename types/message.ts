@@ -1,4 +1,4 @@
-export type SenderRole = 'teacher' | 'supervisor' | 'president';
+﻿export type SenderRole = 'teacher' | 'supervisor' | 'chief_supervisor' | 'president';
 
 export interface Message {
   id: number;
@@ -54,6 +54,7 @@ export const getSenderRoleLabel = (role: SenderRole | string): string => {
     case 'teacher':
       return 'معلم';
     case 'supervisor':
+      return 'مشرف';
     case 'chief_supervisor':
       return 'مشرف عام';
     case 'president':

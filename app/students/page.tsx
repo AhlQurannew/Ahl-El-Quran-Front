@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -303,7 +303,7 @@ export default function StudentsPage() {
       </head>
       <body>
         <h1>قائمة الطلاب</h1>
-        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG-u-nu-latn', { year:'numeric', month:'long', day:'numeric' })}</p>
         <table>
           <thead><tr><th>#</th><th>الاسم</th><th>الكنية</th><th>الجنس</th><th>الحلقة</th><th>تاريخ الميلاد</th><th>الجنسية</th></tr></thead>
           <tbody>

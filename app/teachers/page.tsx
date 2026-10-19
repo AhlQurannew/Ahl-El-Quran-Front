@@ -170,7 +170,7 @@ export default function TeachersPage() {
       </head>
       <body>
         <h1>قائمة المعلمين</h1>
-        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG-u-nu-latn', { year:'numeric', month:'long', day:'numeric' })}</p>
         <table>
           <thead>
             <tr>
