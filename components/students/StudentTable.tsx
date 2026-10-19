@@ -16,15 +16,33 @@ interface StudentTableProps {
 
 export const StudentTable: React.FC<StudentTableProps> = ({
   students,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
   onPlusClick,
   isLoading,
 }) => {
+  const allSelected = students.length > 0 && selectedIds.length === students.length;
+  const someSelected = selectedIds.length > 0 && selectedIds.length < students.length;
+  
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-teal-800 text-white border-b border-teal-900">
+              {/* Checkbox select all */}
+              <th className="px-2 py-3.5 w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = someSelected;
+                  }}
+                  onChange={onToggleSelectAll}
+                  className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                />
+              </th>
               {/* Plus action header */}
               <th className="px-2 py-3.5 w-10" />
               <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider w-16">
@@ -62,13 +80,13 @@ export const StudentTable: React.FC<StudentTableProps> = ({
           <tbody className="divide-y divide-gray-100">
             {isLoading ? (
               <tr>
-                <td colSpan={11} className="py-16 text-center">
+                <td colSpan={12} className="py-16 text-center">
                   <Spinner size="md" label="جاري التحميل..." />
                 </td>
               </tr>
             ) : students.length === 0 ? (
               <tr>
-                <td colSpan={11} className="py-16 text-center">
+                <td colSpan={12} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <p className="text-sm text-gray-400 font-medium">لا يوجد طلاب</p>
                     <p className="text-xs text-gray-300">انقر على إضافة لإضافة طالب جديد</p>
@@ -81,6 +99,15 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                   key={student.id}
                   className="hover:bg-gray-50/40 transition-colors"
                 >
+                  {/* Checkbox for individual selection */}
+                  <td className="px-2 py-3.5 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(student.id)}
+                      onChange={() => onToggleSelect(student.id)}
+                      className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                    />
+                  </td>
                   {/* Plus Icon Action Button */}
                   <td className="px-2 py-3.5 text-center">
                     <button
