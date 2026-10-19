@@ -19,8 +19,23 @@ axiosGlobal.interceptors.request.use((config) => {
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-    config.headers['ngrok-skip-browser-warning'] = 'true';
+        config.headers['ngrok-skip-browser-warning'] = 'true';
     }
+
+    // Check if admin is viewing a school (from session storage)
+    if (typeof window !== 'undefined') {
+        const adminViewData = sessionStorage.getItem('admin_viewing_school');
+        if (adminViewData) {
+            try {
+                const { id } = JSON.parse(adminViewData);
+                config.headers['x-role-override'] = 'CHIEF_SUPERVISOR';
+                config.params = { ...config.params, school_id: id };
+            } catch (e) {
+                console.error('Error parsing admin view data:', e);
+            }
+        }
+    }
+
     return config;
 });
 axiosGlobal.interceptors.response.use(
