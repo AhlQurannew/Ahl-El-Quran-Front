@@ -16,8 +16,6 @@ const ROLES = [
   { value: 'CHIEF_SUPERVISOR', label: 'المشرف العام' },
   { value: 'SUPERVISOR', label: 'المشرف' },
   { value: 'TEACHER', label: 'المعلم' },
-  { value: 'GUARDIAN', label: 'ولي الأمر' },
-  { value: 'STUDENT', label: 'الطالب' },
 ];
 
 export default function LoginPage() {
