@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { logout } from '@/utils/auth';
 
@@ -40,15 +40,8 @@ apiClient.interceptors.request.use(
           config.headers['x-role-override'] = 'CHIEF_SUPERVISOR';
           console.log('[API Client v3] Headers:', config.headers);
           
-          // Add school_id as query parameter for GET requests
-          // or as body parameter for POST/PUT/PATCH requests
-          if (config.method?.toLowerCase() === 'get') {
-            config.params = { ...config.params, school_id: id };
-          } else if (['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '')) {
-            if (config.data && typeof config.data === 'object') {
-              config.data = { ...config.data, school_id: id };
-            }
-          }
+          // Always send school_id as query parameter (works for GET, POST, PUT, PATCH, DELETE)
+          config.params = { ...config.params, school_id: id };
         } catch (e) {
           console.error('[API Client v3] Error parsing admin view data:', e);
         }
