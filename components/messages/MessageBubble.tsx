@@ -33,10 +33,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     !isSenderChiefSupervisor &&
     message.sender_role === 'supervisor';
 
+  const isSenderTeacher =
+    !isSenderAdmin &&
+    !isSenderChiefSupervisor &&
+    !isSenderSupervisor &&
+    message.sender_role === 'teacher';
+
+  // Match sidebar colors for each role
   const roleColor = isSenderAdmin
-    ? '#E53935'
-    : isSenderChiefSupervisor || isSenderSupervisor
-    ? '#2196F3'
+    ? '#C8963E'  // Admin - Gold/Amber
+    : isSenderChiefSupervisor
+    ? '#831843'  // Chief Supervisor - Deep Burgundy/Wine
+    : isSenderSupervisor
+    ? '#047857'  // Supervisor - Emerald Green
+    : isSenderTeacher
+    ? '#0369a1'  // Teacher - Sky Blue
     : getSenderRoleColor(message.sender_role);
 
   const roleLabel = isSenderAdmin
