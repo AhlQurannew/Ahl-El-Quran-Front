@@ -473,10 +473,21 @@ export default function MemorizationPage() {
                     {/* Achievement */}
                     <div className="col-span-5 text-center">
                       {achievement ? (
-                        <div className="inline-block px-3 py-2 bg-teal-50 border border-teal-500 rounded-lg text-teal-700 text-xs font-medium">
-                          <div>{getSurahName(achievement.from_surah)} ({achievement.from_verse})</div>
-                          <div className="text-teal-600">←</div>
-                          <div>{getSurahName(achievement.to_surah)} ({achievement.to_verse})</div>
+                        <div className="inline-flex flex-col gap-1 px-3 py-2 bg-teal-50 border border-teal-500 rounded-lg text-teal-700 text-xs font-medium">
+                          <div className="font-semibold">
+                            {achievement.achievement_type === 'normal' ? 'حفظ' : 
+                             achievement.achievement_type === 'small' ? 'مراجعة صغرى' : 
+                             achievement.achievement_type === 'big' ? 'مراجعة كبرى' : 
+                             achievement.achievement_type}
+                          </div>
+                          <div className="flex items-center gap-2 justify-center">
+                            <span>{getSurahName(achievement.from_surah)} ({achievement.from_verse})</span>
+                            <span className="text-teal-600">←</span>
+                            <span>{getSurahName(achievement.to_surah)} ({achievement.to_verse})</span>
+                          </div>
+                          {achievement.note && (
+                            <div className="text-[10px] text-teal-600 italic">{achievement.note}</div>
+                          )}
                         </div>
                       ) : (
                         <span className="text-gray-400">--</span>
