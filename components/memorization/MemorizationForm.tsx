@@ -28,6 +28,7 @@ interface MemorizationFormProps {
   students: ApiStudent[];
   isLoadingStudents?: boolean;
   defaultStudentId?: number | null;
+  defaultDate?: string; // yyyy-mm-dd format from parent
   isLoading?: boolean;
 }
 
@@ -38,7 +39,7 @@ function apiDateToInput(date: string): string {
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 }
 
-function emptyForm(defaultStudentId?: number | null): AchievementFormValues {
+function emptyForm(defaultStudentId?: number | null, defaultDate?: string): AchievementFormValues {
   return {
     studentId: defaultStudentId ?? 0,
     fromSurah: 1,
@@ -47,7 +48,7 @@ function emptyForm(defaultStudentId?: number | null): AchievementFormValues {
     toVerse: 1,
     note: '',
     achievementType: 'normal',
-    date: new Date().toISOString().slice(0, 10),
+    date: defaultDate || new Date().toISOString().slice(0, 10),
   };
 }
 
@@ -59,9 +60,10 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
   students,
   isLoadingStudents,
   defaultStudentId,
+  defaultDate,
   isLoading,
 }) => {
-  const [form, setForm] = React.useState<AchievementFormValues>(emptyForm(defaultStudentId));
+  const [form, setForm] = React.useState<AchievementFormValues>(emptyForm(defaultStudentId, defaultDate));
   const [errors, setErrors] = React.useState<Partial<Record<keyof AchievementFormValues, string>>>({});
 
   const isEditing = !!editingAchievement;
@@ -83,10 +85,10 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
         date: apiDateToInput(editingAchievement.date),
       });
     } else {
-      setForm(emptyForm(defaultStudentId));
+      setForm(emptyForm(defaultStudentId, defaultDate));
     }
     setErrors({});
-  }, [editingAchievement, isOpen, defaultStudentId]);
+  }, [editingAchievement, isOpen, defaultStudentId, defaultDate]);
 
   const set = <K extends keyof AchievementFormValues>(field: K, value: AchievementFormValues[K]) => {
     setForm((f) => ({ ...f, [field]: value }));

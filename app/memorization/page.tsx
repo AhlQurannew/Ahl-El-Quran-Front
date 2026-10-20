@@ -282,6 +282,12 @@ export default function MemorizationPage() {
 
     setIsSaving(true);
     try {
+      const formattedDate = inputDateToApi(data.date);
+      console.log('📝 Submitting achievement:');
+      console.log('  - Input date:', data.date);
+      console.log('  - Formatted date:', formattedDate);
+      console.log('  - Student ID:', selectedStudent.id);
+      
       const payload = {
         student_id: selectedStudent.id, // Add student_id to payload
         from_surah: data.fromSurah,
@@ -290,15 +296,18 @@ export default function MemorizationPage() {
         to_verse: data.toVerse,
         note: data.note,
         achievement_type: data.achievementType,
-        date: inputDateToApi(data.date),
+        date: formattedDate,
       };
+
+      console.log('  - Full payload:', payload);
 
       if (isTeacher) {
         if (editingAchievement) {
           await teacherAPI.updateAchievement(selectedStudent.id, editingAchievement.id, payload);
           showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
         } else {
-          await teacherAPI.createAchievement(selectedStudent.id, payload);
+          const result = await teacherAPI.createAchievement(selectedStudent.id, payload);
+          console.log('✅ Achievement created:', result);
           showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
         }
       } else {
@@ -306,7 +315,8 @@ export default function MemorizationPage() {
           await updateAchievement(selectedStudent.id, editingAchievement.id, payload);
           showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
         } else {
-          await createAchievement(selectedStudent.id, payload);
+          const result = await createAchievement(selectedStudent.id, payload);
+          console.log('✅ Achievement created:', result);
           showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
         }
       }
@@ -553,6 +563,7 @@ export default function MemorizationPage() {
           students={[selectedStudent]}
           isLoadingStudents={false}
           defaultStudentId={selectedStudent.id}
+          defaultDate={date}
           isLoading={isSaving}
         />
       )}
