@@ -84,12 +84,8 @@ async function fetchStudents(): Promise<ApiStudent[]> {
 }
 
 async function fetchAchievements(studentId: number): Promise<ApiAchievement[]> {
-  const res = await fetch(`${API_BASE_URL}/students/${studentId}/achievements`, {
-    method: 'GET',
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error(`فشل تحميل السجلات (${res.status})`);
-  const json: AchievementsResponse = await res.json();
+  // Use studentsAPI which has the school_id interceptor
+  const json = await studentsAPI.getAchievements(studentId);
   return json.achievements ?? [];
 }
 
@@ -97,16 +93,8 @@ async function createAchievement(
   studentId: number,
   payload: Omit<ApiAchievement, 'id'>
 ): Promise<ApiAchievement> {
-  const res = await fetch(`${API_BASE_URL}/students/${studentId}/achievements`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => null);
-    throw new Error(errBody?.detail?.[0]?.msg ?? `فشل إضافة السجل (${res.status})`);
-  }
-  return res.json();
+  // Use studentsAPI which has the school_id interceptor
+  return await studentsAPI.addAchievement(studentId, payload as any);
 }
 
 async function updateAchievement(
@@ -114,23 +102,13 @@ async function updateAchievement(
   achievementId: number,
   payload: Omit<ApiAchievement, 'id'>
 ): Promise<ApiAchievement> {
-  const res = await fetch(
-    `${API_BASE_URL}/students/${studentId}/achievements/${achievementId}`,
-    { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) }
-  );
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => null);
-    throw new Error(errBody?.detail?.[0]?.msg ?? `فشل تعديل السجل (${res.status})`);
-  }
-  return res.json();
+  // Use studentsAPI which has the school_id interceptor
+  return await studentsAPI.updateAchievement(studentId, achievementId, payload as any);
 }
 
 async function deleteAchievement(studentId: number, achievementId: number): Promise<void> {
-  const res = await fetch(
-    `${API_BASE_URL}/students/${studentId}/achievements/${achievementId}`,
-    { method: 'DELETE', headers: authHeaders(false) }
-  );
-  if (!res.ok) throw new Error(`فشل حذف السجل (${res.status})`);
+  // Use studentsAPI which has the school_id interceptor
+  await studentsAPI.deleteAchievement(studentId, achievementId);
 }
 
 export default function MemorizationPage() {

@@ -1,9 +1,53 @@
-import apiClient from "./client";
+import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-// Use the shared apiClient which has interceptors
-const axiosGlobal = apiClient;
+// Create dedicated axios instance for students with proper baseURL
+const axiosGlobal = axios.create({
+    baseURL: `${API_URL}/students`,
+    headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+    },
+});
+
+// Add interceptors for authentication and school_id
+axiosGlobal.interceptors.request.use((config) => {
+    const token = useAuthStore.getState().accessToken;
+    
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        config.headers['ngrok-skip-browser-warning'] = 'true';
+    }
+    
+    // Check if admin is viewing a school (from session storage)
+    if (typeof window !== 'undefined') {
+        const adminViewData = sessionStorage.getItem('admin_viewing_school');
+        if (adminViewData) {
+            try {
+                const { id } = JSON.parse(adminViewData);
+                config.headers['x-role-override'] = 'CHIEF_SUPERVISOR';
+                config.params = { ...config.params, school_id: id };
+            } catch (e) {
+                console.error('Error parsing admin view data:', e);
+            }
+        }
+    }
+    
+    return config;
+}, (error) => Promise.reject(error));
+
+axiosGlobal.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 401) {
+            useAuthStore.getState().clearAuth();
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
 
 // TYPES 
 
