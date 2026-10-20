@@ -214,42 +214,47 @@ export default function MemorizationPage() {
           lectures: s.lectures,
         }));
       } else {
+        // For supervisors: Get all students and optionally filter by teacher
         const allStudents = await fetchStudents();
         console.log('📚 All students loaded:', allStudents.length);
-        console.log('📚 Full first student:', JSON.stringify(allStudents[0], null, 2));
         
-        filteredStudents = allStudents.filter((student) =>
+        // Filter by lecture first
+        let studentsInLecture = allStudents.filter((student) =>
           student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
         );
         
-        console.log('📚 Students in lecture', selectedLecture.lecture_id, ':', filteredStudents.length);
+        console.log('📚 Students in lecture', selectedLecture.lecture_id, ':', studentsInLecture.length);
         
-        // Apply teacher filter if selected
+        // If teacher is selected, get full lecture details to check which teachers are assigned
         if (selectedTeacher) {
           console.log('👨‍🏫 Filtering by teacher:', selectedTeacher);
           
-          // Teachers are stored in lectureTeachers array
-          filteredStudents = filteredStudents.filter((student) => {
-            // Check if student has the selected teacher in their lectureTeachers array
-            const hasTeacher = student.lectureTeachers?.some((lt: any) => {
-              const teacherMatch = String(lt.teacherId || lt.teacher_id) === selectedTeacher;
-              const lectureMatch = (lt.lectureId || lt.lecture_id) === selectedLecture.lecture_id;
-              
-              console.log(`  Student ${student.id} lectureTeacher:`, {
-                lectureId: lt.lectureId || lt.lecture_id,
-                teacherId: lt.teacherId || lt.teacher_id,
-                teacherMatch,
-                lectureMatch,
-                both: teacherMatch && lectureMatch
-              });
-              
-              return teacherMatch && lectureMatch;
-            });
+          try {
+            // Get lecture details with teachers
+            const lectureDetails = await lecturesAPI.getLectureById(selectedLecture.lecture_id);
+            console.log('👨‍🏫 Lecture teachers:', lectureDetails.teachers);
             
-            return hasTeacher;
-          });
-          
-          console.log('👨‍🏫 Students after teacher filter:', filteredStudents.length);
+            // Check if selected teacher is assigned to this lecture
+            const teacherAssigned = lectureDetails.teachers?.some((t: any) => 
+              String(t.id || t.teacher_id) === selectedTeacher
+            );
+            
+            if (!teacherAssigned) {
+              console.warn('👨‍🏫 Selected teacher is not assigned to this lecture');
+              filteredStudents = [];
+            } else {
+              // For now, show all students in the lecture (can't filter further without backend support)
+              // TODO: Backend needs to return teacher_id with each student's lecture enrollment
+              filteredStudents = studentsInLecture;
+              console.log('👨‍🏫 Note: Cannot filter by teacher - backend needs to return teacher_id in student.lectures');
+            }
+          } catch (err) {
+            console.error('Error loading lecture details:', err);
+            // Fallback: show all students in lecture
+            filteredStudents = studentsInLecture;
+          }
+        } else {
+          filteredStudents = studentsInLecture;
         }
       }
 
