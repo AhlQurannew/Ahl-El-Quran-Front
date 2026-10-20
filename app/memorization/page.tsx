@@ -230,11 +230,19 @@ export default function MemorizationPage() {
             } else {
               studentAchievements = await fetchAchievements(student.id);
             }
-            // Get ALL achievements for the selected date (not just one)
-            const dateAchievements = studentAchievements.filter(
-              (a: any) => a.date === inputDateToApi(date)
+            
+            console.log(`Student ${student.id} achievements:`, studentAchievements);
+            console.log(`Looking for date: ${inputDateToApi(date)}`);
+            
+            // Get the FIRST achievement for the selected date (1 per day policy)
+            const dateAchievement = studentAchievements.find(
+              (a: any) => {
+                console.log(`  - Achievement ${a.id}: date="${a.date}", matches=${a.date === inputDateToApi(date)}`);
+                return a.date === inputDateToApi(date);
+              }
             );
-            achievementsMap[student.id] = dateAchievements;
+            achievementsMap[student.id] = dateAchievement ? [dateAchievement] : [];
+            console.log(`Student ${student.id} has ${achievementsMap[student.id].length} achievements for this date`);
           } catch (err) {
             console.error(`Error loading achievements for student ${student.id}:`, err);
             achievementsMap[student.id] = [];
@@ -470,7 +478,7 @@ export default function MemorizationPage() {
                       {studentDisplayName(student)}
                     </div>
 
-                    {/* Achievements - Can be multiple */}
+                    {/* Achievements - Single achievement per day */}
                     <div className="col-span-5 flex flex-col gap-2">
                       {studentAchievements.length > 0 ? (
                         studentAchievements.map((achievement) => (
@@ -482,7 +490,7 @@ export default function MemorizationPage() {
                                  achievement.achievement_type === 'big' ? 'مراجعة كبرى' : 
                                  achievement.achievement_type}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span>{getSurahName(achievement.from_surah)} ({achievement.from_verse})</span>
                                 <span className="text-teal-600">←</span>
                                 <span>{getSurahName(achievement.to_surah)} ({achievement.to_verse})</span>
@@ -491,7 +499,7 @@ export default function MemorizationPage() {
                                 <div className="text-[10px] text-teal-600 italic mt-1">{achievement.note}</div>
                               )}
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 flex-shrink-0">
                               <button
                                 onClick={() => handleEditAchievement(student, achievement)}
                                 className="px-2 py-1 bg-blue-50 border border-blue-500 text-blue-700 rounded hover:bg-blue-100 transition-colors text-xs"
@@ -514,14 +522,18 @@ export default function MemorizationPage() {
                       )}
                     </div>
 
-                    {/* Actions - Always show "Add" button */}
+                    {/* Actions - Show "Add" only if no achievement exists */}
                     <div className="col-span-2 flex justify-center pt-2">
-                      <button
-                        onClick={() => handleAddAchievement(student)}
-                        className="px-4 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-medium whitespace-nowrap"
-                      >
-                        + إضافة
-                      </button>
+                      {studentAchievements.length === 0 ? (
+                        <button
+                          onClick={() => handleAddAchievement(student)}
+                          className="px-4 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-medium whitespace-nowrap"
+                        >
+                          + إضافة
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-xs">إنجاز اليوم</span>
+                      )}
                     </div>
                   </div>
                 );
