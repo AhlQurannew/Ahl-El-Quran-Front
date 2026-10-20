@@ -78,13 +78,9 @@ function inputDateToApi(date: string): string {
 }
 
 async function fetchStudents(): Promise<ApiStudent[]> {
-  const res = await fetch(`${API_BASE_URL}/students/`, {
-    method: 'GET',
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error(`فشل تحميل قائمة الطلاب (${res.status})`);
-  const json = await res.json();
-  return Array.isArray(json) ? json : json.students ?? [];
+  // Use studentsAPI which has the school_id interceptor
+  const response = await studentsAPI.getStudents();
+  return Array.isArray(response) ? response : response.students ?? [];
 }
 
 async function fetchAchievements(studentId: number): Promise<ApiAchievement[]> {
@@ -325,10 +321,14 @@ export default function MemorizationPage() {
       if (isTeacher) {
         await teacherAPI.deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
       } else {
-        if (isTeacher) {
-        await teacherAPI.deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
-      } else {
-        await deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
+        if (isTeacher) {
+
+        await teacherAPI.deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
+
+      } else {
+
+        await deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
+
       }
       }
       showToast('success', 'تم حذف سجل الإنجاز بنجاح');
