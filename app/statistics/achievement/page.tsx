@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/authStore';
 import teacherAPI from '@/app/API/teacher';
 import lecturesAPI from '@/app/API/lectures';
 import reportsAPI from '@/app/API/reports';
+import studentsAPI from '@/app/API/students';
 
 export default function AchievementStatsPage() {
   const user = useAuthStore((s) => s.user);
@@ -66,13 +67,28 @@ export default function AchievementStatsPage() {
       try {
         let students: any[] = [];
         const lectureIdNum = halqa ? Number(halqa) : undefined;
+        
         if (isTeacher) {
+          // Teachers: use getMyStudents (only their assigned students)
           const res = await teacherAPI.getMyStudents({ lecture_id: lectureIdNum });
           students = res.students || [];
         } else {
-          const res = await teacherAPI.getMyStudents({ lecture_id: lectureIdNum }).catch(() => ({ students: [] }));
-          students = res.students || [];
+          // Chief Supervisors/Supervisors: use studentsAPI to get all students in school
+          const res = await studentsAPI.getStudents();
+          const allStudents = Array.isArray(res) ? res : res.students || [];
+          
+          // Filter by lecture if selected
+          if (lectureIdNum) {
+            students = allStudents.filter((s: any) =>
+              s.lectures?.some((l: any) => 
+                l.lectureId === lectureIdNum || l.lecture_id === lectureIdNum
+              )
+            );
+          } else {
+            students = allStudents;
+          }
         }
+        
         const options = [
           { label: 'اختر الطالب', value: '' },
           ...students.map((s: any) => ({
