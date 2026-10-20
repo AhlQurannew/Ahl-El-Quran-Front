@@ -142,7 +142,7 @@ export default function MemorizationPage() {
   const [isLoadingLectures, setIsLoadingLectures] = useState(true);
 
   const [students, setStudents] = useState<ApiStudent[]>([]);
-  const [achievements, setAchievements] = useState<Record<number, ApiAchievement | null>>({});
+  const [achievements, setAchievements] = useState<Record<number, ApiAchievement[]>>({});
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -219,7 +219,7 @@ export default function MemorizationPage() {
       setStudents(filteredStudents);
 
       // Load achievements for each student
-      const achievementsMap: Record<number, ApiAchievement | null> = {};
+      const achievementsMap: Record<number, ApiAchievement[]> = {};
       await Promise.all(
         filteredStudents.map(async (student) => {
           try {
@@ -230,14 +230,14 @@ export default function MemorizationPage() {
             } else {
               studentAchievements = await fetchAchievements(student.id);
             }
-            // Get the latest achievement for the selected date
-            const dateAchievement = studentAchievements.find(
+            // Get ALL achievements for the selected date (not just one)
+            const dateAchievements = studentAchievements.filter(
               (a: any) => a.date === inputDateToApi(date)
             );
-            achievementsMap[student.id] = dateAchievement || null;
+            achievementsMap[student.id] = dateAchievements;
           } catch (err) {
             console.error(`Error loading achievements for student ${student.id}:`, err);
-            achievementsMap[student.id] = null;
+            achievementsMap[student.id] = [];
           }
         })
       );
@@ -452,73 +452,76 @@ export default function MemorizationPage() {
             {/* Table Body */}
             <div className="divide-y divide-gray-100">
               {students.map((student, index) => {
-                const achievement = achievements[student.id];
+                const studentAchievements = achievements[student.id] || [];
                 const isEven = index % 2 === 0;
 
                 return (
                   <div
                     key={student.id}
-                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-center ${
+                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-start ${
                       isEven ? 'bg-gray-50' : 'bg-white'
                     }`}
                   >
                     {/* Index */}
-                    <div className="col-span-1 text-center text-gray-700">{index + 1}</div>
+                    <div className="col-span-1 text-center text-gray-700 pt-2">{index + 1}</div>
 
                     {/* Student Name */}
-                    <div className="col-span-4 text-center text-gray-900 font-medium">
+                    <div className="col-span-4 text-center text-gray-900 font-medium pt-2">
                       {studentDisplayName(student)}
                     </div>
 
-                    {/* Achievement */}
-                    <div className="col-span-5 text-center">
-                      {achievement ? (
-                        <div className="inline-flex flex-col gap-1 px-3 py-2 bg-teal-50 border border-teal-500 rounded-lg text-teal-700 text-xs font-medium">
-                          <div className="font-semibold">
-                            {achievement.achievement_type === 'normal' ? 'حفظ' : 
-                             achievement.achievement_type === 'small' ? 'مراجعة صغرى' : 
-                             achievement.achievement_type === 'big' ? 'مراجعة كبرى' : 
-                             achievement.achievement_type}
+                    {/* Achievements - Can be multiple */}
+                    <div className="col-span-5 flex flex-col gap-2">
+                      {studentAchievements.length > 0 ? (
+                        studentAchievements.map((achievement) => (
+                          <div key={achievement.id} className="flex items-center justify-between gap-2 px-3 py-2 bg-teal-50 border border-teal-500 rounded-lg">
+                            <div className="flex-1 text-teal-700 text-xs">
+                              <div className="font-semibold mb-1">
+                                {achievement.achievement_type === 'normal' ? 'حفظ' : 
+                                 achievement.achievement_type === 'small' ? 'مراجعة صغرى' : 
+                                 achievement.achievement_type === 'big' ? 'مراجعة كبرى' : 
+                                 achievement.achievement_type}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span>{getSurahName(achievement.from_surah)} ({achievement.from_verse})</span>
+                                <span className="text-teal-600">←</span>
+                                <span>{getSurahName(achievement.to_surah)} ({achievement.to_verse})</span>
+                              </div>
+                              {achievement.note && (
+                                <div className="text-[10px] text-teal-600 italic mt-1">{achievement.note}</div>
+                              )}
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleEditAchievement(student, achievement)}
+                                className="px-2 py-1 bg-blue-50 border border-blue-500 text-blue-700 rounded hover:bg-blue-100 transition-colors text-xs"
+                                title="تعديل"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => setDeletingAchievement(achievement)}
+                                className="px-2 py-1 bg-red-50 border border-red-500 text-red-700 rounded hover:bg-red-100 transition-colors text-xs"
+                                title="حذف"
+                              >
+                                🗑️
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 justify-center">
-                            <span>{getSurahName(achievement.from_surah)} ({achievement.from_verse})</span>
-                            <span className="text-teal-600">←</span>
-                            <span>{getSurahName(achievement.to_surah)} ({achievement.to_verse})</span>
-                          </div>
-                          {achievement.note && (
-                            <div className="text-[10px] text-teal-600 italic">{achievement.note}</div>
-                          )}
-                        </div>
+                        ))
                       ) : (
-                        <span className="text-gray-400">--</span>
+                        <span className="text-gray-400 text-center py-2">--</span>
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="col-span-2 flex justify-center gap-2">
-                      {achievement ? (
-                        <>
-                          <button
-                            onClick={() => handleEditAchievement(student, achievement)}
-                            className="px-3 py-1.5 bg-blue-50 border border-blue-500 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium"
-                          >
-                            تعديل
-                          </button>
-                          <button
-                            onClick={() => setDeletingAchievement(achievement)}
-                            className="px-3 py-1.5 bg-red-50 border border-red-500 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium"
-                          >
-                            حذف
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => handleAddAchievement(student)}
-                          className="px-4 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-medium"
-                        >
-                          إضافة إنجاز
-                        </button>
-                      )}
+                    {/* Actions - Always show "Add" button */}
+                    <div className="col-span-2 flex justify-center pt-2">
+                      <button
+                        onClick={() => handleAddAchievement(student)}
+                        className="px-4 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-medium whitespace-nowrap"
+                      >
+                        + إضافة
+                      </button>
                     </div>
                   </div>
                 );
