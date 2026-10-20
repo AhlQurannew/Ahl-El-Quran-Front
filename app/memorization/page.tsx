@@ -48,6 +48,7 @@ export interface ApiStudent {
     lastNameAr?: string;
   };
   lectures?: any[];
+  lectureTeachers?: any[];
   [key: string]: unknown;
 }
 
@@ -215,7 +216,7 @@ export default function MemorizationPage() {
       } else {
         const allStudents = await fetchStudents();
         console.log('📚 All students loaded:', allStudents.length);
-        console.log('📚 First student structure:', allStudents[0]);
+        console.log('📚 Full first student:', JSON.stringify(allStudents[0], null, 2));
         
         filteredStudents = allStudents.filter((student) =>
           student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
@@ -226,24 +227,27 @@ export default function MemorizationPage() {
         // Apply teacher filter if selected
         if (selectedTeacher) {
           console.log('👨‍🏫 Filtering by teacher:', selectedTeacher);
-          console.log('👨‍🏫 Sample lecture object:', filteredStudents[0]?.lectures?.[0]);
           
-          filteredStudents = filteredStudents.filter((student) =>
-            student.lectures?.some((lec: any) => {
-              const matchesLecture = lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id;
-              const matchesTeacher = String(lec.teacherId || lec.teacher_id) === selectedTeacher;
+          // Teachers are stored in lectureTeachers array
+          filteredStudents = filteredStudents.filter((student) => {
+            // Check if student has the selected teacher in their lectureTeachers array
+            const hasTeacher = student.lectureTeachers?.some((lt: any) => {
+              const teacherMatch = String(lt.teacherId || lt.teacher_id) === selectedTeacher;
+              const lectureMatch = (lt.lectureId || lt.lecture_id) === selectedLecture.lecture_id;
               
-              console.log(`  Student ${student.id}, Lecture ${lec.lectureId || lec.lecture_id}:`, {
-                teacherId: lec.teacherId,
-                teacher_id: lec.teacher_id,
-                matchesLecture,
-                matchesTeacher,
-                selectedTeacher
+              console.log(`  Student ${student.id} lectureTeacher:`, {
+                lectureId: lt.lectureId || lt.lecture_id,
+                teacherId: lt.teacherId || lt.teacher_id,
+                teacherMatch,
+                lectureMatch,
+                both: teacherMatch && lectureMatch
               });
               
-              return matchesLecture && matchesTeacher;
-            })
-          );
+              return teacherMatch && lectureMatch;
+            });
+            
+            return hasTeacher;
+          });
           
           console.log('👨‍🏫 Students after teacher filter:', filteredStudents.length);
         }
