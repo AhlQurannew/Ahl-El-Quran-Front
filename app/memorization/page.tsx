@@ -214,18 +214,38 @@ export default function MemorizationPage() {
         }));
       } else {
         const allStudents = await fetchStudents();
+        console.log('📚 All students loaded:', allStudents.length);
+        console.log('📚 First student structure:', allStudents[0]);
+        
         filteredStudents = allStudents.filter((student) =>
           student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
         );
         
+        console.log('📚 Students in lecture', selectedLecture.lecture_id, ':', filteredStudents.length);
+        
         // Apply teacher filter if selected
         if (selectedTeacher) {
+          console.log('👨‍🏫 Filtering by teacher:', selectedTeacher);
+          console.log('👨‍🏫 Sample lecture object:', filteredStudents[0]?.lectures?.[0]);
+          
           filteredStudents = filteredStudents.filter((student) =>
-            student.lectures?.some((lec: any) => 
-              (lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id) &&
-              String(lec.teacherId) === selectedTeacher
-            )
+            student.lectures?.some((lec: any) => {
+              const matchesLecture = lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id;
+              const matchesTeacher = String(lec.teacherId || lec.teacher_id) === selectedTeacher;
+              
+              console.log(`  Student ${student.id}, Lecture ${lec.lectureId || lec.lecture_id}:`, {
+                teacherId: lec.teacherId,
+                teacher_id: lec.teacher_id,
+                matchesLecture,
+                matchesTeacher,
+                selectedTeacher
+              });
+              
+              return matchesLecture && matchesTeacher;
+            })
           );
+          
+          console.log('👨‍🏫 Students after teacher filter:', filteredStudents.length);
         }
       }
 
