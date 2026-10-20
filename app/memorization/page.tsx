@@ -136,10 +136,17 @@ async function deleteAchievement(studentId: number, achievementId: number): Prom
 export default function MemorizationPage() {
   const user = useAuthStore((state) => state.user);
   const isTeacher = user?.role === 'TEACHER';
+  const isSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'SUPERVISOR';
+  
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [selectedLecture, setSelectedLecture] = useState<Lecture | null>(null);
   const [date, setDate] = useState('');
   const [isLoadingLectures, setIsLoadingLectures] = useState(true);
+
+  // Teacher filter for supervisors
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [selectedTeacher, setSelectedTeacher] = useState<string>(''); // '' means all teachers
+  const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
 
   const [students, setStudents] = useState<ApiStudent[]>([]);
   const [achievements, setAchievements] = useState<Record<number, ApiAchievement[]>>({});
@@ -186,6 +193,24 @@ export default function MemorizationPage() {
     })();
   }, [isTeacher]);
 
+  // Load teachers for supervisors
+  useEffect(() => {
+    if (!isSupervisor) return;
+    
+    (async () => {
+      setIsLoadingTeachers(true);
+      try {
+        const response = await teacherAPI.getTeachers();
+        const teachersList = Array.isArray(response) ? response : response.teachers || [];
+        setTeachers(teachersList);
+      } catch (err: any) {
+        console.error('Error loading teachers:', err);
+      } finally {
+        setIsLoadingTeachers(false);
+      }
+    })();
+  }, [isSupervisor]);
+
   // Load students and achievements when lecture or date changes
   const loadData = useCallback(async () => {
     if (!selectedLecture || !date) {
@@ -214,6 +239,16 @@ export default function MemorizationPage() {
         filteredStudents = allStudents.filter((student) =>
           student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
         );
+        
+        // Apply teacher filter if selected
+        if (selectedTeacher) {
+          filteredStudents = filteredStudents.filter((student) =>
+            student.lectures?.some((lec: any) => 
+              (lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id) &&
+              String(lec.teacherId) === selectedTeacher
+            )
+          );
+        }
       }
 
       setStudents(filteredStudents);
@@ -259,7 +294,7 @@ export default function MemorizationPage() {
     } finally {
       setIsLoadingData(false);
     }
-  }, [selectedLecture, date]);
+  }, [selectedLecture, date, selectedTeacher, isTeacher]);
 
   useEffect(() => {
     loadData();
@@ -373,9 +408,9 @@ export default function MemorizationPage() {
           {isTeacher ? 'الحفظ والمراجعة لطلابي / الصفحة الرئيسية' : 'متابعة الحفظ والمراجعة / الصفحة الرئيسية'}
         </div>
 
-        {/* Lecture and Date Selection */}
+        {/* Lecture, Date, and Teacher Selection */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 ${isSupervisor ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
             {/* Lecture Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -415,6 +450,28 @@ export default function MemorizationPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
               />
             </div>
+
+            {/* Teacher Filter (for supervisors only) */}
+            {isSupervisor && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  المعلم
+                </label>
+                <select
+                  value={selectedTeacher}
+                  onChange={(e) => setSelectedTeacher(e.target.value)}
+                  disabled={isLoadingTeachers}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
+                >
+                  <option value="">جميع المعلمين</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.user?.firstname || teacher.firstname || ''} {teacher.user?.lastname || teacher.lastname || ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
