@@ -1,3 +1,19 @@
+/**
+ * @file Sidebar.tsx
+ * @description Main navigation sidebar component with role-based menu items
+ * 
+ * Features:
+ * - Role-based navigation (different menu items for each user role)
+ * - Collapsible sidebar (expand/collapse functionality)
+ * - Mobile responsive (hamburger menu)
+ * - Admin view mode indicator (shows banner when admin is viewing a school)
+ * - Active link highlighting
+ * - RTL support for Arabic layout
+ * 
+ * @author Ahl El Quran Team
+ * @version 1.0.0
+ */
+
 'use client';
 
 import React, { useState } from 'react';
@@ -23,30 +39,58 @@ import { cn } from '@/utils/cn';
 import { useAdminView } from '@/contexts/AdminViewContext';
 import { useAuthStore } from '@/store/authStore';
 
+/**
+ * Navigation Item Interface
+ * Defines the structure of a single navigation link
+ */
 interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
+  label: string;      // Display text (Arabic)
+  href: string;       // Link URL
+  icon: React.ReactNode; // Lucide icon component
 }
 
+/**
+ * Navigation Group Interface
+ * Groups related navigation items together (optional groupLabel for section titles)
+ */
 interface NavGroup {
-  groupLabel?: string;
-  items: NavItem[];
+  groupLabel?: string; // Optional section title
+  items: NavItem[];    // Array of navigation items in this group
 }
 
-// Admin navigation - empty for now, will be added as we go
+/**
+ * Admin Navigation Configuration
+ * 
+ * Menu items shown to users with ADMIN role:
+ * - Dashboard: System overview
+ * - إدارة المدارس: Manage all schools in the system
+ * - عرض مدرسة: View and manage a specific school (enables role override)
+ */
 const adminNavGroups: NavGroup[] = [
   {
     items: [
       { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
-
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
     ],
   },
 ];
 
-// President navigation
+/**
+ * President (School Owner) Navigation Configuration
+ * 
+ * Menu items shown to users with PRESIDENT role:
+ * - Dashboard: School overview and statistics
+ * - الطلاب: Manage students
+ * - المعلمون: Manage teachers
+ * - المشرفون: Manage supervisors
+ * - الحلقات: Manage lectures (study circles)
+ * - الحضور: Attendance tracking
+ * - الحفظ: Memorization tracking
+ * - الرسائل: Internal messaging
+ * - التقارير: Reports and analytics
+ * - الإعدادات: School settings
+ */
 const presidentNavGroups: NavGroup[] = [
   {
     items: [
