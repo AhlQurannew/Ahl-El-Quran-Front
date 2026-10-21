@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import { setupInterceptors } from "./interceptors";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -15,18 +16,10 @@ const getAxiosClient = () => {
         },
     });
 
-    client.interceptors.request.use((config) => {
-        const directToken = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-        const zustandToken = useAuthStore.getState().accessToken;
-        const token = directToken || zustandToken;
+    // Use the standard interceptors which include auth and school context
+    setupInterceptors(client, true);
 
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-            config.headers["ngrok-skip-browser-warning"] = "true";
-        }
-        return config;
-    });
-
+    // Add error logging interceptor
     client.interceptors.response.use(
         (response) => response,
         (error) => {
@@ -36,14 +29,6 @@ const getAxiosClient = () => {
                 status: error.response?.status,
                 url: error.config?.url,
             });
-
-            if (error.response && error.response.status === 401) {
-                if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    window.location.href = "/login?expired=true";
-                }
-            }
             return Promise.reject(error);
         }
     );
