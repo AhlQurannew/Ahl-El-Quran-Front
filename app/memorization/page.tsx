@@ -415,9 +415,9 @@ export default function MemorizationPage() {
           {isTeacher ? 'الحفظ والمراجعة لطلابي / الصفحة الرئيسية' : 'متابعة الحفظ والمراجعة / الصفحة الرئيسية'}
         </div>
 
-        {/* Lecture, Date, and Teacher Selection */}
+        {/* Lecture, Date Selection */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className={`grid grid-cols-1 ${isSupervisor ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Lecture Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -457,28 +457,6 @@ export default function MemorizationPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
               />
             </div>
-
-            {/* Teacher Filter (for supervisors only) */}
-            {isSupervisor && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  المعلم
-                </label>
-                <select
-                  value={selectedTeacher}
-                  onChange={(e) => setSelectedTeacher(e.target.value)}
-                  disabled={isLoadingTeachers}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
-                >
-                  <option value="">جميع المعلمين</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.user?.firstname || teacher.firstname || ''} {teacher.user?.lastname || teacher.lastname || ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
         </div>
 

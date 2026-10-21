@@ -38,7 +38,8 @@ interface NavGroup {
 const adminNavGroups: NavGroup[] = [
   {
     items: [
-      { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
+      { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
+
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
     ],
@@ -63,6 +64,7 @@ const presidentNavGroups: NavGroup[] = [
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
       { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
+      { label: 'التقارير', href: '/reports', icon: <BookOpen size={18} /> },
     ],
   },
 ];
@@ -85,6 +87,7 @@ const supervisorNavGroups: NavGroup[] = [
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
       { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
+      { label: 'التقارير', href: '/reports', icon: <BookOpen size={18} /> },
     ],
   },
 ];

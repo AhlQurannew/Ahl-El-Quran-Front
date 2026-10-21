@@ -24,7 +24,7 @@ export const schoolContextInterceptor = (config: InternalAxiosRequestConfig) => 
     if (adminViewData) {
       try {
         const { id } = JSON.parse(adminViewData);
-        config.headers['x-role-override'] = 'CHIEF_SUPERVISOR';
+        config.headers['X-Role-Override'] = 'CHIEF_SUPERVISOR';
         config.params = { ...config.params, school_id: id };
       } catch (e) {
         console.error('Error parsing admin view data:', e);
