@@ -23,6 +23,7 @@ import {
   LayoutDashboard,
   Users,
   UserCheck,
+  ClipboardCheck,
   BookOpen,
   Shield,
   MessageSquare,
@@ -106,6 +107,8 @@ const presidentNavGroups: NavGroup[] = [
     items: [
       { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
       { label: 'المعلمين', href: '/teachers', icon: <UserCheck size={18} /> },
+      { label: 'حضور الطلاب', href: '/attendance', icon: <UserCheck size={18} /> },
+      { label: 'حضور المعلمين', href: '/teacher-attendance', icon: <ClipboardCheck size={18} /> },
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
       { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
@@ -129,6 +132,8 @@ const supervisorNavGroups: NavGroup[] = [
     items: [
       { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
       { label: 'المعلمين', href: '/teachers', icon: <UserCheck size={18} /> },
+      { label: 'حضور الطلاب', href: '/attendance', icon: <UserCheck size={18} /> },
+      { label: 'حضور المعلمين', href: '/teacher-attendance', icon: <ClipboardCheck size={18} /> },
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
       { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
