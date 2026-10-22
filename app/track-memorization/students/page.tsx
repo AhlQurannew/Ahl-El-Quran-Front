@@ -8,6 +8,7 @@ import studentsAPI from '@/app/API/students';
 import { AchievementDialog } from '@/components/track-memorization/AchievementDialog';
 import { AttendanceDialog } from '@/components/track-memorization/AttendanceDialog';
 import { BulkAttendanceDialog } from '@/components/track-memorization/BulkAttendanceDialog';
+import { apiDateToInputDate } from '@/utils/dateHelpers';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -19,6 +20,7 @@ interface Student {
     firstNameAr?: string;
     lastNameAr?: string;
   };
+  lectures?: Array<{ lectureId?: number | string }>;
 }
 
 interface Achievement {
@@ -46,6 +48,8 @@ function TrackMemorizationStudentsContent() {
   const lectureId = searchParams.get('lectureId');
   const lectureName = searchParams.get('lectureName');
   const date = searchParams.get('date');
+  const attendanceDate = apiDateToInputDate(date || '');
+  const selectedLectureId = Number(lectureId);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [latestAchievements, setLatestAchievements] = useState<Record<number, Achievement | null>>({});
@@ -72,10 +76,11 @@ function TrackMemorizationStudentsContent() {
     setIsLoading(true);
     try {
       const response = await studentsAPI.getStudents();
-      const studentsList = Array.isArray(response) ? response : response.students || [];
-      
-      // Filter students by lecture if needed (assuming API doesn't filter yet)
-      // For now, we'll load all students - in production, add lecture_id filter to API
+      const allStudents = Array.isArray(response) ? response : response.students || [];
+      const studentsList = allStudents.filter((student: Student) =>
+        student.lectures?.some((lecture) => Number(lecture.lectureId) === selectedLectureId)
+      );
+
       setStudents(studentsList);
 
       // Load achievements and attendance for each student
@@ -117,15 +122,20 @@ function TrackMemorizationStudentsContent() {
   };
 
   const loadAllAttendance = async (studentsList: Student[]) => {
-    if (!date) return;
+    if (!date || !Number.isInteger(selectedLectureId) || selectedLectureId <= 0) return;
     
     const attendance: Record<number, Attendance | null> = {};
     
     await Promise.all(
       studentsList.map(async (student) => {
         try {
-          const response = await studentsAPI.getAttendance(student.id, { date });
-          const attendanceList = Array.isArray(response) ? response : response.attendance || [];
+          const response = await studentsAPI.getAttendance(student.id, {
+            lecture_id: selectedLectureId,
+            date: attendanceDate,
+          });
+          const attendanceList = Array.isArray(response)
+            ? response
+            : response.attendances || response.attendance || [];
           attendance[student.id] = attendanceList.length > 0 ? attendanceList[0] : null;
         } catch (err) {
           console.error(`Error loading attendance for student ${student.id}:`, err);
@@ -352,7 +362,8 @@ function TrackMemorizationStudentsContent() {
             setSelectedStudent(null);
           }}
           student={selectedStudent}
-          date={date || ''}
+          lectureId={selectedLectureId}
+          date={attendanceDate}
           existingAttendance={attendanceRecords[selectedStudent.id]}
           onSaved={handleAttendanceSaved}
         />
@@ -363,7 +374,8 @@ function TrackMemorizationStudentsContent() {
         isOpen={isBulkAttendanceDialogOpen}
         onClose={() => setIsBulkAttendanceDialogOpen(false)}
         students={students}
-        date={date || ''}
+        lectureId={selectedLectureId}
+        date={attendanceDate}
         initialAttendanceRecords={attendanceRecords}
         onSaved={handleAttendanceSaved}
       />

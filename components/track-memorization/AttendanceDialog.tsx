@@ -24,6 +24,7 @@ interface AttendanceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   student: Student;
+  lectureId: number;
   date: string;
   existingAttendance: Attendance | null;
   onSaved: () => void;
@@ -40,6 +41,7 @@ export function AttendanceDialog({
   isOpen,
   onClose,
   student,
+  lectureId,
   date,
   existingAttendance,
   onSaved,
@@ -89,6 +91,7 @@ export function AttendanceDialog({
     try {
       const payload: any = {
         student_id: Number(student.id),
+        lecture_id: lectureId,
         date: date,
         status: status,
         notes: notes || undefined,

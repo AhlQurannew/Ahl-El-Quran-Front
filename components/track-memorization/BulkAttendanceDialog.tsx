@@ -24,6 +24,7 @@ interface BulkAttendanceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   students: Student[];
+  lectureId: number;
   date: string;
   initialAttendanceRecords: Record<number, Attendance | null>;
   onSaved: () => void;
@@ -40,6 +41,7 @@ export function BulkAttendanceDialog({
   isOpen,
   onClose,
   students,
+  lectureId,
   date,
   initialAttendanceRecords,
   onSaved,
@@ -132,6 +134,7 @@ export function BulkAttendanceDialog({
         else if (currentStatus !== null) {
           const payload: any = {
             student_id: Number(student.id),
+            lecture_id: lectureId,
             date: date,
             status: currentStatus,
           };

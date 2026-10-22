@@ -28,17 +28,21 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
 
   const reconnectCountRef = useRef(0);
   const shouldReconnectRef = useRef(true);
+  const connectRef = useRef<(() => void) | null>(null);
 
   const onMessageRef = useRef(onMessage);
   const onConnectedRef = useRef(onConnected);
   const onErrorRef = useRef(onError);
-  onMessageRef.current = onMessage;
-  onConnectedRef.current = onConnected;
-  onErrorRef.current = onError;
 
   const accessToken = useAuthStore((state) => state.accessToken);
   const accessTokenRef = useRef(accessToken);
-  accessTokenRef.current = accessToken;
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onConnectedRef.current = onConnected;
+    onErrorRef.current = onError;
+    accessTokenRef.current = accessToken;
+  }, [accessToken, onConnected, onError, onMessage]);
 
   const clearPingInterval = () => {
     if (pingIntervalRef.current) {
@@ -55,9 +59,13 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     }
 
     if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
-      wsRef.current.onclose = null;
-      wsRef.current.close(1000, 'Reconnecting');
+      const previousSocket = wsRef.current;
+      previousSocket.onopen = null;
+      previousSocket.onmessage = null;
+      previousSocket.onerror = null;
+      previousSocket.onclose = null;
       wsRef.current = null;
+      previousSocket.close(1000, 'Reconnecting');
     }
     clearPingInterval();
 
@@ -73,7 +81,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
         try {
           const { id } = JSON.parse(adminView);
           if (id) schoolIdParam = `&school_id=${id}`;
-        } catch (_) {}
+        } catch {}
       }
     }
 
@@ -87,6 +95,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       wsRef.current = ws;
 
       ws.onopen = () => {
+        if (wsRef.current !== ws) return;
         console.log('[WebSocket] Connected successfully');
         reconnectCountRef.current = 0;
         setIsConnected(true);
@@ -102,6 +111,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       };
 
       ws.onmessage = (event) => {
+        if (wsRef.current !== ws) return;
         try {
           const data: WebSocketMessage = JSON.parse(event.data);
           if (data.type === 'pong') {
@@ -118,11 +128,13 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       };
 
       ws.onerror = (error) => {
-        console.error('[WebSocket] Error:', error);
+        if (wsRef.current !== ws) return;
+        console.warn('[WebSocket] Connection error; waiting for close/reconnect');
         if (onErrorRef.current) onErrorRef.current(error);
       };
 
       ws.onclose = (event) => {
+        if (wsRef.current !== ws) return;
         console.log('[WebSocket] Connection closed:', event.code, event.reason);
         clearPingInterval();
         wsRef.current = null;
@@ -139,7 +151,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
           console.log(`[WebSocket] Reconnecting in ${reconnectInterval}ms... (attempt ${attempt}/${maxReconnectAttempts})`);
           setReconnectCount(attempt);
           reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
+            connectRef.current?.();
           }, reconnectInterval);
         } else {
           console.error('[WebSocket] Max reconnection attempts reached');
@@ -160,9 +172,15 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     }
     if (wsRef.current) {
       console.log('[WebSocket] Disconnecting...');
-      wsRef.current.onclose = null;
-      wsRef.current.close(1000, 'Client disconnect');
+      const socket = wsRef.current;
+      socket.onopen = null;
+      socket.onmessage = null;
+      socket.onerror = null;
+      socket.onclose = null;
       wsRef.current = null;
+      if (socket.readyState < WebSocket.CLOSING) {
+        socket.close(1000, 'Client disconnect');
+      }
     }
     setIsConnected(false);
     setReconnectCount(0);
@@ -210,6 +228,10 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       is_typing: isTyping,
     });
   }, [sendMessage]);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   useEffect(() => {
     if (!accessToken) return;

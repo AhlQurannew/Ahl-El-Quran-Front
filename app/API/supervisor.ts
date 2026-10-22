@@ -4,7 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 const axiosGlobal = axios.create({
-    baseURL: `${API_URL}/supervisors`,
+    baseURL: `${API_URL}/supervisor`,
     headers: {
         "Content-Type": "application/json",
         "ngrok-skip-browser-warning": "true",
@@ -69,7 +69,7 @@ export interface SupervisorUpdatePayload {
 }
 
 const getSupervisors = async (skip = 0, limit = 100, school_id?: number): Promise<SupervisorListResponse> => {
-    const params: Record<string, any> = { skip, limit };
+    const params: Record<string, number> = { skip, limit };
     if (school_id) {
         params.school_id = school_id;
     }

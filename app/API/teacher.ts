@@ -74,6 +74,7 @@ export interface TeacherListResponse {
 
 export interface StudentAttendancePayload {
     student_id?: number;
+    lecture_id: number;
     date: string;
     status: string;
     notes?: string;
@@ -176,7 +177,7 @@ const createStudentAttendance = async (
 
 const getStudentAttendance = async (
     student_id: number,
-    params?: { date?: string; skip?: number; limit?: number }
+    params: { lecture_id: number; date?: string; skip?: number; limit?: number }
 ) => {
     const res = await axiosGlobal.get(`/my-students/${student_id}/attendance`, { params });
     return res.data;

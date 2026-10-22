@@ -16,6 +16,7 @@ interface AttendanceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   studentId: number;
+  lectureId: number;
   studentName: string;
   date: string;
   onSaved?: (attendance: Attendance) => void;
@@ -70,6 +71,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
   isOpen,
   onClose,
   studentId,
+  lectureId,
   studentName,
   date,
   onSaved,
@@ -99,7 +101,9 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const response = isTeacher ? await teacherAPI.getStudentAttendance(studentId, { date }) : await studentsAPI.getAttendance(studentId, { date });
+      const response = isTeacher
+        ? await teacherAPI.getStudentAttendance(studentId, { lecture_id: lectureId, date })
+        : await studentsAPI.getAttendance(studentId, { lecture_id: lectureId, date });
       
       // Handle both response formats: { attendances: [...] } or [...]
       let attendanceArray = [];
@@ -143,8 +147,8 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
     }
 
     // Validate date format
-    if (!date || !/^\d{2}-\d{2}-\d{4}$/.test(date)) {
-      setError(`تنسيق التاريخ غير صحيح. المطلوب: DD-MM-YYYY. الوارد: ${date}`);
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      setError(`تنسيق التاريخ غير صحيح. المطلوب: YYYY-MM-DD. الوارد: ${date}`);
       console.error('❌ Invalid date format:', date);
       return;
     }
@@ -156,6 +160,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
       const trimmedNotes = notes.trim();
       const attendanceData: any = {
         student_id: Number(studentId),
+        lecture_id: lectureId,
         date,
         status: selectedStatus,
       };
@@ -168,7 +173,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
       console.log('=== STUDENT ATTENDANCE REQUEST ===');
       console.log('Student ID:', studentId);
       console.log('Date:', date);
-      console.log('Date format valid?', /^\d{2}-\d{2}-\d{4}$/.test(date));
+      console.log('Date format valid?', /^\d{4}-\d{2}-\d{2}$/.test(date));
       console.log('Status:', selectedStatus);
       console.log('Notes:', trimmedNotes || '(none)');
       console.log('Payload:', JSON.stringify(attendanceData, null, 2));

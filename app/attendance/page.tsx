@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Calendar, Users, Search, Download, Check, X, Clock, FileText } from 'lucide-react';
 import { Attendance, AttendanceMapper } from '@/types/attendance.types';
 import { cn } from '@/utils/cn';
-import { inputDateToApiDate, formatDateArabic } from '@/utils/dateHelpers';
+import { formatDateArabic } from '@/utils/dateHelpers';
 
 type ToastState = {
   visible: boolean;
@@ -24,6 +24,7 @@ type StudentData = {
   firstName: string;
   lastName: string;
   halqa: string;
+  lectureId?: number;
 };
 
 type AttendanceRecord = {
@@ -78,6 +79,7 @@ export default function AttendancePage() {
         firstName: (api.personalInfo?.firstNameAr || api.firstname || '').trim(),
         lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
         halqa: api.lectures?.[0]?.lectureNameAr || '',
+        lectureId: Number(api.lectures?.[0]?.lectureId) || undefined,
       }));
       
       console.log('📊 Mapped student data sample:', studentsData.slice(0, 2));
@@ -92,7 +94,7 @@ export default function AttendancePage() {
   };
 
   const loadAttendanceRecords = async () => {
-    const apiDate = inputDateToApiDate(selectedDate);
+    const apiDate = selectedDate;
     
     console.log('📥 Loading attendance records for date:', apiDate);
     console.log('📥 Students to check:', students.map(s => s.id));
@@ -100,11 +102,15 @@ export default function AttendancePage() {
     try {
       const records = await Promise.all(
         students.map(async (student) => {
+          if (!student.lectureId) {
+            return { studentId: student.id, attendance: null };
+          }
+
           try {
             console.log(`🔍 Fetching attendance for student ID ${student.id}, date ${apiDate}`);
             const response = isTeacher
-              ? await teacherAPI.getStudentAttendance(student.id, { date: apiDate })
-              : await studentsAPI.getAttendance(student.id, { date: apiDate });
+              ? await teacherAPI.getStudentAttendance(student.id, { lecture_id: student.lectureId, date: apiDate })
+              : await studentsAPI.getAttendance(student.id, { lecture_id: student.lectureId, date: apiDate });
             
             console.log(`📦 Response for student ${student.id}:`, response);
             
@@ -161,6 +167,10 @@ export default function AttendancePage() {
   }, [students, searchQuery]);
 
   const handleMarkAttendance = (student: StudentData) => {
+    if (!student.lectureId) {
+      showToast('error', 'لا يمكن تسجيل المواظبة لعدم ارتباط الطالب بحلقة');
+      return;
+    }
     setSelectedStudent(student);
     setIsDialogOpen(true);
     // Don't reload here - the dialog will load its own data
@@ -466,13 +476,14 @@ export default function AttendancePage() {
       </div>
 
       {/* Attendance Dialog */}
-      {selectedStudent && (
+      {selectedStudent?.lectureId && (
         <AttendanceDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           studentId={selectedStudent.id}
+          lectureId={selectedStudent.lectureId}
           studentName={`${selectedStudent.firstName} ${selectedStudent.lastName}`}
-          date={inputDateToApiDate(selectedDate)}
+          date={selectedDate}
           onSaved={handleAttendanceSaved}
         />
       )}

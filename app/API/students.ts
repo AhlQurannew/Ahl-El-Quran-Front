@@ -125,6 +125,7 @@ export interface AchievementPayload {
 }
 
 export interface AttendancePayload {
+    lecture_id: number;
     date: string;
     status: string;
     notes?: string;  // Optional
@@ -228,7 +229,7 @@ const createAttendance = async (
 
 const getAttendance = async (
     student_id: number,
-    params?: { skip?: number; limit?: number; date?: string }
+    params: { lecture_id: number; skip?: number; limit?: number; date?: string }
 ) => {
     const res = await axiosGlobal.get(
         `/${student_id}/attendance`,

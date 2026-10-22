@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
@@ -26,7 +26,6 @@ import {
   BookOpen,
   Shield,
   MessageSquare,
-  Settings,
   ChevronRight,
   Menu,
   X,
@@ -163,7 +162,6 @@ const teacherNavGroups: NavGroup[] = [
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { isAdminViewing } = useAdminView();
   const user = useAuthStore((state) => state.user);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -223,12 +221,19 @@ export const Sidebar: React.FC = () => {
   };
   const userRole = user?.role ? roleLabels[user.role] : 'مستخدم';
 
-  const NavContent = ({ isCollapsed = false }: { isCollapsed?: boolean }) => (
-    <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+  const renderNavContent = (isCollapsed = false) => (
+    <nav className={cn('flex-1 overflow-y-auto overflow-x-hidden py-4 px-3', isCollapsed ? 'space-y-2' : 'space-y-6')}>
       {navGroups.map((group, gi) => (
         <div key={gi}>
-          {group.groupLabel && !isCollapsed && (
-            <p className="text-xs font-bold uppercase tracking-widest px-3 mb-2" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          {group.groupLabel && (
+            <p
+              aria-hidden={isCollapsed}
+              className={cn(
+                'overflow-hidden whitespace-nowrap px-3 text-xs font-bold uppercase tracking-widest transition-all duration-300 ease-in-out',
+                isCollapsed ? 'mb-0 max-h-0 opacity-0' : 'mb-2 max-h-6 opacity-100'
+              )}
+              style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+            >
               {group.groupLabel}
             </p>
           )}
@@ -241,23 +246,33 @@ export const Sidebar: React.FC = () => {
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ease-in-out',
                       active
                         ? 'bg-white/15 text-white shadow-sm'
                         : 'hover:bg-white/10',
-                      isCollapsed && 'justify-center'
+                      isCollapsed && 'justify-center gap-0 px-2'
                     )}
                     style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.85)' }}
                     title={isCollapsed ? item.label : undefined}
                   >
-                    <span style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.7)' }}>
+                    <span className="flex shrink-0 items-center" style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.7)' }}>
                       {item.icon}
                     </span>
-                    {!isCollapsed && (
-                      <>
-                        <span className="flex-1">{item.label}</span>
-                        {active && <ChevronRight size={14} className="opacity-60" />}
-                      </>
+                    <span
+                      aria-hidden={isCollapsed}
+                      className={cn(
+                        'min-w-0 flex-1 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+                        isCollapsed ? 'max-w-0 opacity-0' : 'max-w-50 opacity-100'
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                    {active && (
+                      <ChevronRight
+                        size={14}
+                        aria-hidden="true"
+                        className={cn('shrink-0 transition-all duration-300 ease-in-out', isCollapsed ? 'w-0 opacity-0' : 'opacity-60')}
+                      />
                     )}
                   </Link>
                 </li>
@@ -275,66 +290,78 @@ export const Sidebar: React.FC = () => {
       <aside 
         className={cn(
           'hidden lg:flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out',
-          collapsed ? 'w-20' : 'w-60'
+          collapsed ? 'w-16' : 'w-60'
         )}
         style={{ background: sidebarGradient }}
       >
-        {/* Logo */}
+        {/* Branding and collapse control stay together in the sidebar header. */}
         <div className={cn(
-          'flex items-center gap-3 px-5 py-5 border-b border-white/10 transition-all duration-300',
-          collapsed && 'justify-center px-3'
+          'flex min-h-18 items-center border-b border-white/10 transition-all duration-300 ease-in-out',
+          collapsed ? 'justify-center px-2' : 'gap-3 px-4 py-4'
         )}>
-          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-            {isAdmin ? <Shield size={18} className="text-white" /> : <BookOpen size={18} className="text-white" />}
-          </div>
-          {!collapsed && (
-            <div className="overflow-hidden">
-              <p className="text-white font-bold text-sm leading-tight whitespace-nowrap">
+          <div className={cn(
+            'flex min-w-0 items-center gap-3 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+            collapsed ? 'max-w-0 flex-none opacity-0' : 'max-w-full flex-1 opacity-100'
+          )} aria-hidden={collapsed}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
+              {isAdmin ? <Shield size={18} className="text-white" /> : <BookOpen size={18} className="text-white" />}
+            </div>
+            <div className="min-w-0 overflow-hidden">
+              <p className="whitespace-nowrap text-sm font-bold leading-tight text-white">
                 {isAdmin ? 'لوحة المسؤول' : 'نظام أهل القرآن'}
               </p>
-              <p className="text-xs whitespace-nowrap" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              <p className="whitespace-nowrap text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                 {isAdmin ? 'إدارة المنصة' : 'لوحة الإدارة'}
               </p>
             </div>
-          )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCollapsed((current) => !current)}
+            className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white transition-colors duration-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            style={collapsed ? { backgroundColor: sidebarColor } : undefined}
+            title={collapsed ? 'توسيع القائمة (Expand sidebar)' : 'طي القائمة (Collapse sidebar)'}
+            aria-label={collapsed ? 'توسيع القائمة' : 'طي القائمة'}
+            aria-expanded={!collapsed}
+          >
+            <span className="relative flex h-4 w-4 items-center justify-center">
+              <ChevronsRight
+                size={16}
+                aria-hidden="true"
+                className={cn('absolute transition-all duration-200', collapsed ? 'scale-75 opacity-0' : 'opacity-100 group-hover:scale-110')}
+              />
+              <BookOpen
+                size={16}
+                aria-hidden="true"
+                className={cn('absolute transition-opacity duration-200', collapsed ? 'opacity-100 group-hover:opacity-0 group-focus-visible:opacity-0' : 'opacity-0')}
+              />
+              <ChevronsLeft
+                size={16}
+                aria-hidden="true"
+                className={cn('absolute transition-opacity duration-200', collapsed ? 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100' : 'opacity-0')}
+              />
+            </span>
+          </button>
         </div>
 
-        <NavContent isCollapsed={collapsed} />
+        {renderNavContent(collapsed)}
 
         {/* User profile at bottom */}
-        <div className="px-4 py-4 border-t border-white/10">
-          <div className={cn(
-            'flex items-center gap-3',
-            collapsed && 'justify-center'
-          )}>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 text-white font-bold text-sm ring-2 ring-white/30">
+        <div className={cn('border-t border-white/10 px-4 py-4', collapsed && 'px-2')}>
+          <div className={cn('flex items-center gap-3', collapsed && 'justify-center gap-0')}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-orange-500 text-sm font-bold text-white ring-2 ring-white/30">
               {userInitial}
             </div>
-            {!collapsed && (
-              <div className="min-w-0 overflow-hidden">
-                <p className="text-white text-sm font-semibold truncate">{userName}</p>
-                <p className="text-xs truncate" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{userRole}</p>
-              </div>
-            )}
+            <div className={cn(
+              'min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+              collapsed ? 'max-w-0 opacity-0' : 'max-w-45 opacity-100'
+            )} aria-hidden={collapsed}>
+              <p className="truncate text-sm font-semibold text-white">{userName}</p>
+              <p className="truncate text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{userRole}</p>
+            </div>
           </div>
         </div>
-
-        {/* Collapse/Expand Toggle Button */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn(
-            'absolute -left-4 top-20 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-110 border-2 border-white/20 hover:border-white/40 z-50',
-            'group'
-          )}
-          style={{ backgroundColor: sidebarColor }}
-          title={collapsed ? 'توسيع القائمة' : 'طي القائمة'}
-        >
-          {collapsed ? (
-            <ChevronsLeft size={16} className="transition-transform group-hover:scale-110" />
-          ) : (
-            <ChevronsRight size={16} className="transition-transform group-hover:scale-110" />
-          )}
-        </button>
       </aside>
 
       {/* Mobile: hamburger button */}
@@ -368,7 +395,7 @@ export const Sidebar: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            <NavContent />
+            {renderNavContent()}
           </aside>
         </>
       )}
