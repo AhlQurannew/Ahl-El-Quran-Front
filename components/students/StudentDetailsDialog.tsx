@@ -3,6 +3,7 @@
 import React from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
 import { User, Mail, Calendar, MapPin, Flag, IdCard, BookOpen } from 'lucide-react';
 
@@ -49,17 +50,17 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
         {/* Student Photo and Name */}
         <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-teal-50 to-teal-100/50 rounded-xl border border-teal-200/50">
           <div className="w-20 h-20 rounded-full overflow-hidden bg-white flex items-center justify-center border-4 border-white shadow-md flex-shrink-0">
-            {student.photo ? (
-              <img
-                src={student.photo}
-                alt={`${student.firstName} ${student.lastName}`}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-2xl font-bold text-teal-600">
-                {student.firstName?.charAt(0) ?? '؟'}
-              </span>
-            )}
+            <StudentPhoto
+              studentId={student.id}
+              photo={student.photo}
+              alt={`${student.firstName} ${student.lastName}`}
+              className="w-full h-full object-cover"
+              fallback={(
+                <span className="text-2xl font-bold text-teal-600">
+                  {student.firstName?.charAt(0) ?? '؟'}
+                </span>
+              )}
+            />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-gray-800 mb-1">

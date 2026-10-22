@@ -3,6 +3,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
+import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
 
 interface StudentTableProps {
@@ -120,17 +121,17 @@ export const StudentTable: React.FC<StudentTableProps> = ({
 
                   <td className="px-4 py-3.5">
                     <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200 flex-shrink-0">
-                      {student.photo ? (
-                        <img
-                          src={student.photo}
-                          alt={student.firstName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xs font-bold text-gray-400">
-                          {student.firstName?.charAt(0) ?? '؟'}
-                        </span>
-                      )}
+                      <StudentPhoto
+                        studentId={student.id}
+                        photo={student.photo}
+                        alt={student.firstName}
+                        className="w-full h-full object-cover"
+                        fallback={(
+                          <span className="text-xs font-bold text-gray-400">
+                            {student.firstName?.charAt(0) ?? '؟'}
+                          </span>
+                        )}
+                      />
                     </div>
                   </td>
 

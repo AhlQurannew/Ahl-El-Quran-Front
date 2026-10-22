@@ -5,10 +5,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
 import lecturesAPI, { type Lecture } from '@/api/lectures';
 
-type StudentFormData = Omit<Student, 'id'>;
+export type StudentFormData = Omit<Student, 'id'> & { photoFile?: File };
 
 interface StudentFormProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ const EMPTY_FORM: StudentFormData = {
   nationality: 'Algerian',
   idType: '',
   photo: '',
+  photoFile: undefined,
 };
 
 export const StudentForm: React.FC<StudentFormProps> = ({
@@ -71,7 +73,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   useEffect(() => {
     if (editingStudent) {
       const { id: _id, ...rest } = editingStudent;
-      setForm(rest);
+      setForm({ ...rest, photoFile: undefined });
     } else {
       setForm(EMPTY_FORM);
     }
@@ -81,9 +83,23 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      setErrors((current) => ({ ...current, photo: 'اختر صورة بصيغة PNG أو JPG أو WebP' }));
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((current) => ({ ...current, photo: 'يجب ألا يتجاوز حجم الصورة 2 ميغابايت' }));
+      e.target.value = '';
+      return;
+    }
+
+    setErrors((current) => ({ ...current, photo: undefined }));
+    setForm((current) => ({ ...current, photoFile: file }));
     const reader = new FileReader();
     reader.onloadend = () => {
-      setForm((f) => ({ ...f, photo: reader.result as string }));
+      setForm((current) => ({ ...current, photo: reader.result as string }));
     };
     reader.readAsDataURL(file);
   };
@@ -233,27 +249,30 @@ export const StudentForm: React.FC<StudentFormProps> = ({
           <div className="flex items-center gap-4">
             {/* Preview */}
             <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
-              {form.photo ? (
-                <img src={form.photo} alt="preview" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-gray-400 text-xs text-center">لا صورة</span>
-              )}
+              <StudentPhoto
+                studentId={editingStudent?.id}
+                photo={form.photo}
+                alt={`${form.firstName} ${form.lastName}`}
+                className="w-full h-full object-cover"
+                fallback={<span className="text-gray-400 text-xs text-center">لا صورة</span>}
+              />
             </div>
             {/* Input file */}
             <div className="flex-1">
               <input
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp"
                 onChange={handlePhotoChange}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer"
               />
-              <p className="text-xs text-gray-400 mt-1">PNG, JPG حتى 2MB</p>
+              <p className="text-xs text-gray-400 mt-1">PNG أو JPG أو WebP حتى 2MB</p>
+              {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}
             </div>
             {/* Supprimer la photo */}
             {form.photo && (
               <button
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, photo: '' }))}
+                onClick={() => setForm((f) => ({ ...f, photo: '', photoFile: undefined }))}
                 className="text-red-400 hover:text-red-600 text-xs"
               >
                 حذف

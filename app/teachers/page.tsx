@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { TeacherSearch } from '@/components/teachers/TeacherSearch';
@@ -10,10 +11,16 @@ import { TeacherStats } from '@/components/teachers/TeacherStats';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
-import presidentAPI from '@/app/API/president';
 import teacherAPI from '@/api/teacher';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
+
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (axios.isAxiosError<{ detail?: string }>(err)) {
+    return err.response?.data?.detail || err.message || fallback;
+  }
+  return err instanceof Error ? err.message : fallback;
+};
 
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -34,12 +41,15 @@ export default function TeachersPage() {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const response = await presidentAPI.getTeachers();
-      const teachersList = Array.isArray(response) ? response : response.teachers || [];
-      setTeachers(teachersList);
-    } catch (err: any) {
+      const response = await teacherAPI.getTeachers();
+      setTeachers(response.teachers.map((teacher) => ({
+        ...teacher,
+        id: String(teacher.id),
+        user_id: String(teacher.user_id),
+      })));
+    } catch (err: unknown) {
       console.error('Error loading teachers:', err);
-      setLoadError(err.response?.data?.detail || err.message || 'فشل تحميل بيانات المعلمين');
+      setLoadError(getErrorMessage(err, 'فشل تحميل بيانات المعلمين'));
     } finally {
       setIsLoading(false);
     }
@@ -65,6 +75,7 @@ export default function TeachersPage() {
   // â”€â”€ Helpers â”€â”€
   const showToast = (type: ToastState['type'], message: string) =>
     setToast({ visible: true, type, message });
+
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -95,12 +106,20 @@ export default function TeachersPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    // Note: Backend delete endpoint may not exist yet
-    // For now, we'll just remove from local state
-    setTeachers((prev) => prev.filter((t) => t.id !== selectedIds[0]));
-    showToast('success', `تم حذف المعلم بنجاح`);
-    setSelectedIds([]);
-    setIsConfirmOpen(false);
+    if (selectedIds.length === 0) return;
+
+    try {
+      await Promise.all(
+        selectedIds.map((id) => teacherAPI.deleteTeacher(Number(id)))
+      );
+      await loadTeachers();
+      setSelectedIds([]);
+      setIsConfirmOpen(false);
+      showToast('success', `تم حذف ${selectedIds.length} معلم بنجاح`);
+    } catch (err: unknown) {
+      console.error('Error deleting teachers:', err);
+      showToast('error', getErrorMessage(err, 'فشل حذف المعلمين'));
+    }
   };
 
   const handleFormSubmit = async (data: TeacherCreatePayload | Partial<Teacher>) => {
@@ -129,7 +148,7 @@ export default function TeachersPage() {
       } else {
         // Create new teacher via API
         const createData = data as TeacherCreatePayload;
-        await presidentAPI.registerTeacher(createData);
+        await teacherAPI.createTeacher(createData);
         
         showToast('success', `تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح`);
         
@@ -138,9 +157,9 @@ export default function TeachersPage() {
       }
       setIsFormOpen(false);
       setSelectedIds([]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving teacher:', err);
-      showToast('error', err.response?.data?.detail || err.message || 'فشل حفظ بيانات المعلم');
+      showToast('error', getErrorMessage(err, 'فشل حفظ بيانات المعلم'));
     } finally {
       setIsSubmitting(false);
     }

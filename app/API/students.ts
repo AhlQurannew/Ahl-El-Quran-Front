@@ -137,6 +137,22 @@ const createStudent = async (data: CreateStudentPayload) => {
     return res.data;
 };
 
+const uploadStudentPhoto = async (student_id: number, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await axiosGlobal.post(`/${student_id}/photo`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+};
+
+const getStudentPhoto = async (student_id: number): Promise<Blob> => {
+    const res = await axiosGlobal.get(`/${student_id}/photo`, {
+        responseType: "blob",
+    });
+    return res.data;
+};
+
 const getStudents = async () => {
     const res = await axiosGlobal.get("/");
     return res.data;
@@ -261,6 +277,8 @@ const deleteAttendance = async (
 
 const studentsAPI = {
     createStudent,
+    uploadStudentPhoto,
+    getStudentPhoto,
     getStudents,
     getStudent,
     updateStudent,

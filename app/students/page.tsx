@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StudentSearch } from '@/components/students/StudentSearch';
 import { StudentTable } from '@/components/students/StudentTable';
-import { StudentForm } from '@/components/students/StudentForm';
+import { StudentForm, type StudentFormData } from '@/components/students/StudentForm';
 import { StudentDetailsDialog } from '@/components/students/StudentDetailsDialog';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
@@ -43,6 +43,7 @@ function apiStudentToStudent(api: any): Student {
     pob: api.personalInfo?.placeOfBirth || '',
     nationality: api.personalInfo?.nationality || 'Algerian',
     idType: '',
+    photo: api.photo || undefined,
   };
 }
 
@@ -191,15 +192,24 @@ export default function StudentsPage() {
     }
   };
 
-  const handleFormSubmit = async (data: Omit<Student, 'id'>) => {
+  const handleFormSubmit = async (data: StudentFormData) => {
     setIsSubmitting(true);
+    let studentSaved = false;
     try {
       const payload = studentToFullPayload(data);
       if (editingStudent) {
         await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
+        studentSaved = true;
+        if (data.photoFile) {
+          await studentsAPI.uploadStudentPhoto(Number(editingStudent.id), data.photoFile);
+        }
         showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
       } else {
-        await studentsAPI.createStudent(payload);
+        const createdStudent = await studentsAPI.createStudent(payload);
+        studentSaved = true;
+        if (data.photoFile) {
+          await studentsAPI.uploadStudentPhoto(Number(createdStudent.id), data.photoFile);
+        }
         showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
       }
       setIsFormOpen(false);
@@ -207,7 +217,14 @@ export default function StudentsPage() {
       // Reload students to get fresh data from server
       await loadStudents();
     } catch (err) {
-      showToast('error', errMsg(err, 'حدث خطأ أثناء الحفظ'));
+      if (studentSaved) {
+        setIsFormOpen(false);
+        setSelectedIds([]);
+        await loadStudents();
+        showToast('error', `تم حفظ بيانات الطالب، لكن تعذر رفع الصورة: ${errMsg(err, 'فشل رفع الصورة')}`);
+      } else {
+        showToast('error', errMsg(err, 'حدث خطأ أثناء الحفظ'));
+      }
     } finally {
       setIsSubmitting(false);
     }

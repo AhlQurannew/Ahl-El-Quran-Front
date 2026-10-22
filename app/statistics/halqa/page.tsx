@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
@@ -91,15 +92,27 @@ export default function HalqaStatsPage() {
         {/* Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm flex items-center justify-between">
           <span>إحصائيات الحلقة</span>
-          {isShowingStats && (
-            <button
-              onClick={() => setIsShowingStats(false)}
-              className="flex items-center gap-1.5 hover:text-amber-100 transition-colors cursor-pointer text-xs bg-white/20 px-3 py-1.5 rounded-lg"
+          <div className="flex items-center gap-2">
+            <Link
+              href="/statistics"
+              aria-label="العودة إلى صفحة الإحصاءات"
+              title="العودة إلى الإحصاءات"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:bg-white/30 hover:text-amber-100"
             >
-              <ArrowRight size={14} />
-              العودة للنموذج
-            </button>
-          )}
+              <ArrowRight size={14} aria-hidden="true" />
+              الإحصاءات
+            </Link>
+            {isShowingStats && (
+              <button
+                type="button"
+                onClick={() => setIsShowingStats(false)}
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:text-amber-100"
+              >
+                <ArrowRight size={14} aria-hidden="true" />
+                العودة للنموذج
+              </button>
+            )}
+          </div>
         </div>
 
         {!isShowingStats ? (
