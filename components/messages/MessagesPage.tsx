@@ -46,9 +46,10 @@ export const MessagesPage: React.FC = () => {
       if (adminView) hasAdminSession = true;
     }
 
-    if (rawUserRole === 'admin' || rawUserRole === 'president' || rawEffRole === 'admin' || hasAdminSession || isAdminViewing) {
-      return 'president';
-    }
+    if (rawUserRole === 'admin' || rawEffRole === 'admin') return 'admin';
+    if (rawUserRole === 'president' || hasAdminSession || isAdminViewing) return 'president';
+    if (rawUserRole === 'student' || rawEffRole === 'student') return 'student';
+    if (rawUserRole === 'guardian' || rawEffRole === 'guardian') return 'guardian';
     if (rawUserRole === 'chief_supervisor' || rawEffRole === 'chief_supervisor') {
       return 'chief_supervisor' as SenderRole;
     }
@@ -90,24 +91,29 @@ export const MessagesPage: React.FC = () => {
     if (data.type === 'message' && data.id) {
       const newMessage: Message = {
         id: data.id,
-        sender_id: data.sender_id!,
+        sender_id: data.sender_id ?? null,
+        admin_sender_id: data.admin_sender_id ?? null,
         sender_name: data.sender_name!,
         sender_role: data.sender_role as SenderRole,
-        message: data.message!,
+        message: data.message ?? '',
         created_at: data.created_at!,
+        attachments: data.attachments ?? [],
       };
 
       setMessages((prev) => {
-        // Avoid duplicates
-        if (prev.some((m) => m.id === newMessage.id)) return prev;
-        return [...prev, newMessage];
+        const existingIndex = prev.findIndex((item) => item.id === newMessage.id);
+        if (existingIndex === -1) return [...prev, newMessage];
+        return prev.map((item, index) => index === existingIndex
+          ? { ...item, ...newMessage, attachments: newMessage.attachments.length ? newMessage.attachments : item.attachments }
+          : item);
       });
 
       setTimeout(() => scrollToBottom(), 100);
     } else if (data.type === 'delete' && data.id) {
       setMessages((prev) => prev.filter((m) => m.id !== data.id));
     } else if (data.type === 'typing') {
-      const senderId = data.sender_id!;
+      const isAdminTyping = data.sender_id == null && data.admin_sender_id != null;
+      const senderId = isAdminTyping ? -data.admin_sender_id! : (data.sender_id ?? 0);
       const senderName = data.sender_name!;
       const isTyping = data.is_typing ?? false;
 
@@ -118,7 +124,10 @@ export const MessagesPage: React.FC = () => {
         typingTimeoutsRef.current.delete(senderId);
       }
 
-      if (isTyping && senderId !== userId) {
+      const isCurrentUserTyping = isAdminTyping
+        ? userRole === 'admin' && data.admin_sender_id === userId
+        : data.sender_id === userId;
+      if (isTyping && !isCurrentUserTyping) {
         setTypingUsers((prev) => {
           if (prev.some((u) => u.sender_id === senderId)) return prev;
           return [...prev, { sender_id: senderId, sender_name: senderName }];
@@ -134,7 +143,7 @@ export const MessagesPage: React.FC = () => {
         setTypingUsers((prev) => prev.filter((u) => u.sender_id !== senderId));
       }
     }
-  }, [scrollToBottom, userId]);
+  }, [scrollToBottom, userId, userRole]);
 
   const handleConnected = useCallback((data: WebSocketMessage) => {
     console.log('Connected to chat:', data);
@@ -161,44 +170,61 @@ export const MessagesPage: React.FC = () => {
 
   // Load message history on mount
   useEffect(() => {
-    loadMessageHistory();
+    const timeout = setTimeout(() => void loadMessageHistory(), 0);
+    return () => clearTimeout(timeout);
   }, [loadMessageHistory]);
 
   // Cleanup typing timeouts
   useEffect(() => {
+    const typingTimeouts = typingTimeoutsRef.current;
     return () => {
-      typingTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
-      typingTimeoutsRef.current.clear();
+      typingTimeouts.forEach((timeout) => clearTimeout(timeout));
+      typingTimeouts.clear();
     };
   }, []);
 
-  const handleSendMessage = (messageText: string) => {
-    if (!userRole) {
-      showToast('error', 'غير قادر على تحديد دورك');
-      return;
-    }
+  const handleSendMessage = async (
+    messageText: string,
+    attachments: File[],
+    onProgress: (progress: number) => void,
+  ) => {
+    if (!userRole) throw new Error('غير قادر على تحديد دورك');
 
-    // Validate role is allowed to send messages
-    const allowedRoles: SenderRole[] = ['teacher', 'supervisor', 'chief_supervisor', 'president'];
-    if (!allowedRoles.includes(userRole)) {
-      showToast('error', 'غير مسموح لك بإرسال الرسائل');
-      return;
-    }
+    const allowedRoles: SenderRole[] = ['teacher', 'supervisor', 'chief_supervisor', 'president', 'student', 'guardian', 'admin'];
+    if (!allowedRoles.includes(userRole)) throw new Error('غير مسموح لك بإرسال الرسائل');
 
-    const success = sendChatMessage(messageText, userRole);
-    
-    if (!success) {
-      // Fallback to REST API if WebSocket is not available
-      messagesAPI
-        .createMessage({ message: messageText, sender_role: userRole })
-        .then(() => {
-          showToast('info', 'تم إرسال الرسالة عبر الخادم');
-          loadMessageHistory();
-        })
-        .catch((err) => {
-          console.error('Failed to send message via REST:', err);
-          showToast('error', 'فشل إرسال الرسالة');
+    if (attachments.length > 0) {
+      const formData = new FormData();
+      if (messageText) formData.append('message', messageText);
+      attachments.forEach((file) => formData.append('attachments', file, file.name));
+
+      try {
+        const sentMessage = await messagesAPI.createMessageWithAttachments(formData, onProgress);
+        setMessages((previous) => {
+          const existingIndex = previous.findIndex((item) => item.id === sentMessage.id);
+          if (existingIndex === -1) return [...previous, sentMessage];
+          return previous.map((item, index) => index === existingIndex ? { ...item, ...sentMessage } : item);
         });
+        showToast('success', 'تم إرسال الرسالة والمرفقات');
+        setTimeout(() => scrollToBottom(), 100);
+      } catch (error) {
+        console.error('Failed to send message with attachments:', error);
+        throw new Error('فشل رفع المرفقات. تحقق من الاتصال وحاول مرة أخرى.');
+      }
+      return;
+    }
+
+    if (!messageText) return;
+    const sentOverWebSocket = sendChatMessage(messageText, userRole);
+    if (!sentOverWebSocket) {
+      try {
+        await messagesAPI.createMessage({ message: messageText, sender_role: userRole });
+        showToast('info', 'تم إرسال الرسالة عبر الخادم');
+        await loadMessageHistory();
+      } catch (error) {
+        console.error('Failed to send message via REST:', error);
+        throw new Error('فشل إرسال الرسالة');
+      }
     }
   };
 
@@ -306,7 +332,7 @@ export const MessagesPage: React.FC = () => {
               <MessageBubble
                 key={message.id}
                 message={message}
-                isOwn={message.sender_id === userId || (userRole === 'president' && message.sender_role === 'president')}
+                isOwn={message.sender_id === userId || message.admin_sender_id === userId}
                 onDelete={handleRequestDelete}
               />
             ))}
@@ -321,8 +347,8 @@ export const MessagesPage: React.FC = () => {
         <MessageInput
           onSend={handleSendMessage}
           onTyping={handleTyping}
-          disabled={!isConnected && reconnectCount === 0}
-          placeholder={isConnected ? 'اكتب رسالتك هنا...' : 'غير متصل - جاري إعادة الاتصال...'}
+          disabled={!userId}
+          placeholder={isConnected ? 'اكتب رسالتك هنا...' : 'اكتب رسالة أو أرفق ملفًا، وسيتم الإرسال عبر الخادم'}
         />
       </div>
 

@@ -1,13 +1,25 @@
-﻿export type SenderRole = 'teacher' | 'supervisor' | 'chief_supervisor' | 'president';
+﻿export type SenderRole = 'teacher' | 'supervisor' | 'chief_supervisor' | 'president' | 'student' | 'guardian' | 'admin';
+
+export interface MessageAttachment {
+  id: number;
+  filename: string;
+  content_type: string;
+  size: number;
+  url: string;
+}
 
 export interface Message {
   id: number;
-  sender_id: number;
+  sender_id: number | null;
+  admin_sender_id?: number | null;
   sender_name: string;
   sender_role: SenderRole;
   message: string;
   created_at: string;
+  attachments: MessageAttachment[];
 }
+
+export type MessageResponse = Message;
 
 export interface MessageList {
   messages: Message[];
@@ -22,11 +34,14 @@ export interface MessagePayload {
 export interface WebSocketMessage {
   type: 'message' | 'delete' | 'typing' | 'connected' | 'error' | 'pong';
   id?: number;
-  sender_id?: number;
+  sender_id?: number | null;
+  admin_sender_id?: number | null;
+  admin_id?: number | null;
   sender_name?: string;
   sender_role?: string;
   message?: string;
   created_at?: string;
+  attachments?: MessageAttachment[];
   is_typing?: boolean;
   user_id?: number;
   president_id?: number;
