@@ -33,6 +33,7 @@ import {
   ChevronsRight,
   ChevronsLeft,
   School,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAdminView } from '@/contexts/AdminViewContext';
@@ -71,6 +72,7 @@ const adminNavGroups: NavGroup[] = [
       { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
+      { label: 'الإعدادات', href: '/dashboard/settings', icon: <Settings size={18} /> },
     ],
   },
 ];

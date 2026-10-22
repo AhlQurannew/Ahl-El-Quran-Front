@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { 
@@ -38,12 +38,32 @@ interface SchoolFormData {
   phone_number: string;
 }
 
+function getRequestErrorMessage(error: unknown, fallback: string): string {
+  const apiError = error as {
+    response?: { status?: number; data?: { detail?: unknown } };
+  };
+  const detail = apiError.response?.data?.detail;
+
+  if (typeof detail === "string") {
+    const knownMessages: Record<string, string> = {
+      "Email already exists": "هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر.",
+      "Email is already in use": "هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر.",
+    };
+    return knownMessages[detail] ?? detail;
+  }
+
+  if (apiError.response?.status === 422) return "تحقق من البيانات المدخلة وحاول مرة أخرى.";
+  return fallback;
+}
+
 export default function SchoolsManagementPage() {
   const { setSelectedSchool: setAdminSchool } = useAdminView();
   const [schools, setSchools] = useState<SchoolData[]>([]);
-  const [filteredSchools, setFilteredSchools] = useState<SchoolData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [createError, setCreateError] = useState<string>("");
+  const [editError, setEditError] = useState<string>("");
+  const [deleteError, setDeleteError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   
   // Dialog states
@@ -65,24 +85,7 @@ export default function SchoolsManagementPage() {
     phone_number: ""
   });
 
-  useEffect(() => {
-    fetchSchools();
-  }, []);
-
-  useEffect(() => {
-    if (searchQuery) {
-      const filtered = schools.filter(school => 
-        school.school_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        school.president_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        school.email.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredSchools(filtered);
-    } else {
-      setFilteredSchools(schools);
-    }
-  }, [searchQuery, schools]);
-
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     try {
       setIsLoading(true);
       setError("");
@@ -90,35 +93,60 @@ export default function SchoolsManagementPage() {
       
       if (data && data.schools) {
         setSchools(data.schools);
-        setFilteredSchools(data.schools);
       } else {
         setSchools([]);
-        setFilteredSchools([]);
       }
-    } catch (err: any) {
-      console.error("Error fetching schools:", err);
+    } catch (requestError: unknown) {
+      console.error("Error fetching schools:", requestError);
       setError("فشل تحميل المدارس");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const filteredSchools = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return schools;
+    return schools.filter((school) =>
+      school.school_name.toLowerCase().includes(query) ||
+      school.president_name.toLowerCase().includes(query) ||
+      school.email.toLowerCase().includes(query)
+    );
+  }, [searchQuery, schools]);
+
+  useEffect(() => {
+    void Promise.resolve().then(fetchSchools);
+  }, [fetchSchools]);
 
   const handleCreate = async () => {
-    if (!formData.school_name || !formData.chief_supervisor_firstname || !formData.chief_supervisor_lastname || 
-        !formData.email || !formData.password) {
-      setError("يرجى ملء جميع الحقول المطلوبة");
+    if (!formData.school_name.trim() || !formData.chief_supervisor_firstname.trim() || !formData.chief_supervisor_lastname.trim() ||
+        !formData.email.trim() || !formData.password) {
+      setCreateError("يرجى ملء جميع الحقول المطلوبة");
+      return;
+    }
+
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    if (schools.some((school) => school.email.trim().toLowerCase() === normalizedEmail)) {
+      setCreateError("هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر.");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setError("");
-      await adminAPI.createSchool(formData);
+      setCreateError("");
+      await adminAPI.createSchool({
+        ...formData,
+        school_name: formData.school_name.trim(),
+        chief_supervisor_firstname: formData.chief_supervisor_firstname.trim(),
+        chief_supervisor_lastname: formData.chief_supervisor_lastname.trim(),
+        email: normalizedEmail,
+        phone_number: formData.phone_number.trim(),
+      });
       setShowCreateDialog(false);
       resetForm();
       fetchSchools();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "فشل إنشاء المدرسة");
+    } catch (requestError: unknown) {
+      setCreateError(getRequestErrorMessage(requestError, "فشل إنشاء المدرسة"));
     } finally {
       setIsSubmitting(false);
     }
@@ -129,8 +157,8 @@ export default function SchoolsManagementPage() {
 
     try {
       setIsSubmitting(true);
-      setError("");
-      const updateData: any = {};
+      setEditError("");
+      const updateData: Partial<SchoolFormData> = {};
       
       if (formData.school_name) updateData.school_name = formData.school_name;
       if (formData.chief_supervisor_firstname) updateData.chief_supervisor_firstname = formData.chief_supervisor_firstname;
@@ -144,8 +172,8 @@ export default function SchoolsManagementPage() {
       resetForm();
       setSelectedSchool(null);
       fetchSchools();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "فشل تحديث المدرسة");
+    } catch (requestError: unknown) {
+      setEditError(getRequestErrorMessage(requestError, "فشل تحديث المدرسة"));
     } finally {
       setIsSubmitting(false);
     }
@@ -156,13 +184,13 @@ export default function SchoolsManagementPage() {
 
     try {
       setIsSubmitting(true);
-      setError("");
+      setDeleteError("");
       await adminAPI.deleteSchool(selectedSchool.id);
       setShowDeleteDialog(false);
       setSelectedSchool(null);
       fetchSchools();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "فشل حذف المدرسة");
+    } catch (requestError: unknown) {
+      setDeleteError(getRequestErrorMessage(requestError, "فشل حذف المدرسة"));
     } finally {
       setIsSubmitting(false);
     }
@@ -179,11 +207,13 @@ export default function SchoolsManagementPage() {
       password: "",
       phone_number: school.phone_number
     });
+    setEditError("");
     setShowEditDialog(true);
   };
 
   const openDeleteDialog = (school: SchoolData) => {
     setSelectedSchool(school);
+    setDeleteError("");
     setShowDeleteDialog(true);
   };
 
@@ -197,6 +227,9 @@ export default function SchoolsManagementPage() {
       phone_number: ""
     });
     setError("");
+    setCreateError("");
+    setEditError("");
+    setDeleteError("");
   };
 
   const handleEnterSchool = (school: SchoolData) => {
@@ -335,6 +368,12 @@ export default function SchoolsManagementPage() {
                 </button>
               </div>
 
+              {createError && (
+                <div role="alert" aria-live="assertive" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {createError}
+                </div>
+              )}
+
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-700">اسم المدرسة <span className="text-red-500">*</span>
                   <input type="text" autoComplete="organization" placeholder="مثال: مدرسة النور" value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
@@ -348,7 +387,7 @@ export default function SchoolsManagementPage() {
                   </label>
                 </div>
                 <label className="block text-sm font-medium text-gray-700">البريد الإلكتروني <span className="text-red-500">*</span>
-                  <input type="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <input type="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={formData.email} onChange={(e) => { setFormData({...formData, email: e.target.value}); setCreateError(""); }} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
                 <label className="block text-sm font-medium text-gray-700">كلمة المرور <span className="text-red-500">*</span>
                   <span className="relative mt-1.5 block">
@@ -393,6 +432,12 @@ export default function SchoolsManagementPage() {
                   <X size={24} />
                 </button>
               </div>
+
+              {editError && (
+                <div role="alert" aria-live="assertive" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {editError}
+                </div>
+              )}
 
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-700">اسم المدرسة
@@ -452,6 +497,12 @@ export default function SchoolsManagementPage() {
                   <X size={24} />
                 </button>
               </div>
+
+              {deleteError && (
+                <div role="alert" aria-live="assertive" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {deleteError}
+                </div>
+              )}
 
               <p className="text-gray-600 mb-6">
                 هل أنت متأكد من حذف مدرسة <strong>{selectedSchool.school_name}</strong>؟ 

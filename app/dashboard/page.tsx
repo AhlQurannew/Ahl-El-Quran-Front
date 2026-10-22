@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SchoolCard } from "@/components/SchoolCard";
+import { useAdminView } from "@/contexts/AdminViewContext";
 import { 
   Users, 
   Shield,
@@ -24,6 +25,7 @@ interface Statistics {
 }
 
 interface SchoolData {
+  school_id: number;
   school_name: string;
   president_name: string;
   student_count: number;
@@ -37,6 +39,7 @@ interface SchoolsStatistics {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { setSelectedSchool } = useAdminView();
   const [stats, setStats] = useState<Statistics | null>(null);
   const [schoolsStats, setSchoolsStats] = useState<SchoolsStatistics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +52,7 @@ export default function AdminDashboard() {
         setIsLoading(true);
         const data = await adminAPI.getAdminStatistics();
         setStats(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching statistics:", err);
         setError("تعذر تحميل الإحصاءات");
       } finally {
@@ -62,7 +65,7 @@ export default function AdminDashboard() {
         setIsLoadingSchools(true);
         const data = await adminAPI.getSchoolsStatistics(3);
         setSchoolsStats(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching schools statistics:", err);
       } finally {
         setIsLoadingSchools(false);
@@ -190,13 +193,14 @@ export default function AdminDashboard() {
             </div>
           ) : schoolsStats && schoolsStats.schools.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {schoolsStats.schools.map((school, index) => (
+              {schoolsStats.schools.map((school) => (
                 <SchoolCard
-                  key={index}
+                  key={school.school_id}
                   schoolName={school.school_name}
                   presidentName={school.president_name}
                   studentCount={school.student_count}
                   percentage={school.percentage}
+                  onClick={() => setSelectedSchool(school.school_id, school.school_name)}
                 />
               ))}
             </div>

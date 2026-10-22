@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MemorizationForm, type AchievementFormValues } from '@/components/memorization/MemorizationForm';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -10,16 +10,8 @@ import lecturesAPI, { Lecture } from '@/app/API/lectures';
 import teacherAPI from '@/app/API/teacher';
 import { useAuthStore } from '@/store/authStore';
 import { quranSurahs } from '@/data/quran_data';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-
-function authHeaders(json = true): HeadersInit {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-  return {
-    ...(json ? { 'Content-Type': 'application/json' } : {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
 
 export interface ApiAchievement {
   id: number;
@@ -33,10 +25,6 @@ export interface ApiAchievement {
   date: string; // "DD-MM-YYYY"
 }
 
-interface AchievementsResponse {
-  achievements: ApiAchievement[];
-  total: number;
-}
 
 export interface ApiStudent {
   id: number;
@@ -66,9 +54,12 @@ type ToastState = { visible: boolean; type: 'success' | 'error' | 'info'; messag
 
 function apiDateToInput(date: string): string {
   if (!date) return '';
-  const [d, m, y] = date.split('-');
-  if (!d || !m || !y) return date;
-  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  const [first, second, third] = date.split(/[-/]/);
+  if (!first || !second || !third) return date;
+  if (first.length === 4) {
+    return `${first}-${second.padStart(2, '0')}-${third.padStart(2, '0')}`;
+  }
+  return `${third}-${second.padStart(2, '0')}-${first.padStart(2, '0')}`;
 }
 
 function inputDateToApi(date: string): string {
@@ -78,16 +69,45 @@ function inputDateToApi(date: string): string {
   return `${d.padStart(2, '0')}-${m.padStart(2, '0')}-${y}`;
 }
 
+function localDateInputValue(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 async function fetchStudents(): Promise<ApiStudent[]> {
   // Use studentsAPI which has the school_id interceptor
   const response = await studentsAPI.getStudents();
   return Array.isArray(response) ? response : response.students ?? [];
 }
 
-async function fetchAchievements(studentId: number): Promise<ApiAchievement[]> {
-  // Use studentsAPI which has the school_id interceptor
-  const json = await studentsAPI.getAchievements(studentId);
-  return json.achievements ?? [];
+async function fetchAchievements(
+  studentId: number,
+  date: string,
+  isTeacher: boolean
+): Promise<ApiAchievement[]> {
+  const achievements: ApiAchievement[] = [];
+  const limit = 100;
+  const params = { date: inputDateToApi(date), limit };
+  let skip = 0;
+  let total = Number.POSITIVE_INFINITY;
+
+  while (skip < total) {
+    const response = isTeacher
+      ? await teacherAPI.getAchievements(studentId, { ...params, skip })
+      : await studentsAPI.getAchievements(studentId, { ...params, skip });
+    const page: ApiAchievement[] = Array.isArray(response)
+      ? response
+      : response.achievements ?? [];
+
+    achievements.push(...page);
+    skip += page.length;
+    total = typeof response.total === 'number' ? response.total : skip;
+    if (page.length < limit) break;
+  }
+
+  return achievements;
 }
 
 async function createAchievement(
@@ -145,11 +165,7 @@ export default function MemorizationPage() {
 
   // Set today's date on mount
   useEffect(() => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    setDate(`${yyyy}-${mm}-${dd}`);
+    setDate(localDateInputValue());
   }, []);
 
   // Load lectures
@@ -216,37 +232,32 @@ export default function MemorizationPage() {
       } else {
         // For supervisors: Get all students and optionally filter by teacher
         const allStudents = await fetchStudents();
-        console.log('📚 All students loaded:', allStudents.length);
-        
+
         // Filter by lecture first
         let studentsInLecture = allStudents.filter((student) =>
           student.lectures?.some((lec: any) => lec.lectureId === selectedLecture.lecture_id || lec.lecture_id === selectedLecture.lecture_id)
         );
         
-        console.log('📚 Students in lecture', selectedLecture.lecture_id, ':', studentsInLecture.length);
-        
+
         // If teacher is selected, get full lecture details to check which teachers are assigned
         if (selectedTeacher) {
-          console.log('👨‍🏫 Filtering by teacher:', selectedTeacher);
-          
+
           try {
             // Get lecture details with teachers
             const lectureDetails = await lecturesAPI.getLectureById(selectedLecture.lecture_id);
-            console.log('👨‍🏫 Lecture teachers:', lectureDetails.teachers);
-            
+
             // Check if selected teacher is assigned to this lecture
             const teacherAssigned = lectureDetails.teachers?.some((t: any) => 
               String(t.id || t.teacher_id) === selectedTeacher
             );
             
             if (!teacherAssigned) {
-              console.warn('👨‍🏫 Selected teacher is not assigned to this lecture');
+
               filteredStudents = [];
             } else {
               // For now, show all students in the lecture (can't filter further without backend support)
               // TODO: Backend needs to return teacher_id with each student's lecture enrollment
               filteredStudents = studentsInLecture;
-              console.log('👨‍🏫 Note: Cannot filter by teacher - backend needs to return teacher_id in student.lectures');
             }
           } catch (err) {
             console.error('Error loading lecture details:', err);
@@ -265,26 +276,10 @@ export default function MemorizationPage() {
       await Promise.all(
         filteredStudents.map(async (student) => {
           try {
-            let studentAchievements: any[] = [];
-            if (isTeacher) {
-              const res = await teacherAPI.getAchievements(student.id);
-              studentAchievements = Array.isArray(res) ? res : res.achievements ?? [];
-            } else {
-              studentAchievements = await fetchAchievements(student.id);
-            }
-            
-            console.log(`Student ${student.id} achievements:`, studentAchievements);
-            console.log(`Looking for date: ${inputDateToApi(date)}`);
-            
-            // Get the FIRST achievement for the selected date (1 per day policy)
-            const dateAchievement = studentAchievements.find(
-              (a: any) => {
-                console.log(`  - Achievement ${a.id}: date="${a.date}", matches=${a.date === inputDateToApi(date)}`);
-                return a.date === inputDateToApi(date);
-              }
+            const studentAchievements = await fetchAchievements(student.id, date, isTeacher);
+            achievementsMap[student.id] = studentAchievements.filter(
+              (achievement) => apiDateToInput(achievement.date) === date
             );
-            achievementsMap[student.id] = dateAchievement ? [dateAchievement] : [];
-            console.log(`Student ${student.id} has ${achievementsMap[student.id].length} achievements for this date`);
           } catch (err) {
             console.error(`Error loading achievements for student ${student.id}:`, err);
             achievementsMap[student.id] = [];
@@ -325,13 +320,8 @@ export default function MemorizationPage() {
     setIsSaving(true);
     try {
       const formattedDate = inputDateToApi(data.date);
-      console.log('📝 Submitting achievement:');
-      console.log('  - Input date:', data.date);
-      console.log('  - Formatted date:', formattedDate);
-      console.log('  - Student ID:', selectedStudent.id);
-      
       const payload = {
-        student_id: selectedStudent.id, // Add student_id to payload
+        student_id: selectedStudent.id,
         from_surah: data.fromSurah,
         to_surah: data.toSurah,
         from_verse: data.fromVerse,
@@ -341,15 +331,12 @@ export default function MemorizationPage() {
         date: formattedDate,
       };
 
-      console.log('  - Full payload:', payload);
-
       if (isTeacher) {
         if (editingAchievement) {
           await teacherAPI.updateAchievement(selectedStudent.id, editingAchievement.id, payload);
           showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
         } else {
-          const result = await teacherAPI.createAchievement(selectedStudent.id, payload);
-          console.log('✅ Achievement created:', result);
+          await teacherAPI.createAchievement(selectedStudent.id, payload);
           showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
         }
       } else {
@@ -357,14 +344,17 @@ export default function MemorizationPage() {
           await updateAchievement(selectedStudent.id, editingAchievement.id, payload);
           showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
         } else {
-          const result = await createAchievement(selectedStudent.id, payload);
-          console.log('✅ Achievement created:', result);
+          await createAchievement(selectedStudent.id, payload);
           showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
         }
       }
 
       setIsFormOpen(false);
-      loadData(); // Reload data
+      if (data.date === date) {
+        await loadData();
+      } else {
+        setDate(data.date);
+      }
     } catch (err: any) {
       console.error('Error saving achievement:', err);
       showToast('error', err.message || 'حدث خطأ غير متوقع أثناء الحفظ');
@@ -381,19 +371,11 @@ export default function MemorizationPage() {
       if (isTeacher) {
         await teacherAPI.deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
       } else {
-        if (isTeacher) {
-
-        await teacherAPI.deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
-
-      } else {
-
         await deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
-
-      }
       }
       showToast('success', 'تم حذف سجل الإنجاز بنجاح');
       setDeletingAchievement(null);
-      loadData(); // Reload data
+      await loadData();
     } catch (err: any) {
       console.error('Error deleting achievement:', err);
       showToast('error', err.message || 'حدث خطأ غير متوقع أثناء الحذف');
@@ -453,7 +435,7 @@ export default function MemorizationPage() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
+                max={localDateInputValue()}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
               />
             </div>
@@ -501,95 +483,102 @@ export default function MemorizationPage() {
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            {/* Table Header */}
-            <div className="bg-teal-600 px-6 py-4 grid grid-cols-12 gap-4 text-white font-semibold text-sm">
-              <div className="col-span-1 text-center">#</div>
-              <div className="col-span-4 text-center">الطالب</div>
-              <div className="col-span-5 text-center">الإنجاز</div>
-              <div className="col-span-2 text-center">الإجراءات</div>
-            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[760px]">
+                <div className="bg-teal-700 px-5 py-3.5 grid grid-cols-12 gap-4 text-white font-semibold text-sm">
+                  <div className="col-span-1 text-center">#</div>
+                  <div className="col-span-4 text-center">الطالب</div>
+                  <div className="col-span-5 text-center">إنجازات اليوم</div>
+                  <div className="col-span-2 text-center">الإجراءات</div>
+                </div>
 
-            {/* Table Body */}
-            <div className="divide-y divide-gray-100">
-              {students.map((student, index) => {
-                const studentAchievements = achievements[student.id] || [];
-                const isEven = index % 2 === 0;
+                <div className="divide-y divide-gray-100">
+                  {students.map((student, index) => {
+                    const studentAchievements = achievements[student.id] || [];
+                    const isEven = index % 2 === 0;
 
-                return (
-                  <div
-                    key={student.id}
-                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-start ${
-                      isEven ? 'bg-gray-50' : 'bg-white'
-                    }`}
-                  >
-                    {/* Index */}
-                    <div className="col-span-1 text-center text-gray-700 pt-2">{index + 1}</div>
+                    return (
+                      <div
+                        key={student.id}
+                        className={`px-5 py-4 grid grid-cols-12 gap-4 items-start ${
+                          isEven ? 'bg-gray-50/70' : 'bg-white'
+                        }`}
+                      >
+                        <div className="col-span-1 text-center text-gray-500 pt-2">{index + 1}</div>
 
-                    {/* Student Name */}
-                    <div className="col-span-4 text-center text-gray-900 font-medium pt-2">
-                      {studentDisplayName(student)}
-                    </div>
+                        <div className="col-span-4 flex flex-col items-center gap-1 pt-1 text-center">
+                          <span className="font-semibold text-gray-800">{studentDisplayName(student)}</span>
+                          {studentAchievements.length > 0 && (
+                            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-700">
+                              {studentAchievements.length} إنجاز
+                            </span>
+                          )}
+                        </div>
 
-                    {/* Achievements - Single achievement per day */}
-                    <div className="col-span-5 flex flex-col gap-2">
-                      {studentAchievements.length > 0 ? (
-                        studentAchievements.map((achievement) => (
-                          <div key={achievement.id} className="flex items-center justify-between gap-2 px-3 py-2 bg-teal-50 border border-teal-500 rounded-lg">
-                            <div className="flex-1 text-teal-700 text-xs">
-                              <div className="font-semibold mb-1">
-                                {achievement.achievement_type === 'normal' ? 'حفظ' : 
-                                 achievement.achievement_type === 'small' ? 'مراجعة صغرى' : 
-                                 achievement.achievement_type === 'big' ? 'مراجعة كبرى' : 
-                                 achievement.achievement_type}
-                              </div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span>{getSurahName(achievement.from_surah)} ({achievement.from_verse})</span>
-                                <span className="text-teal-600">←</span>
-                                <span>{getSurahName(achievement.to_surah)} ({achievement.to_verse})</span>
-                              </div>
-                              {achievement.note && (
-                                <div className="text-[10px] text-teal-600 italic mt-1">{achievement.note}</div>
-                              )}
-                            </div>
-                            <div className="flex gap-1 flex-shrink-0">
-                              <button
-                                onClick={() => handleEditAchievement(student, achievement)}
-                                className="px-2 py-1 bg-blue-50 border border-blue-500 text-blue-700 rounded hover:bg-blue-100 transition-colors text-xs"
-                                title="تعديل"
+                        <div className="col-span-5 flex flex-col gap-2">
+                          {studentAchievements.length > 0 ? (
+                            studentAchievements.map((achievement) => (
+                              <article
+                                key={achievement.id}
+                                className="flex items-start justify-between gap-3 rounded-xl border border-teal-100 bg-white p-3 shadow-sm"
                               >
-                                ✏️
-                              </button>
-                              <button
-                                onClick={() => setDeletingAchievement(achievement)}
-                                className="px-2 py-1 bg-red-50 border border-red-500 text-red-700 rounded hover:bg-red-100 transition-colors text-xs"
-                                title="حذف"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-gray-400 text-center py-2">--</span>
-                      )}
-                    </div>
+                                <div className="min-w-0 flex-1 text-right">
+                                  <span className="inline-flex rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-semibold text-teal-700">
+                                    {achievement.achievement_type === 'normal' ? 'حفظ' :
+                                      achievement.achievement_type === 'small' ? 'مراجعة صغرى' :
+                                        achievement.achievement_type === 'big' ? 'مراجعة كبرى' : achievement.achievement_type}
+                                  </span>
+                                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-700">
+                                    <span>{getSurahName(achievement.from_surah)} · {achievement.from_verse}</span>
+                                    <span className="text-teal-600" aria-hidden="true">←</span>
+                                    <span>{getSurahName(achievement.to_surah)} · {achievement.to_verse}</span>
+                                  </div>
+                                  {achievement.note && (
+                                    <p className="mt-1.5 break-words text-xs text-gray-500">{achievement.note}</p>
+                                  )}
+                                </div>
+                                <div className="flex shrink-0 gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditAchievement(student, achievement)}
+                                    className="rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50"
+                                    title="تعديل الإنجاز"
+                                    aria-label="تعديل الإنجاز"
+                                  >
+                                    <Pencil size={15} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeletingAchievement(achievement)}
+                                    className="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-50"
+                                    title="حذف الإنجاز"
+                                    aria-label="حذف الإنجاز"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </article>
+                            ))
+                          ) : (
+                            <span className="py-2 text-center text-sm text-gray-400">لا يوجد إنجاز مسجل لهذا اليوم</span>
+                          )}
+                        </div>
 
-                    {/* Actions - Show "Add" only if no achievement exists */}
-                    <div className="col-span-2 flex justify-center pt-2">
-                      {studentAchievements.length === 0 ? (
-                        <button
-                          onClick={() => handleAddAchievement(student)}
-                          className="px-4 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-medium whitespace-nowrap"
-                        >
-                          + إضافة
-                        </button>
-                      ) : (
-                        <span className="text-gray-400 text-xs">إنجاز اليوم</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                        <div className="col-span-2 flex justify-center pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleAddAchievement(student)}
+                            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                          >
+                            <Plus size={14} />
+                            إضافة إنجاز
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}

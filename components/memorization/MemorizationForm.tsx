@@ -40,6 +40,9 @@ function apiDateToInput(date: string): string {
 }
 
 function emptyForm(defaultStudentId?: number | null, defaultDate?: string): AchievementFormValues {
+  const today = new Date();
+  const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
   return {
     studentId: defaultStudentId ?? 0,
     fromSurah: 1,
@@ -48,7 +51,7 @@ function emptyForm(defaultStudentId?: number | null, defaultDate?: string): Achi
     toVerse: 1,
     note: '',
     achievementType: 'normal',
-    date: defaultDate || new Date().toISOString().slice(0, 10),
+    date: defaultDate || localToday,
   };
 }
 
