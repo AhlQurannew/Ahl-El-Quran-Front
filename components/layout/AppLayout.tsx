@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { syncAuthCookies } from '@/utils/auth';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { useAdminView } from '@/contexts/AdminViewContext';
-import { X, Eye, Shield } from 'lucide-react';
+import { X, Eye } from 'lucide-react';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -14,17 +15,34 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrumb }) => {
-  const { isAdminViewing, viewingSchoolName, exitAdminView } = useAdminView();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { isResolved, isAdminSession, isAdminViewing, viewingSchoolName, exitAdminView } = useAdminView();
+  const adminOutsideSchool = isResolved && isAdminSession && !pathname.startsWith('/dashboard') && !isAdminViewing;
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-    const hasCookie = typeof document !== 'undefined' && document.cookie.includes('access_token=');
-    if (!token && !hasCookie) {
-      window.location.href = '/login';
-      return;
-    }
-    syncAuthCookies();
-  }, []);
+    const verifySession = () => {
+      const token = localStorage.getItem('access_token');
+      const hasCookie = document.cookie.split('; ').some((cookie) => cookie.startsWith('access_token='));
+      if (!token && !hasCookie) {
+        window.location.replace('/login');
+        return;
+      }
+      syncAuthCookies();
+    };
+
+    verifySession();
+    window.addEventListener('pageshow', verifySession);
+    window.addEventListener('popstate', verifySession);
+    return () => {
+      window.removeEventListener('pageshow', verifySession);
+      window.removeEventListener('popstate', verifySession);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (adminOutsideSchool) router.replace('/dashboard');
+  }, [adminOutsideSchool, router]);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden" dir="rtl">
@@ -54,7 +72,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
         
         <Topbar title={title} breadcrumb={breadcrumb} />
         <main className="flex-1 overflow-y-auto p-6">
-          {children}
+          {isResolved && !adminOutsideSchool ? children : null}
         </main>
       </div>
     </div>

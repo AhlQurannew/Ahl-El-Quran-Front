@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { 
@@ -9,6 +8,7 @@ import {
   Search,
   Loader2,
   Eye,
+  EyeOff,
   Edit,
   Trash2,
   Plus,
@@ -39,7 +39,6 @@ interface SchoolFormData {
 }
 
 export default function SchoolsManagementPage() {
-  const router = useRouter();
   const { setSelectedSchool: setAdminSchool } = useAdminView();
   const [schools, setSchools] = useState<SchoolData[]>([]);
   const [filteredSchools, setFilteredSchools] = useState<SchoolData[]>([]);
@@ -53,6 +52,8 @@ export default function SchoolsManagementPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState<SchoolData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   
   // Form data
   const [formData, setFormData] = useState<SchoolFormData>({
@@ -200,7 +201,6 @@ export default function SchoolsManagementPage() {
 
   const handleEnterSchool = (school: SchoolData) => {
     setAdminSchool(school.id, school.school_name);
-    router.push('/');
   };
 
   return (
@@ -326,60 +326,41 @@ export default function SchoolsManagementPage() {
 
         {/* Create Dialog */}
         {showCreateDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+            <div role="dialog" aria-modal="true" aria-labelledby="create-school-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">إضافة مدرسة جديدة</h3>
-                <button onClick={() => setShowCreateDialog(false)} className="text-gray-400 hover:text-gray-600">
+                <h3 id="create-school-title" className="text-xl font-bold text-gray-900">إضافة مدرسة جديدة</h3>
+                <button aria-label="إغلاق" onClick={() => setShowCreateDialog(false)} className="text-gray-400 hover:text-gray-600">
                   <X size={24} />
                 </button>
               </div>
 
               <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="اسم المدرسة *"
-                  value={formData.school_name}
-                  onChange={(e) => setFormData({...formData, school_name: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="الاسم الأول (المشرف العام) *"
-                    value={formData.chief_supervisor_firstname}
-                    onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                  />
-                  <input
-                    type="text"
-                    placeholder="اسم العائلة (المشرف العام) *"
-                    value={formData.chief_supervisor_lastname}
-                    onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                  />
+                <label className="block text-sm font-medium text-gray-700">اسم المدرسة <span className="text-red-500">*</span>
+                  <input type="text" autoComplete="organization" placeholder="مثال: مدرسة النور" value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </label>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-medium text-gray-700">الاسم الأول للمشرف العام <span className="text-red-500">*</span>
+                    <input type="text" autoComplete="given-name" placeholder="مثال: أحمد" value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  </label>
+                  <label className="block text-sm font-medium text-gray-700">اسم العائلة للمشرف العام <span className="text-red-500">*</span>
+                    <input type="text" autoComplete="family-name" placeholder="مثال: اليعقوبي" value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  </label>
                 </div>
-                <input
-                  type="email"
-                  placeholder="البريد الإلكتروني *"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
-                <input
-                  type="password"
-                  placeholder="كلمة المرور *"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
-                <input
-                  type="tel"
-                  placeholder="رقم الهاتف"
-                  value={formData.phone_number}
-                  onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
+                <label className="block text-sm font-medium text-gray-700">البريد الإلكتروني <span className="text-red-500">*</span>
+                  <input type="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </label>
+                <label className="block text-sm font-medium text-gray-700">كلمة المرور <span className="text-red-500">*</span>
+                  <span className="relative mt-1.5 block">
+                    <input type={showCreatePassword ? "text" : "password"} autoComplete="new-password" placeholder="أدخل كلمة مرور للمشرف" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pl-12 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                    <button type="button" aria-label={showCreatePassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"} aria-pressed={showCreatePassword} onClick={() => setShowCreatePassword((visible) => !visible)} className="absolute left-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                      {showCreatePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </span>
+                </label>
+                <label className="block text-sm font-medium text-gray-700">رقم الهاتف <span className="font-normal text-gray-400">(اختياري)</span>
+                  <input type="tel" autoComplete="tel" dir="ltr" placeholder="مثال: 0555 123 456" value={formData.phone_number} onChange={(e) => setFormData({...formData, phone_number: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </label>
               </div>
 
               <div className="flex gap-3 mt-6">
@@ -404,60 +385,41 @@ export default function SchoolsManagementPage() {
 
         {/* Edit Dialog */}
         {showEditDialog && selectedSchool && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+            <div role="dialog" aria-modal="true" aria-labelledby="edit-school-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">تعديل المدرسة</h3>
-                <button onClick={() => setShowEditDialog(false)} className="text-gray-400 hover:text-gray-600">
+                <h3 id="edit-school-title" className="text-xl font-bold text-gray-900">تعديل المدرسة</h3>
+                <button aria-label="إغلاق" onClick={() => setShowEditDialog(false)} className="text-gray-400 hover:text-gray-600">
                   <X size={24} />
                 </button>
               </div>
 
               <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="اسم المدرسة"
-                  value={formData.school_name}
-                  onChange={(e) => setFormData({...formData, school_name: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="الاسم الأول"
-                    value={formData.chief_supervisor_firstname}
-                    onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                  />
-                  <input
-                    type="text"
-                    placeholder="اسم العائلة"
-                    value={formData.chief_supervisor_lastname}
-                    onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                  />
+                <label className="block text-sm font-medium text-gray-700">اسم المدرسة
+                  <input type="text" autoComplete="organization" placeholder="اسم المدرسة" value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </label>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-medium text-gray-700">الاسم الأول للمشرف العام
+                    <input type="text" autoComplete="given-name" placeholder="الاسم الأول" value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  </label>
+                  <label className="block text-sm font-medium text-gray-700">اسم العائلة للمشرف العام
+                    <input type="text" autoComplete="family-name" placeholder="اسم العائلة" value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  </label>
                 </div>
-                <input
-                  type="email"
-                  placeholder="البريد الإلكتروني"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
-                <input
-                  type="password"
-                  placeholder="كلمة مرور جديدة (اختياري)"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
-                <input
-                  type="tel"
-                  placeholder="رقم الهاتف"
-                  value={formData.phone_number}
-                  onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-right"
-                />
+                <label className="block text-sm font-medium text-gray-700">البريد الإلكتروني
+                  <input type="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </label>
+                <label className="block text-sm font-medium text-gray-700">كلمة مرور جديدة <span className="font-normal text-gray-400">(اختياري)</span>
+                  <span className="relative mt-1.5 block">
+                    <input type={showEditPassword ? "text" : "password"} autoComplete="new-password" placeholder="اتركها فارغة دون تغيير" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pl-12 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                    <button type="button" aria-label={showEditPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"} aria-pressed={showEditPassword} onClick={() => setShowEditPassword((visible) => !visible)} className="absolute left-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                      {showEditPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </span>
+                </label>
+                <label className="block text-sm font-medium text-gray-700">رقم الهاتف <span className="font-normal text-gray-400">(اختياري)</span>
+                  <input type="tel" autoComplete="tel" dir="ltr" placeholder="مثال: 0555 123 456" value={formData.phone_number} onChange={(e) => setFormData({...formData, phone_number: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </label>
               </div>
 
               <div className="flex gap-3 mt-6">
@@ -482,7 +444,7 @@ export default function SchoolsManagementPage() {
 
         {/* Delete Dialog */}
         {showDeleteDialog && selectedSchool && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900">تأكيد الحذف</h3>

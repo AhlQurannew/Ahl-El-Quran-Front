@@ -111,8 +111,11 @@ const getStudents = async () => {
 };
 
 
-const getStatisticsSummary = async () => {
-    const res = await axiosGlobal.get("/statistics/summary");
+const getStatisticsSummary = async (schoolId?: number) => {
+    const res = await axiosGlobal.get("/statistics/summary", schoolId ? {
+        params: { school_id: schoolId },
+        headers: { 'X-Role-Override': 'CHIEF_SUPERVISOR' },
+    } : undefined);
     return res.data;
 };
 

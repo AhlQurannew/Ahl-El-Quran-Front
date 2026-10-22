@@ -1,10 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useSearchParams, usePathname } from 'next/navigation';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
 interface AdminViewContextType {
+  isResolved: boolean;
+  isAdminSession: boolean;
   isAdminViewing: boolean;
   viewingSchoolId: number | null;
   viewingSchoolName: string | null;
@@ -13,6 +15,8 @@ interface AdminViewContextType {
 }
 
 const AdminViewContext = createContext<AdminViewContextType>({
+  isResolved: false,
+  isAdminSession: false,
   isAdminViewing: false,
   viewingSchoolId: null,
   viewingSchoolName: null,
@@ -22,83 +26,146 @@ const AdminViewContext = createContext<AdminViewContextType>({
 
 export const useAdminView = () => useContext(AdminViewContext);
 
+type StoredSchoolView = { id: number; name: string };
+
+function tokenIsAdmin(token: string | null): boolean {
+  if (!token) return false;
+  try {
+    const encodedPayload = token.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/');
+    if (!encodedPayload) return false;
+    const payload = JSON.parse(atob(encodedPayload.padEnd(Math.ceil(encodedPayload.length / 4) * 4, '=')));
+    return String(payload.role ?? '').toUpperCase() === 'ADMIN' || payload.admin_id != null;
+  } catch {
+    return false;
+  }
+}
+
+function readStoredSchoolView(): StoredSchoolView | null {
+  try {
+    const value = sessionStorage.getItem('admin_viewing_school');
+    if (!value) return null;
+    const parsed = JSON.parse(value) as Partial<StoredSchoolView>;
+    return Number.isInteger(parsed.id) && Number(parsed.id) > 0 && typeof parsed.name === 'string'
+      ? { id: Number(parsed.id), name: parsed.name }
+      : null;
+  } catch {
+    sessionStorage.removeItem('admin_viewing_school');
+    return null;
+  }
+}
+
 export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { setEffectiveRole } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const setEffectiveRole = useAuthStore((state) => state.setEffectiveRole);
+  const storedToken = typeof window === 'undefined' ? null : localStorage.getItem('access_token');
+  const isAdminSession = user?.role?.toUpperCase() === 'ADMIN' || tokenIsAdmin(accessToken || storedToken);
   const [isAdminViewing, setIsAdminViewing] = useState(false);
+  const [isResolved, setIsResolved] = useState(false);
   const [viewingSchoolId, setViewingSchoolId] = useState<number | null>(null);
   const [viewingSchoolName, setViewingSchoolName] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Check URL params first
-    const schoolIdFromUrl = searchParams.get('school_id');
-    
-    if (schoolIdFromUrl) {
-      // Admin is viewing a school from URL
-      setIsAdminViewing(true);
-      setViewingSchoolId(Number(schoolIdFromUrl));
-      setEffectiveRole('CHIEF_SUPERVISOR'); // Admin acts as CHIEF_SUPERVISOR
-      
-      // Try to get school name from session storage
-      const storedData = sessionStorage.getItem('admin_viewing_school');
-      if (storedData) {
-        const parsed = JSON.parse(storedData);
-        setViewingSchoolName(parsed.name);
-      }
-    } else if (pathname.startsWith('/dashboard')) {
-      // Admin is on dashboard, not viewing any school
-      setIsAdminViewing(false);
-      setViewingSchoolId(null);
-      setViewingSchoolName(null);
-      setEffectiveRole(null); // Clear role override
-    } else {
-      // Check session storage for persisted viewing state
-      const storedData = sessionStorage.getItem('admin_viewing_school');
-      if (storedData) {
-        const parsed = JSON.parse(storedData);
-        setIsAdminViewing(true);
-        setViewingSchoolId(parsed.id);
-        setViewingSchoolName(parsed.name);
-        setEffectiveRole('CHIEF_SUPERVISOR'); // Admin acts as CHIEF_SUPERVISOR
-      }
-    }
-  }, [searchParams, pathname, setEffectiveRole]);
-
-  const exitAdminView = () => {
+  const clearSchoolView = useCallback(() => {
+    sessionStorage.removeItem('admin_viewing_school');
     setIsAdminViewing(false);
     setViewingSchoolId(null);
     setViewingSchoolName(null);
-    setEffectiveRole(null); // Clear role override
-    sessionStorage.removeItem('admin_viewing_school');
-    window.location.href = '/dashboard';
+    setEffectiveRole(null);
+  }, [setEffectiveRole]);
+
+  const syncSchoolView = useCallback(() => {
+    const requestedSchoolId = Number(searchParams.get('school_id'));
+    const hasRequestedSchool = Number.isInteger(requestedSchoolId) && requestedSchoolId > 0;
+    const storedView = readStoredSchoolView();
+    const hasAuthenticatedSession = Boolean(accessToken || localStorage.getItem('access_token'));
+
+    if (!hasAuthenticatedSession) {
+      clearSchoolView();
+      setIsResolved(true);
+      if (hasRequestedSchool || storedView) router.replace('/login');
+      return;
+    }
+
+    if (!isAdminSession) {
+      clearSchoolView();
+      setIsResolved(true);
+      if (hasRequestedSchool) router.replace(pathname);
+      return;
+    }
+
+    if (pathname.startsWith('/dashboard')) {
+      clearSchoolView();
+      setIsResolved(true);
+      return;
+    }
+
+    const schoolView = hasRequestedSchool
+      ? { id: requestedSchoolId, name: storedView?.id === requestedSchoolId ? storedView.name : '' }
+      : storedView;
+
+    if (!schoolView) {
+      clearSchoolView();
+      setIsResolved(true);
+      return;
+    }
+
+    if (hasRequestedSchool && storedView?.id !== requestedSchoolId) {
+      sessionStorage.setItem('admin_viewing_school', JSON.stringify(schoolView));
+    }
+    setIsAdminViewing(true);
+    setViewingSchoolId(schoolView.id);
+    setViewingSchoolName(schoolView.name || null);
+    setEffectiveRole('CHIEF_SUPERVISOR');
+    setIsResolved(true);
+  }, [accessToken, clearSchoolView, isAdminSession, pathname, router, searchParams, setEffectiveRole]);
+
+  useEffect(() => {
+    // Reconcile React state with browser URL/session state after client navigation.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    syncSchoolView();
+  }, [syncSchoolView]);
+
+  useEffect(() => {
+    window.addEventListener('pageshow', syncSchoolView);
+    window.addEventListener('popstate', syncSchoolView);
+    return () => {
+      window.removeEventListener('pageshow', syncSchoolView);
+      window.removeEventListener('popstate', syncSchoolView);
+    };
+  }, [syncSchoolView]);
+
+  const exitAdminView = () => {
+    clearSchoolView();
+    router.replace('/dashboard');
   };
 
   const setSelectedSchool = (schoolId: number, schoolName: string) => {
-    console.log('[AdminView] Setting school:', schoolId, schoolName);
+    if (!isAdminSession || !(accessToken || localStorage.getItem('access_token'))) {
+      router.replace('/login');
+      return;
+    }
+    sessionStorage.setItem('admin_viewing_school', JSON.stringify({ id: schoolId, name: schoolName }));
     setIsAdminViewing(true);
     setViewingSchoolId(schoolId);
     setViewingSchoolName(schoolName);
-    setEffectiveRole('CHIEF_SUPERVISOR'); // Admin acts as CHIEF_SUPERVISOR
-    console.log('[AdminView] Set effectiveRole to CHIEF_SUPERVISOR');
-    
-    // Persist to session storage
-    sessionStorage.setItem('admin_viewing_school', JSON.stringify({
-      id: schoolId,
-      name: schoolName
-    }));
+    setEffectiveRole('CHIEF_SUPERVISOR');
+    setIsResolved(true);
+    router.push(`/?school_id=${schoolId}`);
   };
 
   return (
-    <AdminViewContext.Provider 
-      value={{ 
-        isAdminViewing, 
-        viewingSchoolId, 
-        viewingSchoolName,
-        setSelectedSchool,
-        exitAdminView 
-      }}
-    >
+    <AdminViewContext.Provider value={{
+      isResolved,
+      isAdminSession,
+      isAdminViewing,
+      viewingSchoolId,
+      viewingSchoolName,
+      setSelectedSchool,
+      exitAdminView,
+    }}>
       {children}
     </AdminViewContext.Provider>
   );

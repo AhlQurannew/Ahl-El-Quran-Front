@@ -9,16 +9,17 @@ import {
   ClipboardCheck,
   BarChart3,
   FileText,
-  CheckCircle2,
   Calendar,
   UserCheck,
   MessageSquare,
   Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import type { AxiosError } from 'axios';
 import presidentAPI from '@/app/API/president';
 import teacherAPI from '@/app/API/teacher';
 import { useAuthStore } from '@/store/authStore';
+import { useAdminView } from '@/contexts/AdminViewContext';
 
 interface DashboardCard {
   title: string;
@@ -39,6 +40,7 @@ interface StatsSummary {
 
 export function DashboardCards() {
   const user = useAuthStore((state) => state.user);
+  const { isResolved: isAdminViewResolved, isAdminViewing, viewingSchoolId } = useAdminView();
   const isTeacher = user?.role === 'TEACHER';
   const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT';
   const isSupervisor = user?.role === 'SUPERVISOR';
@@ -46,12 +48,17 @@ export function DashboardCards() {
   const [stats, setStats] = useState<StatsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const invalidSchoolContext = isAdminViewResolved && isAdminViewing && !viewingSchoolId;
 
   useEffect(() => {
+    if (!isAdminViewResolved) return;
+
+    if (isAdminViewing && !viewingSchoolId) return;
+
     const fetchStats = async () => {
       try {
         setIsLoading(true);
-        let data: any;
+        let data: StatsSummary;
         if (isTeacher) {
           try {
             data = await teacherAPI.getTeacherStatsSummary();
@@ -59,24 +66,25 @@ export function DashboardCards() {
             data = { total_students: 0, total_teachers: 0, total_supervisors: 0, present_today: 0, total_pages_memorized: 0, total_lectures: 0 };
           }
         } else {
-          data = await presidentAPI.getStatisticsSummary();
+          data = await presidentAPI.getStatisticsSummary(isAdminViewing ? viewingSchoolId! : undefined);
         }
         console.log('Dashboard stats received:', data);
         setStats(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const requestError = err as AxiosError<{ detail?: string }>;
         console.error('Error fetching dashboard stats:', err);
-        if (err.response?.status === 401) {
+        if (requestError.response?.status === 401) {
           logout(true);
           return;
         }
-        setError(err.response?.data?.detail || err.message || 'فشل تحميل الإحصائيات');
+        setError(requestError.response?.data?.detail || requestError.message || 'فشل تحميل الإحصائيات');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchStats();
-  }, [isTeacher]);
+  }, [isAdminViewResolved, isAdminViewing, isTeacher, viewingSchoolId]);
 
   const statsCards: DashboardCard[] = isTeacher ? [
     { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
@@ -153,7 +161,11 @@ export function DashboardCards() {
       {/* Statistics Cards */}
       <div>
         <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">الإحصائيات</h3>
-        {isLoading ? (
+        {invalidSchoolContext ? (
+          <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+            لم يتم إرسال طلب الإحصائيات لعدم توفر معرّف المدرسة.
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
           </div>
