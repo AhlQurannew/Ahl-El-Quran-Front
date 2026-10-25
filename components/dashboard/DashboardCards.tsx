@@ -114,13 +114,15 @@ export function DashboardCards() {
   ] : [
     { title: 'حضور الطلاب', icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
     { title: 'حضور المعلمين', icon: <ClipboardCheck className="w-16 h-16" />, href: '/teacher-attendance', variant: 'action' },
-    { title: 'الخطة والمراجعة', icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' }
+    { title: 'الخطة والمراجعة', icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
+    { title: 'أولياء الأمور', icon: <Users className="w-16 h-16" />, href: '/guardians', variant: 'action' }
   ];
 
   const actionSmallIcons: React.ReactNode[] = [
     <UserCheck className="w-4 h-4" key="action-icon-0" />,
     <ClipboardCheck className="w-4 h-4" key="action-icon-1" />,
-    <Calendar className="w-4 h-4" key="action-icon-2" />
+    <Calendar className="w-4 h-4" key="action-icon-2" />,
+    <Users className="w-4 h-4" key="action-icon-3" />
   ];
 
   const reportCards: DashboardCard[] = [

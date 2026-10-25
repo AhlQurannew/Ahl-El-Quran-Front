@@ -3,13 +3,13 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
-import { Avatar } from '@/components/ui/Avatar';
+
 import type { Guardian } from '@/types/guardian';
 
 interface GuardianTableProps {
   guardians: Guardian[];
-  selectedIds: string[];
-  onToggleSelect: (id: string) => void;
+  selectedIds: number[];
+  onToggleSelect: (id: number) => void;
   onToggleSelectAll: () => void;
   onPlusClick: (guardian: Guardian) => void;
   isLoading?: boolean;
@@ -23,7 +23,7 @@ export const GuardianTable: React.FC<GuardianTableProps> = ({
   onPlusClick,
   isLoading,
 }) => {
-  const allSelected = guardians.length > 0 && selectedIds.length === guardians.length;
+  const allSelected = guardians.length > 0 && guardians.every((guardian) => selectedIds.includes(guardian.id));
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -52,16 +52,16 @@ export const GuardianTable: React.FC<GuardianTableProps> = ({
                 صلة القرابة
               </th>
               <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                العنوان
+                الهاتف
               </th>
               <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                المهنة
+                الطلاب المرتبطون
               </th>
               <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                البريد الإلكتروني
+                اسم مستخدم الحساب
               </th>
               <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الصورة
+                الحالة
               </th>
             </tr>
           </thead>
@@ -120,22 +120,19 @@ export const GuardianTable: React.FC<GuardianTableProps> = ({
                     <td className="px-4 py-3.5 text-sm text-gray-600">
                       {guardian.relationship || <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="px-4 py-3.5 text-sm text-gray-600">
-                      {guardian.homeAddress || <span className="text-gray-300">—</span>}
+                    <td className="px-4 py-3.5 text-sm text-gray-600" dir="ltr">
+                      {guardian.phoneNumber || <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-600">
-                      {guardian.job || <span className="text-gray-300">—</span>}
+                      {guardian.students.length ? guardian.students.map((student) => `${student.firstName} ${student.lastName}`).join('، ') : <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-600" dir="ltr">
-                      {guardian.email || <span className="text-gray-300">—</span>}
+                      {guardian.username || <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <Avatar
-                        src={guardian.profileImage || undefined}
-                        name={`${guardian.firstName || ''} ${guardian.lastName || ''}`.trim() || 'ولي أمر'}
-                        alt={`${guardian.firstName || ''} ${guardian.lastName || ''}`}
-                        size="sm"
-                      />
+                    <td className="px-4 py-3.5 text-sm">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${guardian.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                        {guardian.isActive ? 'نشط' : 'غير نشط'}
+                      </span>
                     </td>
                   </tr>
                 );

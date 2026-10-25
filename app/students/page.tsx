@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
 import type { Student } from '@/types/student';
 import studentsAPI, { CreateStudentPayload } from '@/app/API/students';
+
 import teacherAPI from '@/app/API/teacher';
 import { useAuthStore } from '@/store/authStore';
 import { getTodayApiDate } from '@/utils/dateHelpers';
@@ -44,6 +45,9 @@ function apiStudentToStudent(api: any): Student {
     nationality: api.personalInfo?.nationality || 'Algerian',
     idType: '',
     photo: api.photo || undefined,
+    guardianId: api.guardian?.guardianId ?? api.guardian?.guardian_id ?? api.guardian_id ?? undefined,
+    guardianName: api.guardian?.firstName || api.parent_name || '',
+    guardianEmail: api.guardian?.email || api.guardian_email || '',
   };
 }
 
@@ -82,6 +86,7 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
       lastName: '',
       email: data.username || undefined,
       relationship: '',
+      guardianId: data.guardianId,
       homeAddress: '',
       job: '',
     },
@@ -411,13 +416,16 @@ export default function StudentsPage() {
         )}
       </div>
 
-      <StudentForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        editingStudent={editingStudent}
-        isSubmitting={isSubmitting}
-      />
+      {isFormOpen && (
+        <StudentForm
+          key={editingStudent?.id ?? 'new-student'}
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          onSubmit={handleFormSubmit}
+          editingStudent={editingStudent}
+          isSubmitting={isSubmitting}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={isConfirmOpen}

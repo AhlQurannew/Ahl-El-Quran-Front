@@ -567,7 +567,7 @@ git push origin feature/my-feature
 - Automated tests (pytest for backend, Jest for frontend)
 - Real-time notifications (WebSocket)
 - Email notifications
-- PDF report generation
+- report generation
 - Mobile app (React Native)
 - Bulk operations (import/export CSV)
 

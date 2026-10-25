@@ -106,6 +106,7 @@ const presidentNavGroups: NavGroup[] = [
     groupLabel: 'الشؤون الإدارية',
     items: [
       { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
+      { label: 'أولياء الأمور', href: '/guardians', icon: <Users size={18} /> },
       { label: 'المعلمين', href: '/teachers', icon: <UserCheck size={18} /> },
       { label: 'حضور الطلاب', href: '/attendance', icon: <UserCheck size={18} /> },
       { label: 'حضور المعلمين', href: '/teacher-attendance', icon: <ClipboardCheck size={18} /> },
@@ -131,6 +132,7 @@ const supervisorNavGroups: NavGroup[] = [
     groupLabel: 'الشؤون الإدارية',
     items: [
       { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
+      { label: 'أولياء الأمور', href: '/guardians', icon: <Users size={18} /> },
       { label: 'المعلمين', href: '/teachers', icon: <UserCheck size={18} /> },
       { label: 'حضور الطلاب', href: '/attendance', icon: <UserCheck size={18} /> },
       { label: 'حضور المعلمين', href: '/teacher-attendance', icon: <ClipboardCheck size={18} /> },

@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
 import lecturesAPI, { type Lecture } from '@/api/lectures';
+import guardianAPI from '@/app/API/guardian';
+import type { Guardian } from '@/types/guardian';
 
 export type StudentFormData = Omit<Student, 'id'> & { photoFile?: File };
 
@@ -32,6 +34,7 @@ const EMPTY_FORM: StudentFormData = {
   nationality: 'Algerian',
   idType: '',
   photo: '',
+  guardianId: undefined,
   photoFile: undefined,
 };
 
@@ -43,10 +46,18 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   isLoading,
   isSubmitting,
 }) => {
-  const [form, setForm] = React.useState<StudentFormData>(EMPTY_FORM);
+  const [form, setForm] = React.useState<StudentFormData>(() => {
+    if (!editingStudent) return EMPTY_FORM;
+    const { id, ...studentData } = editingStudent;
+    void id;
+    return { ...studentData, photoFile: undefined };
+  });
   const [errors, setErrors] = React.useState<Partial<Record<keyof StudentFormData, string>>>({});
   const [lectures, setLectures] = React.useState<Lecture[]>([]);
   const [loadingLectures, setLoadingLectures] = React.useState(false);
+  const [guardians, setGuardians] = React.useState<Guardian[]>([]);
+  const [loadingGuardians, setLoadingGuardians] = React.useState(true);
+  const [guardianLoadError, setGuardianLoadError] = React.useState(false);
 
   const isEditing = !!editingStudent;
 
@@ -71,14 +82,25 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (editingStudent) {
-      const { id: _id, ...rest } = editingStudent;
-      setForm({ ...rest, photoFile: undefined });
-    } else {
-      setForm(EMPTY_FORM);
-    }
-    setErrors({});
-  }, [editingStudent, isOpen]);
+    if (!isOpen) return;
+    let active = true;
+    guardianAPI.getAllGuardians()
+      .then((data) => {
+        if (!active) return;
+        setGuardians(data);
+        setGuardianLoadError(false);
+      })
+      .catch((error) => {
+        console.error('Error fetching guardians:', error);
+        if (active) {
+          setGuardians([]);
+          setGuardianLoadError(true);
+        }
+      })
+      .finally(() => { if (active) setLoadingGuardians(false); });
+    return () => { active = false; };
+  }, [isOpen]);
+
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -216,6 +238,26 @@ export const StudentForm: React.FC<StudentFormProps> = ({
             onChange={(e) => set('dob', e.target.value)}
           />
         </div>
+
+        <Select
+          label="ولي الأمر (اختياري)"
+          value={form.guardianId ? String(form.guardianId) : ''}
+          onChange={(event) => setForm((current) => ({ ...current, guardianId: event.target.value ? Number(event.target.value) : undefined }))}
+          options={[
+            { value: '', label: 'بدون ولي أمر' },
+            ...(form.guardianId && !guardians.some((guardian) => guardian.id === form.guardianId)
+              ? [{ value: String(form.guardianId), label: `ولي الأمر الحالي رقم ${form.guardianId}` }]
+              : []),
+            ...guardians.map((guardian) => ({
+              value: String(guardian.id),
+              label: `${guardian.firstName} ${guardian.lastName} — ${guardian.relationship}`,
+            })),
+          ]}
+          disabled={loadingGuardians}
+        />
+        <p className="-mt-2 text-xs text-gray-500">
+          {loadingGuardians ? 'جاري تحميل أولياء الأمور...' : guardianLoadError ? 'تعذر تحميل قائمة أولياء الأمور؛ يمكنك إعادة فتح النموذج والمحاولة مرة أخرى.' : 'يمكن ربط الطالب بولي أمر واحد فقط.'}
+        </p>
 
         {/* POB & Nationality */}
         <div className="grid grid-cols-2 gap-3">

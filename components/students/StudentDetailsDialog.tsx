@@ -1,11 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
-import { User, Mail, Calendar, MapPin, Flag, IdCard, BookOpen } from 'lucide-react';
+import { Mail, Calendar, MapPin, Flag, IdCard, BookOpen, type LucideIcon } from 'lucide-react';
+import guardianAPI from '@/app/API/guardian';
+import type { Guardian } from '@/types/guardian';
 
 interface StudentDetailsDialogProps {
   isOpen: boolean;
@@ -13,26 +15,48 @@ interface StudentDetailsDialogProps {
   student: Student | null;
 }
 
+type GuardianLoadResult = { guardianId: number; guardian?: Guardian; error?: true };
+
+const DetailRow = ({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string | undefined }) => (
+  <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+      <Icon size={18} className="text-teal-600" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-xs font-medium text-gray-500 mb-0.5">{label}</p>
+      <p className="text-sm font-semibold text-gray-800 break-words">
+        {value || <span className="text-gray-400">—</span>}
+      </p>
+    </div>
+  </div>
+);
+
 export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
   isOpen,
   onClose,
   student,
 }) => {
-  if (!student) return null;
+  const [guardianLoadResult, setGuardianLoadResult] = useState<GuardianLoadResult | null>(null);
+  const guardianId = student?.guardianId;
 
-  const DetailRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | undefined }) => (
-    <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
-      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
-        <Icon size={18} className="text-teal-600" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-gray-500 mb-0.5">{label}</p>
-        <p className="text-sm font-semibold text-gray-800 break-words">
-          {value || <span className="text-gray-400">—</span>}
-        </p>
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    if (!isOpen || !guardianId) return;
+    let active = true;
+    guardianAPI.getGuardian(guardianId)
+      .then((guardian) => {
+        if (active) setGuardianLoadResult({ guardianId, guardian });
+      })
+      .catch(() => {
+        if (active) setGuardianLoadResult({ guardianId, error: true });
+      });
+    return () => { active = false; };
+  }, [isOpen, guardianId]);
+
+  if (!student) return null;
+  const guardianResult = guardianId && guardianLoadResult?.guardianId === guardianId
+    ? guardianLoadResult
+    : null;
+  const linkedGuardian = guardianResult?.guardian;
 
   return (
     <Modal
@@ -105,6 +129,35 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
             value={student.idType} 
           />
         </div>
+
+        <section className="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
+          <h4 className="mb-3 text-sm font-bold text-gray-800">ولي الأمر المرتبط</h4>
+          {!guardianId ? (
+            <p className="text-sm text-gray-500">لا يوجد ولي أمر مرتبط بهذا الطالب.</p>
+          ) : !guardianResult ? (
+            <p className="text-sm text-gray-500">جاري تحميل بيانات ولي الأمر...</p>
+          ) : linkedGuardian ? (
+            <div className="space-y-2 text-sm">
+              <p className="font-semibold text-gray-800">{linkedGuardian.firstName} {linkedGuardian.lastName}</p>
+              <p className="text-gray-600">صلة القرابة: {linkedGuardian.relationship || '—'}</p>
+              {linkedGuardian.phoneNumber && <p dir="ltr" className="text-right text-gray-600">{linkedGuardian.phoneNumber}</p>}
+              {linkedGuardian.email && <p className="text-gray-600">بريد التواصل: {linkedGuardian.email}</p>}
+              {linkedGuardian.username && <p className="text-gray-600">اسم المستخدم: {linkedGuardian.username}</p>}
+            </div>
+          ) : (
+            <div className="space-y-2 text-sm">
+              <p className="font-semibold text-gray-800">
+                {student.guardianName || 'ولي أمر'}
+              </p>
+              {student.guardianEmail && <p className="text-gray-600">بريد التواصل: {student.guardianEmail}</p>}
+              <p className="text-xs text-gray-500">
+                {student.guardianName || student.guardianEmail
+                  ? 'تعذر تحميل بقية بيانات ولي الأمر.'
+                  : 'تعذر تحميل بيانات ولي الأمر.'}
+              </p>
+            </div>
+          )}
+        </section>
       </div>
     </Modal>
   );
