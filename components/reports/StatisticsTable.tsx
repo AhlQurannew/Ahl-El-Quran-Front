@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import reportsAPI, { StatsSummary, AttendanceRecord, MemorizationRecord, LectureDistribution } from '@/app/API/reports';
 import { Loader2 } from 'lucide-react';
 
@@ -10,36 +10,61 @@ export function StatisticsTable() {
   const [memorizationData, setMemorizationData] = useState<MemorizationRecord[]>([]);
   const [classData, setClassData] = useState<LectureDistribution[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadCount, setReloadCount] = useState(0);
 
   useEffect(() => {
-    async function loadStats() {
-      try {
-        setLoading(true);
-        const [sumRes, attRes, memRes, classRes] = await Promise.allSettled([
-          reportsAPI.getStatsSummary(),
-          reportsAPI.getAttendanceTrend(10),
-          reportsAPI.getTopMemorizers(5),
-          reportsAPI.getLectureDistribution()
-        ]);
+    let active = true;
+    Promise.all([
+      reportsAPI.getStatsSummary(),
+      reportsAPI.getAttendanceTrend(10),
+      reportsAPI.getTopMemorizers(5),
+      reportsAPI.getLectureDistribution(),
+    ])
+      .then(([summaryResult, attendanceResult, memorizationResult, lectureResult]) => {
+        if (!active) return;
+        setSummary(summaryResult);
+        setAttendanceData(attendanceResult);
+        setMemorizationData(memorizationResult);
+        setClassData(lectureResult);
+        setError(null);
+      })
+      .catch((requestError: unknown) => {
+        if (!active) return;
+        console.error('Failed to load statistics:', requestError);
+        setError('تعذر تحميل التقارير حالياً. تحقق من الاتصال ثم أعد المحاولة.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
-        if (sumRes.status === 'fulfilled') setSummary(sumRes.value);
-        if (attRes.status === 'fulfilled') setAttendanceData(attRes.value || []);
-        if (memRes.status === 'fulfilled') setMemorizationData(memRes.value || []);
-        if (classRes.status === 'fulfilled') setClassData(classRes.value || []);
-      } catch (err) {
-        console.error('Failed to load statistics:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadStats();
-  }, []);
+    return () => { active = false; };
+  }, [reloadCount]);
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-16 space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-emerald-600" />
         <p className="text-sm font-semibold text-gray-500">جاري تحميل التقارير والإحصائيات...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 p-10 text-center">
+        <p className="text-sm font-semibold text-red-700">{error}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setLoading(true);
+            setError(null);
+            setReloadCount((count) => count + 1);
+          }}
+          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+        >
+          إعادة المحاولة
+        </button>
       </div>
     );
   }

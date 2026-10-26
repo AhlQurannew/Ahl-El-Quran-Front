@@ -117,6 +117,7 @@ export default function ProgressStatsPage() {
       setLoading(true);
       const res = await reportsAPI.getProgressTimeline({
         student_id: Number(student),
+        lecture_id: halqa ? Number(halqa) : undefined,
         start_date: startDate,
         end_date: endDate,
       });

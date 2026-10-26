@@ -60,11 +60,7 @@ export function DashboardCards() {
         setIsLoading(true);
         let data: StatsSummary;
         if (isTeacher) {
-          try {
-            data = await teacherAPI.getTeacherStatsSummary();
-          } catch {
-            data = { total_students: 0, total_teachers: 0, total_supervisors: 0, present_today: 0, total_pages_memorized: 0, total_lectures: 0 };
-          }
+          data = await teacherAPI.getTeacherStatsSummary();
         } else {
           data = await presidentAPI.getStatisticsSummary(isAdminViewing ? viewingSchoolId! : undefined);
         }
@@ -153,12 +149,6 @@ export function DashboardCards() {
         </p>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
-          {error}
-        </div>
-      )}
 
       {/* Statistics Cards */}
       <div>
@@ -166,6 +156,10 @@ export function DashboardCards() {
         {invalidSchoolContext ? (
           <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">
             لم يتم إرسال طلب الإحصائيات لعدم توفر معرّف المدرسة.
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+            تعذر تحميل إحصائيات لوحة القيادة: {error}
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-12">

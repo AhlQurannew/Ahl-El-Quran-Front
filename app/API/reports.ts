@@ -38,8 +38,8 @@ const getAxiosClient = () => {
 
 export interface StatsSummary {
     total_students: number;
-    total_teachers?: number;
-    total_supervisors?: number;
+    total_teachers: number;
+    total_supervisors: number;
     present_today: number;
     total_pages_memorized: number;
     total_lectures: number;
@@ -127,6 +127,7 @@ const getHalqaBreakdown = async (params: {
 
 const getProgressTimeline = async (params: {
     student_id: number;
+    lecture_id?: number;
     start_date?: string;
     end_date?: string;
 }): Promise<Array<{ date: string; memorization: number; minorRev: number; majorRev: number }>> => {

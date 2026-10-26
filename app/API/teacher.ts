@@ -1,6 +1,7 @@
 import { logout } from '@/utils/auth';
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import type { AttendanceRecord, LectureDistribution, MemorizationRecord, StatsSummary } from '@/app/API/reports';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -299,22 +300,22 @@ const deleteTeacherAttendance = async (
 
 // ================= TEACHER STATISTICS =================
 
-const getTeacherStatsSummary = async (): Promise<any> => {
+const getTeacherStatsSummary = async (): Promise<StatsSummary> => {
     const res = await axiosGlobal.get("/statistics/summary");
     return res.data;
 };
 
-const getTeacherAttendanceTrend = async (limit: number = 10): Promise<any> => {
+const getTeacherAttendanceTrend = async (limit: number = 10): Promise<AttendanceRecord[]> => {
     const res = await axiosGlobal.get("/statistics/attendance-trend", { params: { limit } });
     return res.data;
 };
 
-const getTeacherTopMemorizers = async (limit: number = 5): Promise<any> => {
+const getTeacherTopMemorizers = async (limit: number = 5): Promise<MemorizationRecord[]> => {
     const res = await axiosGlobal.get("/statistics/top-memorizers", { params: { limit } });
     return res.data;
 };
 
-const getTeacherLectureDistribution = async (): Promise<any> => {
+const getTeacherLectureDistribution = async (): Promise<LectureDistribution[]> => {
     const res = await axiosGlobal.get("/statistics/lecture-distribution");
     return res.data;
 };
@@ -350,6 +351,7 @@ const getTeacherHalqaBreakdown = async (params: {
 
 const getTeacherProgressTimeline = async (params: {
     student_id: number;
+    lecture_id?: number;
     start_date?: string;
     end_date?: string;
 }): Promise<Array<{ date: string; memorization: number; minorRev: number; majorRev: number }>> => {
