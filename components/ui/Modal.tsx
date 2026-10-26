@@ -4,6 +4,9 @@ import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
+let openModalCount = 0;
+let bodyOverflowBeforeModal = '';
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,8 +35,14 @@ export const Modal: React.FC<ModalProps> = ({
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (!isOpen) return;
+    if (openModalCount === 0) bodyOverflowBeforeModal = document.body.style.overflow;
+    openModalCount += 1;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      openModalCount = Math.max(0, openModalCount - 1);
+      if (openModalCount === 0) document.body.style.overflow = bodyOverflowBeforeModal;
+    };
   }, [isOpen]);
 
   const sizes = {

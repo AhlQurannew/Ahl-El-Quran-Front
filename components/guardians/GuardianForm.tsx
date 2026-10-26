@@ -27,6 +27,8 @@ interface GuardianFormProps {
   onSubmit: (data: GuardianFormData) => Promise<void>;
   editingGuardian?: Guardian | null;
   isSubmitting?: boolean;
+  createOnly?: boolean;
+  serverError?: string;
 }
 
 const EMPTY_FORM: GuardianFormData = {
@@ -54,6 +56,8 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
   onSubmit,
   editingGuardian,
   isSubmitting = false,
+  createOnly = false,
+  serverError,
 }) => {
   const [form, setForm] = useState<GuardianFormData>(() => editingGuardian ? {
     ...EMPTY_FORM,
@@ -76,6 +80,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    if (createOnly) return;
     let active = true;
     const loadStudents = async () => {
       try {
@@ -93,7 +98,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
     };
     void loadStudents();
     return () => { active = false; };
-  }, [editingGuardian, isOpen]);
+  }, [createOnly, editingGuardian, isOpen]);
 
   const selectedStudents = useMemo(
     () => new Set(form.studentIds),
@@ -121,7 +126,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
     if (!form.firstName.trim()) nextErrors.firstName = 'الاسم مطلوب';
     if (!form.lastName.trim()) nextErrors.lastName = 'اللقب مطلوب';
     if (!form.relationship.trim()) nextErrors.relationship = 'صلة القرابة مطلوبة';
-    if (form.studentIds.length === 0) nextErrors.studentIds = 'اختر طالباً واحداً على الأقل';
+    if (!createOnly && form.studentIds.length === 0) nextErrors.studentIds = 'اختر طالباً واحداً على الأقل';
     if (!form.username.trim()) nextErrors.username = 'اسم مستخدم الحساب مطلوب';
     if (!isEditing && !form.password.trim()) nextErrors.password = 'كلمة المرور مطلوبة لإنشاء الحساب';
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
@@ -129,7 +134,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
     }
 
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0 || isLoadingStudents || studentLoadError) return;
+    if (Object.keys(nextErrors).length > 0 || (!createOnly && (isLoadingStudents || studentLoadError))) return;
     await onSubmit({ ...form, firstName: form.firstName.trim(), lastName: form.lastName.trim(), relationship: form.relationship.trim() });
   };
 
@@ -149,6 +154,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
       )}
     >
       <form id="guardian-form" onSubmit={handleSubmit} className="space-y-5">
+        {serverError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{serverError}</p>}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input label="الاسم *" value={form.firstName} onChange={(event) => setField('firstName', event.target.value)} error={errors.firstName} />
           <Input label="اللقب *" value={form.lastName} onChange={(event) => setField('lastName', event.target.value)} error={errors.lastName} />
@@ -185,7 +191,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
         </div>
         {!isEditing && <p className="-mt-3 text-xs text-gray-500">اسم المستخدم وكلمة المرور بيانات الحساب، وهي منفصلة عن بريد التواصل.</p>}
 
-        <section className="space-y-2 border-t border-gray-100 pt-4">
+        {!createOnly && <section className="space-y-2 border-t border-gray-100 pt-4">
           <div className="flex items-center justify-between gap-2">
             <div>
               <h3 className="text-sm font-bold text-gray-800">الطلاب المرتبطون * </h3>
@@ -215,7 +221,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
             </div>
           )}
           {errors.studentIds && <p className="text-xs text-red-600">{errors.studentIds}</p>}
-        </section>
+        </section>}
       </form>
     </Modal>
   );

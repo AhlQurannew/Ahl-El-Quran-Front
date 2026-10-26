@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { StudentPhoto } from '@/components/students/StudentPhoto';
+import { GuardianForm, type GuardianFormData } from '@/components/guardians/GuardianForm';
 import type { Student } from '@/types/student';
 import lecturesAPI, { type Lecture } from '@/api/lectures';
-import guardianAPI from '@/app/API/guardian';
-import type { Guardian } from '@/types/guardian';
+import guardianAPI, { type GuardianCreatePayload } from '@/app/API/guardian';
+import { mapGuardianResponse, type Guardian } from '@/types/guardian';
 
 export type StudentFormData = Omit<Student, 'id'> & { photoFile?: File };
 
@@ -58,6 +59,9 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   const [guardians, setGuardians] = React.useState<Guardian[]>([]);
   const [loadingGuardians, setLoadingGuardians] = React.useState(true);
   const [guardianLoadError, setGuardianLoadError] = React.useState(false);
+  const [isGuardianFormOpen, setIsGuardianFormOpen] = React.useState(false);
+  const [isCreatingGuardian, setIsCreatingGuardian] = React.useState(false);
+  const [guardianCreateError, setGuardianCreateError] = React.useState('');
 
   const isEditing = !!editingStudent;
 
@@ -87,15 +91,15 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     guardianAPI.getAllGuardians()
       .then((data) => {
         if (!active) return;
-        setGuardians(data);
+        setGuardians((current) => {
+          const fetchedIds = new Set(data.map((guardian) => guardian.id));
+          return [...data, ...current.filter((guardian) => !fetchedIds.has(guardian.id))];
+        });
         setGuardianLoadError(false);
       })
       .catch((error) => {
         console.error('Error fetching guardians:', error);
-        if (active) {
-          setGuardians([]);
-          setGuardianLoadError(true);
-        }
+        if (active) setGuardianLoadError(true);
       })
       .finally(() => { if (active) setLoadingGuardians(false); });
     return () => { active = false; };
@@ -161,15 +165,60 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     onSubmit(form);
   };
 
+  const handleClose = () => {
+    setIsGuardianFormOpen(false);
+    setGuardianCreateError('');
+    onClose();
+  };
+
+  const handleCreateGuardian = async (data: GuardianFormData) => {
+    setIsCreatingGuardian(true);
+    setGuardianCreateError('');
+    const payload: GuardianCreatePayload = {
+      guardian_info: {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        relationship: data.relationship,
+        date_of_birth: data.dateOfBirth || null,
+        phone_number: data.phoneNumber || null,
+        email: data.email || null,
+        job: data.job || null,
+        address: data.address || null,
+      },
+      student_ids: [],
+      account_info: { username: data.username.trim(), password: data.password },
+    };
+
+    try {
+      const response = await guardianAPI.createGuardian(payload);
+      const guardian = mapGuardianResponse(response);
+      setGuardians((current) => [guardian, ...current.filter((item) => item.id !== guardian.id)]);
+      setForm((current) => ({ ...current, guardianId: guardian.id }));
+      setIsGuardianFormOpen(false);
+    } catch (error) {
+      const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+      setGuardianCreateError(
+        typeof detail === 'string'
+          ? detail
+          : detail
+            ? JSON.stringify(detail)
+            : error instanceof Error ? error.message : 'تعذر إنشاء ولي الأمر. يرجى المحاولة مرة أخرى.',
+      );
+    } finally {
+      setIsCreatingGuardian(false);
+    }
+  };
+
   return (
+    <>
     <Modal
-      isOpen={isOpen}
-      onClose={onClose}
+      isOpen={isOpen && !isGuardianFormOpen}
+      onClose={handleClose}
       title={isEditing ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد'}
       size="md"
       footer={
         <>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading || isSubmitting}>
+          <Button variant="ghost" size="sm" onClick={handleClose} disabled={isLoading || isSubmitting}>
             إلغاء
           </Button>
           <Button size="sm" isLoading={isLoading || isSubmitting} onClick={handleSubmit}>
@@ -239,22 +288,38 @@ export const StudentForm: React.FC<StudentFormProps> = ({
           />
         </div>
 
-        <Select
-          label="ولي الأمر (اختياري)"
-          value={form.guardianId ? String(form.guardianId) : ''}
-          onChange={(event) => setForm((current) => ({ ...current, guardianId: event.target.value ? Number(event.target.value) : undefined }))}
-          options={[
-            { value: '', label: 'بدون ولي أمر' },
-            ...(form.guardianId && !guardians.some((guardian) => guardian.id === form.guardianId)
-              ? [{ value: String(form.guardianId), label: `ولي الأمر الحالي رقم ${form.guardianId}` }]
-              : []),
-            ...guardians.map((guardian) => ({
-              value: String(guardian.id),
-              label: `${guardian.firstName} ${guardian.lastName} — ${guardian.relationship}`,
-            })),
-          ]}
-          disabled={loadingGuardians}
-        />
+        <div className="flex items-end gap-2">
+          <div className="min-w-0 flex-1">
+            <Select
+              label="ولي الأمر (اختياري)"
+              value={form.guardianId ? String(form.guardianId) : ''}
+              onChange={(event) => setForm((current) => ({ ...current, guardianId: event.target.value ? Number(event.target.value) : undefined }))}
+              options={[
+                { value: '', label: 'بدون ولي أمر' },
+                ...(form.guardianId && !guardians.some((guardian) => guardian.id === form.guardianId)
+                  ? [{ value: String(form.guardianId), label: `ولي الأمر الحالي رقم ${form.guardianId}` }]
+                  : []),
+                ...guardians.map((guardian) => ({
+                  value: String(guardian.id),
+                  label: `${guardian.firstName} ${guardian.lastName} — ${guardian.relationship}`,
+                })),
+              ]}
+              disabled={loadingGuardians}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mb-0.5 shrink-0 whitespace-nowrap"
+            onClick={() => {
+              setGuardianCreateError('');
+              setIsGuardianFormOpen(true);
+            }}
+          >
+            إضافة ولي أمر
+          </Button>
+        </div>
         <p className="-mt-2 text-xs text-gray-500">
           {loadingGuardians ? 'جاري تحميل أولياء الأمور...' : guardianLoadError ? 'تعذر تحميل قائمة أولياء الأمور؛ يمكنك إعادة فتح النموذج والمحاولة مرة أخرى.' : 'يمكن ربط الطالب بولي أمر واحد فقط.'}
         </p>
@@ -325,5 +390,19 @@ export const StudentForm: React.FC<StudentFormProps> = ({
 
       </form>
     </Modal>
+    {isGuardianFormOpen && (
+      <GuardianForm
+        isOpen={isOpen}
+        onClose={() => {
+          setGuardianCreateError('');
+          setIsGuardianFormOpen(false);
+        }}
+        onSubmit={handleCreateGuardian}
+        isSubmitting={isCreatingGuardian}
+        createOnly
+        serverError={guardianCreateError}
+      />
+    )}
+    </>
   );
 };
