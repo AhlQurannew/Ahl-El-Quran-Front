@@ -114,6 +114,9 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                     {/* Plus Icon Action Button */}
                     <td className="px-2 py-3.5 text-center">
                       <button
+                        type="button"
+                        aria-label={`عرض تفاصيل المعلم ${teacher.firstname} ${teacher.lastname}`}
+                        title="عرض تفاصيل المعلم"
                         onClick={() => onPlusClick(teacher)}
                         className="w-5 h-5 rounded-full flex items-center justify-center border border-amber-500 bg-transparent text-amber-500 hover:bg-amber-500 hover:text-white transition-all cursor-pointer"
                       >

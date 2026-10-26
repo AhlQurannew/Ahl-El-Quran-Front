@@ -10,6 +10,8 @@ import { TeacherForm } from '@/components/teachers/TeacherForm';
 import { TeacherStats } from '@/components/teachers/TeacherStats';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Toast } from '@/components/ui/Toast';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
 import teacherAPI from '@/api/teacher';
 
@@ -31,6 +33,7 @@ export default function TeachersPage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [viewingTeacher, setViewingTeacher] = useState<Teacher | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -166,7 +169,7 @@ export default function TeachersPage() {
   };
 
   const handlePlusClick = (teacher: Teacher) => {
-    showToast('info', `عرض تفاصيل المعلم: ${teacher.firstname} ${teacher.lastname}`);
+    setViewingTeacher(teacher);
   };
 
   const handlePrint = () => {
@@ -308,6 +311,54 @@ export default function TeachersPage() {
         editingTeacher={editingTeacher}
         isSubmitting={isSubmitting}
       />
+
+      {/* Teacher details dialog */}
+      <Modal
+        isOpen={viewingTeacher !== null}
+        onClose={() => setViewingTeacher(null)}
+        title="تفاصيل المعلم"
+        size="md"
+        footer={(
+          <Button type="button" variant="ghost" onClick={() => setViewingTeacher(null)}>
+            إغلاق
+          </Button>
+        )}
+      >
+        {viewingTeacher && (
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-xl bg-gray-50 p-4">
+              <dt className="text-xs font-semibold text-gray-500">الاسم</dt>
+              <dd className="mt-1 font-bold text-gray-900">
+                {viewingTeacher.firstname} {viewingTeacher.lastname}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-gray-50 p-4">
+              <dt className="text-xs font-semibold text-gray-500">البريد الإلكتروني</dt>
+              <dd className="mt-1 break-all font-medium text-gray-900" dir="ltr">
+                {viewingTeacher.email || '—'}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-gray-50 p-4">
+              <dt className="text-xs font-semibold text-gray-500">الرواية</dt>
+              <dd className="mt-1 font-medium text-gray-900">{viewingTeacher.riwaya || '—'}</dd>
+            </div>
+            <div className="rounded-xl bg-gray-50 p-4">
+              <dt className="text-xs font-semibold text-gray-500">تاريخ التوظيف</dt>
+              <dd className="mt-1 font-medium text-gray-900">
+                {viewingTeacher.hire_date
+                  ? new Date(viewingTeacher.hire_date).toLocaleDateString('ar-EG')
+                  : '—'}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2">
+              <dt className="text-xs font-semibold text-gray-500">الحالة</dt>
+              <dd className={`mt-1 font-semibold ${viewingTeacher.is_active ? 'text-emerald-700' : 'text-gray-500'}`}>
+                {viewingTeacher.is_active ? 'نشط' : 'غير نشط'}
+              </dd>
+            </div>
+          </dl>
+        )}
+      </Modal>
 
       {/* Confirm deletion dialog */}
       <ConfirmDialog
