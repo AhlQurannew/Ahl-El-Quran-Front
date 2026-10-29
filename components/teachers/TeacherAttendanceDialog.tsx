@@ -8,7 +8,7 @@ import teacherAPI from '@/app/API/teacher';
 import { TeacherAttendance, TeacherAttendanceMapper } from '@/types/teacher_attendance_new.types';
 import { cn } from '@/utils/cn';
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "https://6d87-105-99-72-20.ngrok-free.app/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 interface TeacherAttendanceDialogProps {
   isOpen: boolean;
