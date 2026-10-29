@@ -69,7 +69,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     }
     clearPingInterval();
 
-    const apiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL)?.replace('/api/v1', '') || 'http://localhost:8000';
+    const apiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL)?.replace('/api/v1', '') || 'https://6d87-105-99-72-20.ngrok-free.app';
     const baseUrl = apiUrl.replace(/\/api\/v1$/, '');
     const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
     const wsHost = baseUrl.replace(/^https?:\/\//, '');

@@ -10,7 +10,7 @@ import {
   type GuardianStudentsApiResponse,
 } from '@/types/guardian';
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://6d87-105-99-72-20.ngrok-free.app/api/v1';
 
 const axiosGlobal = axios.create({
   baseURL: `${API_URL}/guardians`,
