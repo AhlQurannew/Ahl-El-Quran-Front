@@ -1,10 +1,19 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const PUBLIC_ROUTES = ['/login', '/register', '/showcase'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isExpired = request.nextUrl.searchParams.get('expired') === 'true';
+
+  if (isExpired) {
+    const response = NextResponse.next();
+    response.cookies.delete('access_token');
+    response.cookies.delete('user_role');
+    return response;
+  }
+
   const token = request.cookies.get('access_token')?.value;
 
   const isPublicRoute = PUBLIC_ROUTES.some(

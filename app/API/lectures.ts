@@ -12,10 +12,12 @@ const axiosGlobal = axios.create({
 });
 
 axiosGlobal.interceptors.request.use((config) => {
-    const token = useAuthStore.getState().accessToken;
+    const directToken = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const zustandToken = useAuthStore.getState().accessToken;
+    const token = directToken || zustandToken;
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-    config.headers['ngrok-skip-browser-warning'] = 'true';
+        config.headers['ngrok-skip-browser-warning'] = 'true';
     }
     
     // Check if admin is viewing a school (from session storage)
