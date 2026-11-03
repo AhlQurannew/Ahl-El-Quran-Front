@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import type { WebSocketMessage } from '@/types/message';
+import { API_ORIGIN } from '@/utils/apiConfig';
 
 interface UseWebSocketOptions {
   onMessage?: (data: WebSocketMessage) => void;
@@ -69,8 +70,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     }
     clearPingInterval();
 
-    const apiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL)?.replace('/api/v1', '') || 'http://localhost:8000';
-    const baseUrl = apiUrl.replace(/\/api\/v1$/, '');
+    const baseUrl = API_ORIGIN;
     const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
     const wsHost = baseUrl.replace(/^https?:\/\//, '');
 

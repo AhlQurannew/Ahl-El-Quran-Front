@@ -8,7 +8,7 @@ import teacherAPI from '@/app/API/teacher';
 import { TeacherAttendance, TeacherAttendanceMapper } from '@/types/teacher_attendance_new.types';
 import { cn } from '@/utils/cn';
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
 
 interface TeacherAttendanceDialogProps {
   isOpen: boolean;

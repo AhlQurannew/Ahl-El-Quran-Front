@@ -130,13 +130,13 @@ pnpm dev
 
 ## 🔐 Environment Variables
 
-Create a `.env.local` file in the root directory with the following variables:
+Copy `.env.example` to `.env.local` (`cp .env.example .env.local`) and adjust:
 
 ```env
-# Backend API URL
-NEXT_PUBLIC_API_BASE_URL=https://your-backend-api.ngrok-free.dev/api/v1
-# or for local development:
-# NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+# Local development — the port MUST match BACKEND_PORT in AhlQuran-Back/.env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+# or a deployed/ngrok backend:
+# NEXT_PUBLIC_API_BASE_URL=https://your-backend-api.ngrok-free.dev/api/v1
 
 # Alternative API URL variable (fallback)
 NEXT_PUBLIC_API_URL=https://your-backend-api.ngrok-free.dev/api/v1
@@ -148,7 +148,7 @@ NEXT_PUBLIC_API_URL=https://your-backend-api.ngrok-free.dev/api/v1
 
 ### Environment Variables Explained:
 
-- **NEXT_PUBLIC_API_BASE_URL**: The base URL of your backend API. This is the primary URL used by all API clients.
+- **NEXT_PUBLIC_API_BASE_URL**: The base URL of your backend API. It is read in one place, [`utils/apiConfig.ts`](utils/apiConfig.ts), which every API client and the WebSocket hook import. Never hardcode a backend URL elsewhere. Restart `npm run dev` after changing it.
 - **NEXT_PUBLIC_API_URL**: Fallback URL if `NEXT_PUBLIC_API_BASE_URL` is not set.
 
 **Important**: 

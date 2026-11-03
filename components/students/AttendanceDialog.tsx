@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Attendance, AttendanceMapper } from '@/types/attendance.types';
 import { cn } from '@/utils/cn';
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
 
 interface AttendanceDialogProps {
   isOpen: boolean;
