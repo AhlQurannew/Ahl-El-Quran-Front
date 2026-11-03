@@ -66,7 +66,7 @@ const updateProfile = async (changes: Partial<Pick<UserAccountProfile, 'firstnam
   return response.data.profile;
 };
 
-/** Signed-in account's avatar as a blob; rejects with 404 when there is none. */
+/** Signed-in account's avatar as a blob; the blob is empty when there is none. */
 const getPhoto = async (): Promise<Blob> => {
   const response = await settingsClient.get('/settings/photo', { responseType: 'blob' });
   return response.data;

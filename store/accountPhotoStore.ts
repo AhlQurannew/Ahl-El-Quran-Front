@@ -30,9 +30,10 @@ export const useAccountPhotoStore = create<AccountPhotoState>()((set, get) => {
       set({ status: 'loading' });
       try {
         const blob = await accountSettingsAPI.getPhoto();
-        replaceSrc(URL.createObjectURL(blob));
+        // 204 (empty body) means no avatar yet.
+        replaceSrc(blob.size > 0 ? URL.createObjectURL(blob) : null);
       } catch (error) {
-        // 404 simply means no avatar yet; anything else is logged but non-fatal.
+        // A 404 from an older backend also means no avatar; anything else is logged but non-fatal.
         if (!axios.isAxiosError(error) || error.response?.status !== 404) {
           console.error('Unable to load account photo:', error);
         }

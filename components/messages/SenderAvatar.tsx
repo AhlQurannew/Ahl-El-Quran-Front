@@ -20,8 +20,8 @@ function loadSenderPhoto(senderId?: number | null, adminSenderId?: number | null
   if (!pending) {
     pending = messagesAPI
       .getSenderPhoto({ sender_id: senderId, admin_sender_id: adminSenderId })
-      .then((blob) => URL.createObjectURL(blob))
-      .catch(() => null); // 404 = no photo; the role-coloured icon is shown instead
+      .then((blob) => (blob.size > 0 ? URL.createObjectURL(blob) : null)) // empty (204) = no photo
+      .catch(() => null); // the role-coloured icon is shown instead
     photoCache.set(key, pending);
   }
   return pending;
