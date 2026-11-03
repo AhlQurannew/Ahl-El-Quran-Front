@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import reportsAPI, { StatsSummary, AttendanceRecord, MemorizationRecord, LectureDistribution } from '@/app/API/reports';
 import { Loader2 } from 'lucide-react';
+import { t } from '@/i18n';
 
 export function StatisticsTable() {
   const [summary, setSummary] = useState<StatsSummary | null>(null);
@@ -32,7 +33,7 @@ export function StatisticsTable() {
       .catch((requestError: unknown) => {
         if (!active) return;
         console.error('Failed to load statistics:', requestError);
-        setError('تعذر تحميل التقارير حالياً. تحقق من الاتصال ثم أعد المحاولة.');
+        setError(t("تعذر تحميل التقارير حالياً. تحقق من الاتصال ثم أعد المحاولة."));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -45,7 +46,7 @@ export function StatisticsTable() {
     return (
       <div className="flex flex-col items-center justify-center p-16 space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-emerald-600" />
-        <p className="text-sm font-semibold text-gray-500">جاري تحميل التقارير والإحصائيات...</p>
+        <p className="text-sm font-semibold text-gray-500">{t("جاري تحميل التقارير والإحصائيات...")}</p>
       </div>
     );
   }
@@ -63,7 +64,7 @@ export function StatisticsTable() {
           }}
           className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
         >
-          إعادة المحاولة
+          {t("إعادة المحاولة")}
         </button>
       </div>
     );
@@ -74,19 +75,19 @@ export function StatisticsTable() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-6 shadow-md">
-          <h3 className="text-white text-sm font-semibold mb-2">إجمالي الطلاب</h3>
+          <h3 className="text-white text-sm font-semibold mb-2">{t("إجمالي الطلاب")}</h3>
           <p className="text-white text-3xl font-bold">{summary?.total_students ?? 0}</p>
         </div>
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-md">
-          <h3 className="text-white text-sm font-semibold mb-2">الطلاب الحاضرون اليوم</h3>
+          <h3 className="text-white text-sm font-semibold mb-2">{t("الطلاب الحاضرون اليوم")}</h3>
           <p className="text-white text-3xl font-bold">{summary?.present_today ?? 0}</p>
         </div>
         <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-6 shadow-md">
-          <h3 className="text-white text-sm font-semibold mb-2">الصفحات المحفوظة</h3>
+          <h3 className="text-white text-sm font-semibold mb-2">{t("الصفحات المحفوظة")}</h3>
           <p className="text-white text-3xl font-bold">{summary?.total_pages_memorized ?? 0}</p>
         </div>
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-md">
-          <h3 className="text-white text-sm font-semibold mb-2">عدد الحلقات</h3>
+          <h3 className="text-white text-sm font-semibold mb-2">{t("عدد الحلقات")}</h3>
           <p className="text-white text-3xl font-bold">{summary?.total_lectures ?? 0}</p>
         </div>
       </div>
@@ -94,29 +95,29 @@ export function StatisticsTable() {
       {/* Attendance Trend Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="bg-amber-500/85 text-white py-3 px-6 font-semibold text-sm">
-          تقرير تطور الحضور
+          {t("تقرير تطور الحضور")}
         </div>
         <div className="overflow-x-auto">
           {attendanceData.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-500">لا توجد سجلات حضور مسجلة حالياً</div>
+            <div className="p-8 text-center text-sm text-gray-500">{t("لا توجد سجلات حضور مسجلة حالياً")}</div>
           ) : (
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-teal-800 text-white border-b border-teal-900">
-                  <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                    التاريخ
+                  <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                    {t("التاريخ")}
                   </th>
                   <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                    الحاضرون
+                    {t("الحاضرون")}
                   </th>
                   <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                    الغائبون
+                    {t("الغائبون")}
                   </th>
                   <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                    الإجمالي
+                    {t("الإجمالي")}
                   </th>
                   <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                    نسبة الحضور
+                    {t("نسبة الحضور")}
                   </th>
                 </tr>
               </thead>
@@ -152,7 +153,7 @@ export function StatisticsTable() {
         </div>
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
           <span>
-            عدد السجلات: <span className="font-semibold text-gray-600">{attendanceData.length}</span>
+            {t("عدد السجلات:")}{' '}<span className="font-semibold text-gray-600">{attendanceData.length}</span>
           </span>
         </div>
       </div>
@@ -162,23 +163,23 @@ export function StatisticsTable() {
         {/* Memorization Progress Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="bg-amber-500/85 text-white py-3 px-6 font-semibold text-sm">
-            عدد الصفحات المحفوظة لكل طالب
+            {t("عدد الصفحات المحفوظة لكل طالب")}
           </div>
           <div className="overflow-x-auto">
             {memorizationData.length === 0 ? (
-              <div className="p-8 text-center text-sm text-gray-500">لا توجد إنجازات مسجلة للطلاب حالياً</div>
+              <div className="p-8 text-center text-sm text-gray-500">{t("لا توجد إنجازات مسجلة للطلاب حالياً")}</div>
             ) : (
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-teal-800 text-white border-b border-teal-900">
                     <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider w-16">
-                      الترتيب
+                      {t("الترتيب")}
                     </th>
-                    <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                      اسم الطالب
+                    <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                      {t("اسم الطالب")}
                     </th>
                     <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                      عدد الصفحات
+                      {t("عدد الصفحات")}
                     </th>
                   </tr>
                 </thead>
@@ -200,7 +201,7 @@ export function StatisticsTable() {
                       </td>
                       <td className="px-4 py-3.5 text-sm text-center">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                          {record.pages} صفحة
+                          {record.pages}{' '}{t("صفحة")}
                         </span>
                       </td>
                     </tr>
@@ -211,7 +212,7 @@ export function StatisticsTable() {
           </div>
           <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
             <span>
-              عدد الطلاب: <span className="font-semibold text-gray-600">{memorizationData.length}</span>
+              {t("عدد الطلاب:")}{' '}<span className="font-semibold text-gray-600">{memorizationData.length}</span>
             </span>
           </div>
         </div>
@@ -219,23 +220,23 @@ export function StatisticsTable() {
         {/* Class Distribution Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="bg-amber-500/85 text-white py-3 px-6 font-semibold text-sm">
-            توزيع الطلاب على الحلقات
+            {t("توزيع الطلاب على الحلقات")}
           </div>
           <div className="overflow-x-auto">
             {classData.length === 0 ? (
-              <div className="p-8 text-center text-sm text-gray-500">لا توجد حلقات مسجلة حالياً</div>
+              <div className="p-8 text-center text-sm text-gray-500">{t("لا توجد حلقات مسجلة حالياً")}</div>
             ) : (
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-teal-800 text-white border-b border-teal-900">
-                    <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                      اسم الحلقة
+                    <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                      {t("اسم الحلقة")}
                     </th>
                     <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                      عدد الطلاب
+                      {t("عدد الطلاب")}
                     </th>
                     <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                      النسبة المئوية
+                      {t("النسبة المئوية")}
                     </th>
                   </tr>
                 </thead>
@@ -269,7 +270,7 @@ export function StatisticsTable() {
           </div>
           <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
             <span>
-              عدد الحلقات: <span className="font-semibold text-gray-600">{classData.length}</span>
+              {t("عدد الحلقات:")}{' '}<span className="font-semibold text-gray-600">{classData.length}</span>
             </span>
           </div>
         </div>

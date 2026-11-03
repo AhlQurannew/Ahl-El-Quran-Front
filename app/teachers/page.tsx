@@ -14,6 +14,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
 import teacherAPI from '@/api/teacher';
+import { t as tr, getDir, getLang, getLocale } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -25,6 +27,7 @@ const getErrorMessage = (err: unknown, fallback: string) => {
 };
 
 export default function TeachersPage() {
+  const confirm = useConfirm();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -52,7 +55,7 @@ export default function TeachersPage() {
       })));
     } catch (err: unknown) {
       console.error('Error loading teachers:', err);
-      setLoadError(getErrorMessage(err, 'فشل تحميل بيانات المعلمين'));
+      setLoadError(getErrorMessage(err, tr("فشل تحميل بيانات المعلمين")));
     } finally {
       setIsLoading(false);
     }
@@ -118,14 +121,18 @@ export default function TeachersPage() {
       await loadTeachers();
       setSelectedIds([]);
       setIsConfirmOpen(false);
-      showToast('success', `تم حذف ${selectedIds.length} معلم بنجاح`);
+      showToast('success', tr("تم حذف {length} معلم بنجاح", { length: selectedIds.length }));
     } catch (err: unknown) {
       console.error('Error deleting teachers:', err);
-      showToast('error', getErrorMessage(err, 'فشل حذف المعلمين'));
+      showToast('error', getErrorMessage(err, tr("فشل حذف المعلمين")));
     }
   };
 
   const handleFormSubmit = async (data: TeacherCreatePayload | Partial<Teacher>) => {
+    const confirmed = await confirm(editingTeacher
+      ? { title: tr('تأكيد الحفظ'), message: tr('هل أنت متأكد من حفظ تعديلات المعلم {name}؟', { name: `${data.firstname ?? ''} ${data.lastname ?? ''}`.trim() }), confirmText: tr('نعم، احفظ') }
+      : { title: tr('تأكيد الإضافة'), message: tr('هل أنت متأكد من إضافة المعلم {name}؟', { name: `${data.firstname ?? ''} ${data.lastname ?? ''}`.trim() }), confirmText: tr('نعم، أضف') });
+    if (!confirmed) return;
     setIsSubmitting(true);
     try {
       if (editingTeacher) {
@@ -144,7 +151,7 @@ export default function TeachersPage() {
         }
         
         await teacherAPI.updateTeacher(Number(editingTeacher.id), updateData);
-        showToast('success', `تم تعديل بيانات المعلم ${data.firstname} ${data.lastname}`);
+        showToast('success', tr("تم تعديل بيانات المعلم {firstname} {lastname}", { firstname: data.firstname, lastname: data.lastname }));
         
         // Reload teachers list
         await loadTeachers();
@@ -153,7 +160,7 @@ export default function TeachersPage() {
         const createData = data as TeacherCreatePayload;
         await teacherAPI.createTeacher(createData);
         
-        showToast('success', `تمت إضافة المعلم ${data.firstname} ${data.lastname} بنجاح`);
+        showToast('success', tr("تمت إضافة المعلم {firstname} {lastname} بنجاح", { firstname: data.firstname, lastname: data.lastname }));
         
         // Reload teachers list
         await loadTeachers();
@@ -162,7 +169,7 @@ export default function TeachersPage() {
       setSelectedIds([]);
     } catch (err: unknown) {
       console.error('Error saving teacher:', err);
-      showToast('error', getErrorMessage(err, 'فشل حفظ بيانات المعلم'));
+      showToast('error', getErrorMessage(err, tr("فشل حفظ بيانات المعلم")));
     } finally {
       setIsSubmitting(false);
     }
@@ -175,33 +182,33 @@ export default function TeachersPage() {
   const handlePrint = () => {
     const printContent = `
       <!DOCTYPE html>
-      <html dir="rtl" lang="ar">
+      <html dir="${getDir()}" lang="${getLang()}">
       <head>
         <meta charset="UTF-8"/>
-        <title>قائمة المعلمين</title>
+        <title>${tr("قائمة المعلمين")}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #111; }
+          body { font-family: Arial, sans-serif; padding: 24px; direction: ${getDir()}; color: #111; }
           h1 { font-size: 18px; margin-bottom: 4px; }
           p.subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
           table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-          th { background: #b45309; color: white; padding: 8px 12px; text-align: right; border: 1px solid #b45309; }
+          th { background: #b45309; color: white; padding: 8px 12px; text-align: ${getDir() === 'rtl' ? 'right' : 'left'}; border: 1px solid #b45309; }
           td { padding: 8px 12px; border: 1px solid #e5e7eb; }
           tr:nth-child(even) td { background: #f9fafb; }
           .footer { margin-top: 24px; font-size: 12px; color: #666; text-align: center; }
         </style>
       </head>
       <body>
-        <h1>قائمة المعلمين</h1>
-        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG-u-nu-latn', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <h1>${tr("قائمة المعلمين")}</h1>
+        <p class="subtitle">${tr("تاريخ الطباعة: {v0}", { v0: new Date().toLocaleDateString(getLocale(), { year:'numeric', month:'long', day:'numeric' }) })}</p>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>الاسم الأول</th>
-              <th>اللقب</th>
-              <th>البريد الإلكتروني</th>
-              <th>الرواية</th>
-              <th>الحالة</th>
+              <th>${tr("الاسم الأول")}</th>
+              <th>${tr("اللقب")}</th>
+              <th>${tr("البريد الإلكتروني")}</th>
+              <th>${tr("الرواية")}</th>
+              <th>${tr("الحالة")}</th>
             </tr>
           </thead>
           <tbody>
@@ -215,7 +222,7 @@ export default function TeachersPage() {
             </tr>`).join('')}
           </tbody>
         </table>
-        <p class="footer">المجموع: ${filtered.length} معلم</p>
+        <p class="footer">${tr("المجموع: {length} معلم", { length: filtered.length })}</p>
       </body>
       </html>
     `;
@@ -230,25 +237,25 @@ export default function TeachersPage() {
 
   const handleExportExcel = () => {
     const exportData = filtered.map((t) => ({
-      'الاسم الأول': t.firstname,
-      'اللقب': t.lastname,
-      'البريد الإلكتروني': t.email,
-      'الرواية': t.riwaya || '-',
-      'تاريخ التعيين': t.hire_date ? new Date(t.hire_date).toLocaleDateString('ar-EG') : '-',
-      'الحالة': t.is_active ? 'نشط' : 'غير نشط',
+      [tr("الاسم الأول")]: t.firstname,
+      [tr("اللقب")]: t.lastname,
+      [tr("البريد الإلكتروني")]: t.email,
+      [tr("الرواية")]: t.riwaya || '-',
+      [tr("تاريخ التعيين")]: t.hire_date ? new Date(t.hire_date).toLocaleDateString(getLocale()) : '-',
+      [tr("الحالة")]: t.is_active ? tr("نشط") : tr("غير نشط"),
     }));
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعلمين');
-    XLSX.writeFile(workbook, 'قائمة_المعلمين.xlsx');
+    XLSX.utils.book_append_sheet(workbook, worksheet, tr("المعلمين"));
+    XLSX.writeFile(workbook, tr("قائمة_المعلمين.xlsx"));
   };
 
   return (
-    <AppLayout title="المعلمين" breadcrumb="الشؤون الإدارية / المعلمين">
+    <AppLayout title={tr("المعلمين")} breadcrumb={tr("الشؤون الإدارية / المعلمين")}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          إدارة المعلمين / الصفحة الرئيسية
+          {tr("إدارة المعلمين / الصفحة الرئيسية")}
         </div>
 
         {/* Loading State */}
@@ -264,9 +271,9 @@ export default function TeachersPage() {
             {loadError}
             <button 
               onClick={loadTeachers}
-              className="mr-4 underline hover:no-underline"
+              className="ms-4 underline hover:no-underline"
             >
-              إعادة المحاولة
+              {tr("إعادة المحاولة")}
             </button>
           </div>
         )}
@@ -316,44 +323,44 @@ export default function TeachersPage() {
       <Modal
         isOpen={viewingTeacher !== null}
         onClose={() => setViewingTeacher(null)}
-        title="تفاصيل المعلم"
+        title={tr("تفاصيل المعلم")}
         size="md"
         footer={(
           <Button type="button" variant="ghost" onClick={() => setViewingTeacher(null)}>
-            إغلاق
+            {tr("إغلاق")}
           </Button>
         )}
       >
         {viewingTeacher && (
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="rounded-xl bg-gray-50 p-4">
-              <dt className="text-xs font-semibold text-gray-500">الاسم</dt>
+              <dt className="text-xs font-semibold text-gray-500">{tr("الاسم")}</dt>
               <dd className="mt-1 font-bold text-gray-900">
                 {viewingTeacher.firstname} {viewingTeacher.lastname}
               </dd>
             </div>
             <div className="rounded-xl bg-gray-50 p-4">
-              <dt className="text-xs font-semibold text-gray-500">البريد الإلكتروني</dt>
+              <dt className="text-xs font-semibold text-gray-500">{tr("البريد الإلكتروني")}</dt>
               <dd className="mt-1 break-all font-medium text-gray-900" dir="ltr">
                 {viewingTeacher.email || '—'}
               </dd>
             </div>
             <div className="rounded-xl bg-gray-50 p-4">
-              <dt className="text-xs font-semibold text-gray-500">الرواية</dt>
-              <dd className="mt-1 font-medium text-gray-900">{viewingTeacher.riwaya || '—'}</dd>
+              <dt className="text-xs font-semibold text-gray-500">{tr("الرواية")}</dt>
+              <dd className="mt-1 font-medium text-gray-900">{(viewingTeacher.riwaya && tr(viewingTeacher.riwaya)) || '—'}</dd>
             </div>
             <div className="rounded-xl bg-gray-50 p-4">
-              <dt className="text-xs font-semibold text-gray-500">تاريخ التوظيف</dt>
+              <dt className="text-xs font-semibold text-gray-500">{tr("تاريخ التوظيف")}</dt>
               <dd className="mt-1 font-medium text-gray-900">
                 {viewingTeacher.hire_date
-                  ? new Date(viewingTeacher.hire_date).toLocaleDateString('ar-EG')
+                  ? new Date(viewingTeacher.hire_date).toLocaleDateString(getLocale())
                   : '—'}
               </dd>
             </div>
             <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2">
-              <dt className="text-xs font-semibold text-gray-500">الحالة</dt>
+              <dt className="text-xs font-semibold text-gray-500">{tr("الحالة")}</dt>
               <dd className={`mt-1 font-semibold ${viewingTeacher.is_active ? 'text-emerald-700' : 'text-gray-500'}`}>
-                {viewingTeacher.is_active ? 'نشط' : 'غير نشط'}
+                {viewingTeacher.is_active ? tr("نشط") : tr("غير نشط")}
               </dd>
             </div>
           </dl>
@@ -365,10 +372,10 @@ export default function TeachersPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="تأكيد حذف المعلمين"
-        message={`هل أنت متأكد من حذف عدد ${selectedIds.length} معلم من السجلات؟ لا يمكن التراجع عن هذا الإجراء.`}
-        confirmText="نعم، احذف"
-        cancelText="إلغاء"
+        title={tr("تأكيد حذف المعلمين")}
+        message={tr("هل أنت متأكد من حذف عدد {length} معلم من السجلات؟ لا يمكن التراجع عن هذا الإجراء.", { length: selectedIds.length })}
+        confirmText={tr("نعم، احذف")}
+        cancelText={tr("إلغاء")}
         variant="danger"
       />
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { t } from '@/i18n';
 
 interface TypingUser {
   sender_id: number;
@@ -14,8 +15,8 @@ interface TypingIndicatorProps {
 export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ typingUsers }) => {
   if (typingUsers.length === 0) return null;
 
-  const names = typingUsers.map((u) => u.sender_name).join('، ');
-  const text = typingUsers.length === 1 ? `${names} يكتب...` : `${names} يكتبون...`;
+  const names = typingUsers.map((u) => u.sender_name).join(t("، "));
+  const text = typingUsers.length === 1 ? t("{names} يكتب...", { names }) : t("{names} يكتبون...", { names });
 
   return (
     <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 animate-in fade-in slide-in-from-bottom-1 duration-200">

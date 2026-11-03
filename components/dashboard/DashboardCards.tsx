@@ -20,6 +20,7 @@ import presidentAPI from '@/app/API/president';
 import teacherAPI from '@/app/API/teacher';
 import { useAuthStore } from '@/store/authStore';
 import { useAdminView } from '@/contexts/AdminViewContext';
+import { t } from '@/i18n';
 
 interface DashboardCard {
   title: string;
@@ -73,7 +74,7 @@ export function DashboardCards() {
           logout(true);
           return;
         }
-        setError(requestError.response?.data?.detail || requestError.message || 'فشل تحميل الإحصائيات');
+        setError(requestError.response?.data?.detail || requestError.message || t("فشل تحميل الإحصائيات"));
       } finally {
         setIsLoading(false);
       }
@@ -83,17 +84,17 @@ export function DashboardCards() {
   }, [isAdminViewResolved, isAdminViewing, isTeacher, viewingSchoolId]);
 
   const statsCards: DashboardCard[] = isTeacher ? [
-    { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
-    { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' },
+    { title: t("الطلاب"), count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
+    { title: t("الحلقات"), count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' },
   ] : isSupervisor ? [
-    { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
-    { title: 'المعلمين', count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
-    { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' }
+    { title: t("الطلاب"), count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
+    { title: t("المعلمين"), count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
+    { title: t("الحلقات"), count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' }
   ] : [
-    { title: 'الطلاب', count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
-    { title: 'المعلمين', count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
-    { title: 'المشرفين', count: stats?.total_supervisors || 0, icon: <UserCheck className="w-16 h-16" />, href: '/supervisors', variant: 'stat' },
-    { title: 'الحلقات', count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' }
+    { title: t("الطلاب"), count: stats?.total_students || 0, icon: <GraduationCap className="w-16 h-16" />, href: '/students', variant: 'stat' },
+    { title: t("المعلمين"), count: stats?.total_teachers || 0, icon: <Users className="w-16 h-16" />, href: '/teachers', variant: 'stat' },
+    { title: t("المشرفين"), count: stats?.total_supervisors || 0, icon: <UserCheck className="w-16 h-16" />, href: '/supervisors', variant: 'stat' },
+    { title: t("الحلقات"), count: stats?.total_lectures || 0, icon: <BookOpen className="w-16 h-16" />, href: '/lectures', variant: 'stat' }
   ];
 
   const statsSmallIcons: React.ReactNode[] = [
@@ -104,14 +105,14 @@ export function DashboardCards() {
   ];
 
   const actionCards: DashboardCard[] = isTeacher ? [
-    { title: 'حضور الطلاب', icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
-    { title: 'الخطة والمراجعة', icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
-    { title: 'غرفة المحادثة', icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'action' },
+    { title: t("حضور الطلاب"), icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
+    { title: t("الخطة والمراجعة"), icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
+    { title: t("غرفة المحادثة"), icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'action' },
   ] : [
-    { title: 'حضور الطلاب', icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
-    { title: 'حضور المعلمين', icon: <ClipboardCheck className="w-16 h-16" />, href: '/teacher-attendance', variant: 'action' },
-    { title: 'الخطة والمراجعة', icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
-    { title: 'أولياء الأمور', icon: <Users className="w-16 h-16" />, href: '/guardians', variant: 'action' }
+    { title: t("حضور الطلاب"), icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
+    { title: t("حضور المعلمين"), icon: <ClipboardCheck className="w-16 h-16" />, href: '/teacher-attendance', variant: 'action' },
+    { title: t("الخطة والمراجعة"), icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
+    { title: t("أولياء الأمور"), icon: <Users className="w-16 h-16" />, href: '/guardians', variant: 'action' }
   ];
 
   const actionSmallIcons: React.ReactNode[] = [
@@ -122,9 +123,9 @@ export function DashboardCards() {
   ];
 
   const reportCards: DashboardCard[] = [
-    { title: 'التقارير', icon: <FileText className="w-16 h-16" />, href: '/reports', variant: 'report' },
-    { title: 'الإحصائيات', icon: <BarChart3 className="w-16 h-16" />, href: '/statistics', variant: 'report' },
-    { title: 'غرفة المحادثة', icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'report' }
+    { title: t("التقارير"), icon: <FileText className="w-16 h-16" />, href: '/reports', variant: 'report' },
+    { title: t("الإحصائيات"), icon: <BarChart3 className="w-16 h-16" />, href: '/statistics', variant: 'report' },
+    { title: t("غرفة المحادثة"), icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'report' }
   ];
 
   const reportSmallIcons: React.ReactNode[] = [
@@ -143,23 +144,23 @@ export function DashboardCards() {
     <div className="space-y-6">
       {/* Welcome Banner */}
       <div className={`bg-gradient-to-l ${bannerGradient} rounded-xl p-6 shadow-md`}>
-        <h2 className="text-white text-xl font-bold mb-2">مرحبا بكم في نظام أهل القرآن</h2>
+        <h2 className="text-white text-xl font-bold mb-2">{t("مرحبا بكم في نظام أهل القرآن")}</h2>
         <p className="text-white/90 text-sm">
-          مرحبا بك في نظام المتابعة، نتمنى لك أيام مديدة ومقبولة لك عند الله إيمانا واحتسابا
+          {t("مرحبا بك في نظام المتابعة، نتمنى لك أيام مديدة ومقبولة لك عند الله إيمانا واحتسابا")}
         </p>
       </div>
 
 
       {/* Statistics Cards */}
       <div>
-        <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">الإحصائيات</h3>
+        <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">{t("الإحصائيات")}</h3>
         {invalidSchoolContext ? (
           <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">
-            لم يتم إرسال طلب الإحصائيات لعدم توفر معرّف المدرسة.
+            {t("لم يتم إرسال طلب الإحصائيات لعدم توفر معرّف المدرسة.")}
           </div>
         ) : error ? (
           <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">
-            تعذر تحميل إحصائيات لوحة القيادة: {error}
+            {t("تعذر تحميل إحصائيات لوحة القيادة:")}{' '}{error}
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -193,7 +194,7 @@ export function DashboardCards() {
 
       {/* Action Cards */}
       <div>
-        <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">الإجراءات السريعة</h3>
+        <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">{t("الإجراءات السريعة")}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {actionCards.map((card, index) => (
             <Link
@@ -217,7 +218,7 @@ export function DashboardCards() {
 
       {/* Report Cards */}
       <div>
-        <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">التقارير والمتابعة</h3>
+        <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">{t("التقارير والمتابعة")}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {reportCards.map((card, index) => (
             <Link

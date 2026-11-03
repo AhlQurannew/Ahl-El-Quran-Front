@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
+import { t } from '@/i18n';
 
 interface StudentTableProps {
   students: Student[];
@@ -46,35 +47,35 @@ export const StudentTable: React.FC<StudentTableProps> = ({
               </th>
               {/* Plus action header */}
               <th className="px-2 py-3.5 w-10" />
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider w-16">
-                الصورة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider w-16">
+                {t("الصورة")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الاسم
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الاسم")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الكنية
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الكنية")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الجنس
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الجنس")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الحلقات
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الحلقات")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                اسم المستخدم
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("اسم المستخدم")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                تاريخ الميلاد
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("تاريخ الميلاد")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                مكان الميلاد
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("مكان الميلاد")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الجنسية
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الجنسية")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                نوع الهوية
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("نوع الهوية")}
               </th>
             </tr>
           </thead>
@@ -82,15 +83,15 @@ export const StudentTable: React.FC<StudentTableProps> = ({
             {isLoading ? (
               <tr>
                 <td colSpan={12} className="py-16 text-center">
-                  <Spinner size="md" label="جاري التحميل..." />
+                  <Spinner size="md" label={t("جاري التحميل...")} />
                 </td>
               </tr>
             ) : students.length === 0 ? (
               <tr>
                 <td colSpan={12} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm text-gray-400 font-medium">لا يوجد طلاب</p>
-                    <p className="text-xs text-gray-300">انقر على إضافة لإضافة طالب جديد</p>
+                    <p className="text-sm text-gray-400 font-medium">{t("لا يوجد طلاب")}</p>
+                    <p className="text-xs text-gray-300">{t("انقر على إضافة لإضافة طالب جديد")}</p>
                   </div>
                 </td>
               </tr>
@@ -128,7 +129,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                         className="w-full h-full object-cover"
                         fallback={(
                           <span className="text-xs font-bold text-gray-400">
-                            {student.firstName?.charAt(0) ?? '؟'}
+                            {student.firstName?.charAt(0) ?? t("؟")}
                           </span>
                         )}
                       />
@@ -142,7 +143,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                     {student.lastName}
                   </td>
                   <td className="px-4 py-3.5 text-sm text-gray-600">
-                    {student.gender === 'male' ? 'ذكر' : 'أنثى'}
+                    {student.gender === 'male' ? t("ذكر") : t("أنثى")}
                   </td>
                   <td className="px-4 py-3.5 text-sm text-gray-600">
                     {student.halqa || <span className="text-gray-300">—</span>}
@@ -173,7 +174,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
       {students.length > 0 && (
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex justify-between text-xs text-gray-400">
           <span>
-            عدد الصفوف: <span className="font-semibold text-gray-600">{students.length}</span>
+            {t("عدد الصفوف:")}{' '}<span className="font-semibold text-gray-600">{students.length}</span>
           </span>
         </div>
       )}

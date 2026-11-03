@@ -11,6 +11,8 @@ import { Attendance, AttendanceMapper } from '@/types/attendance.types';
 import { cn } from '@/utils/cn';
 
 import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
+import { t } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface AttendanceDialogProps {
   isOpen: boolean;
@@ -76,6 +78,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
   date,
   onSaved,
 }) => {
+  const confirm = useConfirm();
   const user = useAuthStore((state) => state.user);
   const isTeacher = user?.role === 'TEACHER';
   const [isLoading, setIsLoading] = useState(true);
@@ -128,7 +131,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
       // 404 is expected when no attendance record exists - don't show error
       if (err?.response?.status !== 404) {
         console.error('Error loading attendance:', err);
-        setError('فشل تحميل بيانات المواظبة');
+        setError(t("فشل تحميل بيانات المواظبة"));
       } else {
         // Silently handle 404 - no attendance exists yet
         setCurrentAttendance(null);
@@ -142,17 +145,18 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
 
   const handleSave = async () => {
     if (!selectedStatus) {
-      setError('الرجاء اختيار حالة المواظبة');
+      setError(t("الرجاء اختيار حالة المواظبة"));
       return;
     }
 
     // Validate date format
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      setError(`تنسيق التاريخ غير صحيح. المطلوب: YYYY-MM-DD. الوارد: ${date}`);
+      setError(t("تنسيق التاريخ غير صحيح. المطلوب: YYYY-MM-DD. الوارد: {date}", { date }));
       console.error('❌ Invalid date format:', date);
       return;
     }
 
+    if (!(await confirm({ title: t('تأكيد الحفظ'), message: t('هل أنت متأكد من حفظ سجل الحضور؟'), confirmText: t('نعم، احفظ') }))) return;
     setIsSaving(true);
     setError(null);
 
@@ -208,7 +212,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
       console.error('❌ Error status:', err?.response?.status);
       console.error('❌ Error headers:', err?.response?.headers);
       
-      let errorMsg = 'فشل في حفظ المواظبة';
+      let errorMsg = t("فشل في حفظ المواظبة");
       
       if (err?.response?.data?.detail) {
         const detail = err.response.data.detail;
@@ -222,16 +226,16 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
             const msg = d.msg || JSON.stringify(d);
             return `${field}: ${msg}`;
           });
-          errorMsg = 'أخطاء التحقق:\n' + errors.join('\n');
+          errorMsg = t("أخطاء التحقق:\n") + errors.join('\n');
         } else {
           errorMsg = JSON.stringify(detail);
         }
       } else if (err?.response?.status === 404) {
-        errorMsg = 'الطالب غير موجود';
+        errorMsg = t("الطالب غير موجود");
       } else if (err?.response?.status === 403) {
-        errorMsg = 'ليس لديك صلاحية لتسجيل المواظبة';
+        errorMsg = t("ليس لديك صلاحية لتسجيل المواظبة");
       } else if (err?.response?.status === 401) {
-        errorMsg = 'يجب تسجيل الدخول أولاً';
+        errorMsg = t("يجب تسجيل الدخول أولاً");
       } else if (err?.message) {
         errorMsg = err.message;
       }
@@ -251,7 +255,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={isSaving}>
-            إلغاء
+            {t("إلغاء")}
           </Button>
           <Button
             variant="primary"
@@ -259,7 +263,7 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
             disabled={!selectedStatus || isSaving}
             isLoading={isSaving}
           >
-            حفظ
+            {t("حفظ")}
           </Button>
         </>
       }
@@ -267,9 +271,9 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
       <div className="space-y-6">
         {/* Header with student info */}
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 -mx-6 -mt-5 px-6 py-4 rounded-t-2xl">
-          <h3 className="text-white font-bold text-lg">بيانات المواظبة</h3>
+          <h3 className="text-white font-bold text-lg">{t("بيانات المواظبة")}</h3>
           <p className="text-emerald-50 text-sm mt-1">{studentName}</p>
-          <p className="text-emerald-100 text-xs mt-0.5">التاريخ: {date}</p>
+          <p className="text-emerald-100 text-xs mt-0.5">{t("التاريخ:")}{' '}{date}</p>
         </div>
 
         {error && (
@@ -286,8 +290,8 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
           <>
             {/* Status Selection */}
             <div className="space-y-3">
-              <label className="block text-sm font-bold text-gray-900 text-right">
-                حالة المواظبة <span className="text-red-500">*</span>
+              <label className="block text-sm font-bold text-gray-900 text-start">
+                {t("حالة المواظبة")}{' '}<span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {statusOptions.map((option) => {
@@ -319,11 +323,11 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
                           isSelected ? 'text-gray-900' : 'text-gray-600'
                         )}
                       >
-                        {option.label}
+                        {t(option.label)}
                       </span>
                       {isSelected && (
                         <div
-                          className="mr-auto w-5 h-5 rounded-full flex items-center justify-center"
+                          className="ms-auto w-5 h-5 rounded-full flex items-center justify-center"
                           style={{ backgroundColor: option.color }}
                         >
                           <Check size={14} className="text-white" />
@@ -337,15 +341,15 @@ export const AttendanceDialog: React.FC<AttendanceDialogProps> = ({
 
             {/* Notes Section */}
             <div className="space-y-3">
-              <label className="block text-sm font-bold text-gray-900 text-right">
-                ملاحظة الأستاذ
+              <label className="block text-sm font-bold text-gray-900 text-start">
+                {t("ملاحظة الأستاذ")}
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="أضف ملاحظة (اختياري)..."
+                placeholder={t("أضف ملاحظة (اختياري)...")}
                 rows={3}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 text-right resize-none"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 text-start resize-none"
               />
             </div>
           </>

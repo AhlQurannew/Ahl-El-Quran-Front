@@ -52,16 +52,16 @@ export const Toast: React.FC<ToastProps> = ({
   const c = config[type];
 
   return (
-    <div className="fixed top-5 right-5 z-[100] animate-in slide-in-from-top-2 fade-in duration-300">
+    <div className="fixed top-5 inset-s-5 z-[100] animate-in slide-in-from-top-2 fade-in duration-300">
       <div
         className={cn(
-          'relative flex items-start gap-3 p-4 pr-10 rounded-2xl border shadow-xl shadow-black/10 min-w-[300px] max-w-sm overflow-hidden',
+          'relative flex items-start gap-3 p-4 ps-10 rounded-2xl border shadow-xl shadow-black/10 min-w-[300px] max-w-sm overflow-hidden',
           'backdrop-blur-xl bg-white/95',
           c.bg
         )}
       >
         {/* Colored side bar */}
-        <div className={cn('absolute inset-y-0 right-0 w-1', c.bar)} />
+        <div className={cn('absolute inset-y-0 inset-s-0 w-1', c.bar)} />
 
         {/* Icon */}
         <div className={cn('shrink-0 w-8 h-8 rounded-full flex items-center justify-center', c.iconBg)}>
@@ -76,7 +76,7 @@ export const Toast: React.FC<ToastProps> = ({
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute left-3 top-3 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+          className="absolute inset-e-3 top-3 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
         >
           <X size={15} />
         </button>

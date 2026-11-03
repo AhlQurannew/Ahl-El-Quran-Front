@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 ﻿export type SenderRole = 'teacher' | 'supervisor' | 'chief_supervisor' | 'president' | 'student' | 'guardian' | 'admin';
 
 export interface MessageAttachment {
@@ -67,16 +68,16 @@ export const getSenderRoleColor = (role: SenderRole | string): string => {
 export const getSenderRoleLabel = (role: SenderRole | string): string => {
   switch (role?.toLowerCase()) {
     case 'teacher':
-      return 'معلم';
+      return t("معلم");
     case 'supervisor':
-      return 'مشرف';
+      return t("مشرف");
     case 'chief_supervisor':
-      return 'مشرف عام';
+      return t("مشرف عام");
     case 'president':
     case 'admin':
-      return 'الرئيس';
+      return t("الرئيس");
     default:
-      return role || 'عضو';
+      return role || t("عضو");
   }
 };
 
@@ -86,14 +87,14 @@ export const formatMessageTime = (dateString: string): string => {
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
 
-    if (diffInMinutes < 1) return 'الآن';
-    if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
+    if (diffInMinutes < 1) return t("الآن");
+    if (diffInMinutes < 60) return t("منذ {diffInMinutes} دقيقة", { diffInMinutes });
     
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
+    if (diffInHours < 24) return t("منذ {diffInHours} ساعة", { diffInHours });
     
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `منذ ${diffInDays} يوم`;
+    if (diffInDays < 7) return t("منذ {diffInDays} يوم", { diffInDays });
     
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   } catch {

@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import PresidentCard from "@/components/PresidentCard";
 import { RotateCw, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import adminAPI from "@/api/admin";
+import { t } from '@/i18n';
 
 interface PendingPresident {
   id: number;
@@ -45,7 +46,7 @@ export default function AdminDashboard() {
       }
     } catch (err: any) {
       console.error("Erreur de chargement des présidents :", err);
-      setErrorMsg("تعذر تحميل قائمة الطلبات. يرجى المحاولة لاحقاً.");
+      setErrorMsg(t("تعذر تحميل قائمة الطلبات. يرجى المحاولة لاحقاً."));
       setPresidents([]);
     } finally {
       setIsLoading(false);
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
       setSelectedPresident(null);
     } catch (err: any) {
       console.error("Erreur lors de l'approbation :", err);
-      alert("حدث خطأ أثناء قبول الطلب. يرجى المحاولة مجدداً.");
+      alert(t("حدث خطأ أثناء قبول الطلب. يرجى المحاولة مجدداً."));
     } finally {
       setIsApproving(false);
     }
@@ -86,7 +87,7 @@ export default function AdminDashboard() {
       setSelectedPresident(null);
     } catch (err: any) {
       console.error("Erreur lors du رفض :", err);
-      alert("حدث خطأ أثناء رفض الطلب. يرجى المحاولة مجدداً.");
+      alert(t("حدث خطأ أثناء رفض الطلب. يرجى المحاولة مجدداً."));
     } finally {
       setIsRejecting(false);
     }
@@ -95,15 +96,15 @@ export default function AdminDashboard() {
   const getFullName = (p: PendingPresident) => {
     if (p.name) return p.name;
     const full = `${p.firstname || ''} ${p.lastname || ''}`.trim();
-    return full || 'بدون اسم';
+    return full || t("بدون اسم");
   };
 
   const getSchoolName = (p: PendingPresident) => {
-    return p.school_name || p.school || 'غير محدد';
+    return p.school_name || p.school || t("غير محدد");
   };
 
   return (
-    <AppLayout title="قبول الرؤساء" breadcrumb="لوحة التحكم / قبول الرؤساء">
+    <AppLayout title={t("قبول الرؤساء")} breadcrumb={t("لوحة التحكم / قبول الرؤساء")}>
       <div className="space-y-6">
         {/* Header Section */}
         <div className="flex items-center justify-between">
@@ -113,14 +114,14 @@ export default function AdminDashboard() {
               <Users size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">طلبات الرؤساء</h2>
-              <p className="text-sm text-gray-500">إدارة طلبات الرؤساء المعلقة</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t("طلبات الرؤساء")}</h2>
+              <p className="text-sm text-gray-500">{t("إدارة طلبات الرؤساء المعلقة")}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <span className="px-4 py-2 bg-white rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 shadow-sm">
-              {isLoading ? '...' : `${presidents.length} طلب`}
+              {isLoading ? '...' : t("{length} طلب", { length: presidents.length })}
             </span>
             <button
               onClick={fetchPendingPresidents}
@@ -129,10 +130,10 @@ export default function AdminDashboard() {
               style={{ backgroundColor: '#C8963E' }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#B8832E'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#C8963E'}
-              title="تحديث"
+              title={t("تحديث")}
             >
               <RotateCw size={18} className={isLoading ? 'animate-spin' : ''} />
-              <span className="hidden sm:inline">تحديث</span>
+              <span className="hidden sm:inline">{t("تحديث")}</span>
             </button>
           </div>
         </div>
@@ -149,7 +150,7 @@ export default function AdminDashboard() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-2 bg-white rounded-2xl border border-gray-100">
               <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8963E' }} />
-              <p className="text-sm font-medium">جاري تحميل الطلبات المعلقة...</p>
+              <p className="text-sm font-medium">{t("جاري تحميل الطلبات المعلقة...")}</p>
             </div>
           ) : (
             <>
@@ -170,7 +171,7 @@ export default function AdminDashboard() {
               {(!Array.isArray(presidents) || presidents.length === 0) && (
                 <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
                   <Users size={48} className="mx-auto mb-3 text-gray-300" />
-                  <p className="text-gray-400 font-medium">لا توجد طلبات رئيس معلقة حالياً</p>
+                  <p className="text-gray-400 font-medium">{t("لا توجد طلبات رئيس معلقة حالياً")}</p>
                 </div>
               )}
             </>
@@ -187,23 +188,23 @@ export default function AdminDashboard() {
               {getFullName(selectedPresident).charAt(0).toUpperCase()}
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-6">تفاصيل الطلب</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-6">{t("تفاصيل الطلب")}</h3>
 
-            <div className="space-y-3 text-sm text-right mb-6 bg-gray-50 p-4 rounded-xl">
+            <div className="space-y-3 text-sm text-start mb-6 bg-gray-50 p-4 rounded-xl">
               <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-                <span className="text-gray-500 font-medium">رقم المعرف</span>
+                <span className="text-gray-500 font-medium">{t("رقم المعرف")}</span>
                 <span className="font-bold text-gray-900">{selectedPresident.id}</span>
               </div>
               <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-                <span className="text-gray-500 font-medium">الاسم الكامل</span>
+                <span className="text-gray-500 font-medium">{t("الاسم الكامل")}</span>
                 <span className="font-bold text-gray-900">{getFullName(selectedPresident)}</span>
               </div>
               <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-                <span className="text-gray-500 font-medium">البريد الإلكتروني</span>
+                <span className="text-gray-500 font-medium">{t("البريد الإلكتروني")}</span>
                 <span className="font-bold text-gray-900 text-xs">{selectedPresident.email}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-500 font-medium">اسم المدرسة</span>
+                <span className="text-gray-500 font-medium">{t("اسم المدرسة")}</span>
                 <span className="font-bold" style={{ color: '#C8963E' }}>{getSchoolName(selectedPresident)}</span>
               </div>
             </div>
@@ -212,7 +213,7 @@ export default function AdminDashboard() {
               onClick={() => setSelectedPresident(null)}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-xl transition text-sm cursor-pointer"
             >
-              إغلاق
+              {t("إغلاق")}
             </button>
           </div>
         </div>
@@ -226,8 +227,8 @@ export default function AdminDashboard() {
               style={{ backgroundColor: 'rgba(200, 150, 62, 0.1)' }}>
               <CheckCircle size={32} style={{ color: '#C8963E' }} />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">قبول الطلب</h3>
-            <p className="text-sm text-gray-500 mb-6">هل أنت متأكد من قبول طلب هذا الرئيس؟</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t("قبول الطلب")}</h3>
+            <p className="text-sm text-gray-500 mb-6">{t("هل أنت متأكد من قبول طلب هذا الرئيس؟")}</p>
 
             <div className="space-y-3">
               <button
@@ -241,10 +242,10 @@ export default function AdminDashboard() {
                 {isApproving ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>جاري القبول...</span>
+                    <span>{t("جاري القبول...")}</span>
                   </>
                 ) : (
-                  'تأكيد القبول'
+                  t("تأكيد القبول")
                 )}
               </button>
 
@@ -253,7 +254,7 @@ export default function AdminDashboard() {
                 disabled={isApproving}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl transition text-sm font-medium cursor-pointer"
               >
-                إلغاء
+                {t("إلغاء")}
               </button>
             </div>
           </div>
@@ -267,8 +268,8 @@ export default function AdminDashboard() {
             <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
               <XCircle size={32} className="text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">رفض الطلب</h3>
-            <p className="text-sm text-gray-500 mb-6">هل أنت متأكد من رفض طلب هذا الرئيس؟</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t("رفض الطلب")}</h3>
+            <p className="text-sm text-gray-500 mb-6">{t("هل أنت متأكد من رفض طلب هذا الرئيس؟")}</p>
 
             <div className="space-y-3">
               <button
@@ -279,10 +280,10 @@ export default function AdminDashboard() {
                 {isRejecting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>جاري الرفض...</span>
+                    <span>{t("جاري الرفض...")}</span>
                   </>
                 ) : (
-                  'تأكيد الرفض'
+                  t("تأكيد الرفض")
                 )}
               </button>
 
@@ -291,7 +292,7 @@ export default function AdminDashboard() {
                 disabled={isRejecting}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl transition text-sm font-medium cursor-pointer"
               >
-                إلغاء
+                {t("إلغاء")}
               </button>
             </div>
           </div>

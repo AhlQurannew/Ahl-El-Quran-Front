@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import studentsAPI, { AttendancePayload } from '@/app/API/students';
+import { t } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface Student {
   id: number;
@@ -46,6 +48,7 @@ export function BulkAttendanceDialog({
   initialAttendanceRecords,
   onSaved,
 }: BulkAttendanceDialogProps) {
+  const confirm = useConfirm();
   const [selectedStatuses, setSelectedStatuses] = useState<Record<number, string | null>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +113,7 @@ export function BulkAttendanceDialog({
 
   const handleSaveAll = async () => {
     setError(null);
+    if (!(await confirm({ title: t('تأكيد الحفظ'), message: t('هل أنت متأكد من حفظ سجلات الحضور لجميع الطلاب؟'), confirmText: t('نعم، احفظ') }))) return;
     setIsSaving(true);
 
     try {
@@ -158,7 +162,7 @@ export function BulkAttendanceDialog({
       console.log(`Saved: ${savedCount}, Deleted: ${deletedCount} attendance records`);
     } catch (err: any) {
       console.error('Error saving bulk attendance:', err);
-      setError('فشل حفظ بعض سجلات المواظبة');
+      setError(t("فشل حفظ بعض سجلات المواظبة"));
     } finally {
       setIsSaving(false);
     }
@@ -180,7 +184,7 @@ export function BulkAttendanceDialog({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="المواظبة الجماعية" size="xl">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t("المواظبة الجماعية")} size="xl">
       <div className="space-y-5">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
@@ -192,11 +196,11 @@ export function BulkAttendanceDialog({
         <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">التاريخ</p>
+              <p className="text-sm text-gray-600">{t("التاريخ")}</p>
               <p className="text-lg font-semibold text-gray-900">{date}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">عدد الطلاب</p>
+              <p className="text-sm text-gray-600">{t("عدد الطلاب")}</p>
               <p className="text-lg font-semibold text-gray-900">{students.length}</p>
             </div>
           </div>
@@ -208,7 +212,7 @@ export function BulkAttendanceDialog({
             {/* Table Header */}
             <thead className="bg-teal-600 text-white sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-3 text-right font-semibold text-sm w-1/3">الطالب</th>
+                <th className="px-4 py-3 text-start font-semibold text-sm w-1/3">{t("الطالب")}</th>
                 {ATTENDANCE_OPTIONS.map((option) => (
                   <th key={option.value} className="px-2 py-3 text-center w-1/6">
                     <button
@@ -223,7 +227,7 @@ export function BulkAttendanceDialog({
                           onChange={() => {}}
                           className="w-4 h-4 cursor-pointer"
                         />
-                        <span className="text-sm font-semibold">{option.label}</span>
+                        <span className="text-sm font-semibold">{t(option.label)}</span>
                       </div>
                       <span className="text-xs opacity-90">({getSelectedCount(option.value)})</span>
                     </button>
@@ -278,7 +282,7 @@ export function BulkAttendanceDialog({
             disabled={isSaving}
             className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            إلغاء
+            {t("إلغاء")}
           </button>
           <button
             type="button"
@@ -304,10 +308,10 @@ export function BulkAttendanceDialog({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                جاري الحفظ...
+                {t("جاري الحفظ...")}
               </>
             ) : (
-              'حفظ الكل'
+              t("حفظ الكل")
             )}
           </button>
         </div>

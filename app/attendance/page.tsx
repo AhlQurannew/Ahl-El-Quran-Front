@@ -12,6 +12,7 @@ import { Calendar, Users, Search, Download, Check, X, Clock, FileText } from 'lu
 import { Attendance, AttendanceMapper } from '@/types/attendance.types';
 import { cn } from '@/utils/cn';
 import { formatDateArabic } from '@/utils/dateHelpers';
+import { t as tr } from '@/i18n';
 
 type ToastState = {
   visible: boolean;
@@ -87,7 +88,7 @@ export default function AttendancePage() {
       setStudents(studentsData);
     } catch (err) {
       console.error('Error loading students:', err);
-      showToast('error', 'فشل تحميل بيانات الطلاب');
+      showToast('error', tr("فشل تحميل بيانات الطلاب"));
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +153,7 @@ export default function AttendancePage() {
       setAttendanceRecords(records);
     } catch (err) {
       console.error('Error loading attendance records:', err);
-      showToast('error', 'فشل تحميل بيانات المواظبة');
+      showToast('error', tr("فشل تحميل بيانات المواظبة"));
     }
   };
 
@@ -168,7 +169,7 @@ export default function AttendancePage() {
 
   const handleMarkAttendance = (student: StudentData) => {
     if (!student.lectureId) {
-      showToast('error', 'لا يمكن تسجيل المواظبة لعدم ارتباط الطالب بحلقة');
+      showToast('error', tr("لا يمكن تسجيل المواظبة لعدم ارتباط الطالب بحلقة"));
       return;
     }
     setSelectedStudent(student);
@@ -185,7 +186,7 @@ export default function AttendancePage() {
           : record
       )
     );
-    showToast('success', 'تم حفظ المواظبة بنجاح');
+    showToast('success', tr("تم حفظ المواظبة بنجاح"));
     
     // Don't reload all records - just keep the optimistic update
     // If you need to verify, reload only the specific student's record
@@ -214,15 +215,15 @@ export default function AttendancePage() {
   const getStatusLabel = (status: string | null) => {
     switch (status) {
       case 'present':
-        return 'حاضر';
+        return tr("حاضر");
       case 'late':
-        return 'متأخر';
+        return tr("متأخر");
       case 'absent':
-        return 'غائب';
+        return tr("غائب");
       case 'excused':
-        return 'غائب بعذر';
+        return tr("غائب بعذر");
       default:
-        return 'لم يتم التسجيل';
+        return tr("لم يتم التسجيل");
     }
   };
 
@@ -248,17 +249,17 @@ export default function AttendancePage() {
       const excelData = filteredStudents.map((student) => {
         const status = getAttendanceStatus(student.id);
         return {
-          'الاسم الأول': student.firstName,
-          'اسم العائلة': student.lastName,
-          'الحلقة': student.halqa || '—',
-          'حالة المواظبة': getStatusLabel(status),
-          'التاريخ': formatDateArabic(selectedDate),
+          [tr("الاسم الأول")]: student.firstName,
+          [tr("اسم العائلة")]: student.lastName,
+          [tr("الحلقة")]: student.halqa || '—',
+          [tr("حالة المواظبة")]: getStatusLabel(status),
+          [tr("التاريخ")]: formatDateArabic(selectedDate),
         };
       });
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'المواظبة');
+      XLSX.utils.book_append_sheet(workbook, worksheet, tr("المواظبة"));
 
       worksheet['!cols'] = [
         { wch: 18 },
@@ -269,11 +270,11 @@ export default function AttendancePage() {
       ];
 
       const dateStr = selectedDate.split('-').reverse().join('-');
-      XLSX.writeFile(workbook, `المواظبة_${dateStr}.xlsx`);
-      showToast('success', 'تم تصدير ملف Excel بنجاح');
+      XLSX.writeFile(workbook, tr("المواظبة_{dateStr}.xlsx", { dateStr }));
+      showToast('success', tr("تم تصدير ملف Excel بنجاح"));
     } catch (error) {
       console.error('Error exporting Excel:', error);
-      showToast('error', 'حدث خطأ أثناء تصدير ملف Excel');
+      showToast('error', tr("حدث خطأ أثناء تصدير ملف Excel"));
     }
   };
 
@@ -289,15 +290,15 @@ export default function AttendancePage() {
   }, [filteredStudents, attendanceRecords]);
 
   return (
-    <AppLayout title="المواظبة" breadcrumb="الشؤون الإدارية / المواظبة">
+    <AppLayout title={tr("المواظبة")} breadcrumb={tr("الشؤون الإدارية / المواظبة")}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white py-4 px-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold">إدارة مواظبة الطلاب</h2>
+              <h2 className="text-xl font-bold">{tr("إدارة مواظبة الطلاب")}</h2>
               <p className="text-emerald-50 text-sm mt-1">
-                تسجيل ومتابعة حضور الطلاب اليومي
+                {tr("تسجيل ومتابعة حضور الطلاب اليومي")}
               </p>
             </div>
             <Users size={40} className="opacity-80" />
@@ -309,8 +310,8 @@ export default function AttendancePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Date Picker */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 text-right">
-                التاريخ
+              <label className="block text-sm font-semibold text-gray-700 text-start">
+                {tr("التاريخ")}
               </label>
               <div className="relative">
                 <input
@@ -321,35 +322,35 @@ export default function AttendancePage() {
                 />
                 <Calendar
                   size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
               </div>
             </div>
 
             {/* Search */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 text-right">
-                البحث
+              <label className="block text-sm font-semibold text-gray-700 text-start">
+                {tr("البحث")}
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="ابحث عن طالب..."
-                  className="w-full px-4 py-2.5 pr-10 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 text-right"
+                  placeholder={tr("ابحث عن طالب...")}
+                  className="w-full px-4 py-2.5 ps-10 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 text-start"
                 />
                 <Search
                   size={18}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
               </div>
             </div>
 
             {/* Export Button */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 text-right invisible">
-                إجراءات
+              <label className="block text-sm font-semibold text-gray-700 text-start invisible">
+                {tr("إجراءات")}
               </label>
               <Button
                 variant="outline"
@@ -357,7 +358,7 @@ export default function AttendancePage() {
                 className="w-full"
               >
                 <Download size={16} />
-                تصدير Excel
+                {tr("تصدير Excel")}
               </Button>
             </div>
           </div>
@@ -367,27 +368,27 @@ export default function AttendancePage() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-gray-500">
             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-600 mt-1">مجموع الطلاب</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("مجموع الطلاب")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-green-500">
             <div className="text-2xl font-bold text-green-600">{stats.present}</div>
-            <div className="text-sm text-gray-600 mt-1">حاضر</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("حاضر")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-orange-500">
             <div className="text-2xl font-bold text-orange-600">{stats.late}</div>
-            <div className="text-sm text-gray-600 mt-1">متأخر</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("متأخر")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-red-500">
             <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
-            <div className="text-sm text-gray-600 mt-1">غائب</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("غائب")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-blue-500">
             <div className="text-2xl font-bold text-blue-600">{stats.excused}</div>
-            <div className="text-sm text-gray-600 mt-1">غائب بعذر</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("غائب بعذر")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-amber-500">
             <div className="text-2xl font-bold text-amber-600">{stats.unmarked}</div>
-            <div className="text-sm text-gray-600 mt-1">لم يسجل</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("لم يسجل")}</div>
           </div>
         </div>
 
@@ -395,7 +396,7 @@ export default function AttendancePage() {
         {isLoading ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-md">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto" />
-            <p className="text-gray-500 mt-4">جاري تحميل البيانات...</p>
+            <p className="text-gray-500 mt-4">{tr("جاري تحميل البيانات...")}</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -403,20 +404,20 @@ export default function AttendancePage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-start text-xs font-bold text-gray-700 uppercase tracking-wider">
                       #
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      اسم الطالب
+                    <th className="px-6 py-3 text-start text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      {tr("اسم الطالب")}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      الحلقة
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      حالة المواظبة
+                    <th className="px-6 py-3 text-start text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      {tr("الحلقة")}
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      إجراءات
+                      {tr("حالة المواظبة")}
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      {tr("إجراءات")}
                     </th>
                   </tr>
                 </thead>
@@ -428,15 +429,15 @@ export default function AttendancePage() {
                         key={student.id}
                         className="hover:bg-gray-50 transition-colors duration-150"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-start">
                           {index + 1}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-start">
                           <div className="text-sm font-semibold text-gray-900">
                             {student.firstName} {student.lastName}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-start">
                           {student.halqa || '—'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -456,7 +457,7 @@ export default function AttendancePage() {
                             size="sm"
                             onClick={() => handleMarkAttendance(student)}
                           >
-                            {status ? 'تعديل' : 'تسجيل'}
+                            {status ? tr("تعديل") : tr("تسجيل")}
                           </Button>
                         </td>
                       </tr>
@@ -468,7 +469,7 @@ export default function AttendancePage() {
 
             {filteredStudents.length === 0 && (
               <div className="text-center py-12 text-gray-500">
-                لا توجد نتائج مطابقة للبحث
+                {tr("لا توجد نتائج مطابقة للبحث")}
               </div>
             )}
           </div>

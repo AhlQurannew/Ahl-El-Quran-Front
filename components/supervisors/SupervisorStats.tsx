@@ -3,6 +3,7 @@
 import React from 'react';
 import { Users, UserCheck, UserX } from 'lucide-react';
 import type { Supervisor } from '@/types/supervisor';
+import { t } from '@/i18n';
 
 interface SupervisorStatsProps {
   supervisors: Supervisor[];
@@ -15,7 +16,7 @@ export const SupervisorStats: React.FC<SupervisorStatsProps> = ({ supervisors })
 
   const stats = [
     {
-      label: 'إجمالي المشرفين',
+      label: t("إجمالي المشرفين"),
       value: totalSupervisors,
       icon: Users,
       color: 'bg-teal-500',
@@ -23,7 +24,7 @@ export const SupervisorStats: React.FC<SupervisorStatsProps> = ({ supervisors })
       bgLight: 'bg-teal-50',
     },
     {
-      label: 'المشرفين النشطين',
+      label: t("المشرفين النشطين"),
       value: activeSupervisors,
       icon: UserCheck,
       color: 'bg-green-500',
@@ -31,7 +32,7 @@ export const SupervisorStats: React.FC<SupervisorStatsProps> = ({ supervisors })
       bgLight: 'bg-green-50',
     },
     {
-      label: 'المشرفين غير النشطين',
+      label: t("المشرفين غير النشطين"),
       value: inactiveSupervisors,
       icon: UserX,
       color: 'bg-gray-500',

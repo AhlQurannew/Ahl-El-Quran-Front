@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
+import { t } from '@/i18n';
 
 interface TeacherFormProps {
   isOpen: boolean;
@@ -72,25 +73,25 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.firstname?.trim()) {
-      newErrors.firstname = 'الاسم مطلوب';
+      newErrors.firstname = t("الاسم مطلوب");
     }
     if (!formData.lastname?.trim()) {
-      newErrors.lastname = 'اللقب مطلوب';
+      newErrors.lastname = t("اللقب مطلوب");
     }
     if (!formData.email?.trim()) {
-      newErrors.email = 'البريد الإلكتروني مطلوب';
+      newErrors.email = t("البريد الإلكتروني مطلوب");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'البريد الإلكتروني غير صحيح';
+      newErrors.email = t("البريد الإلكتروني غير صحيح");
     }
     if (!formData.riwaya?.trim()) {
-      newErrors.riwaya = 'الرواية مطلوبة';
+      newErrors.riwaya = t("الرواية مطلوبة");
     }
     
     // Password is only required in create mode OR if password reset is enabled in edit mode
     if (!editingTeacher && !formData.password?.trim()) {
-      newErrors.password = 'كلمة المرور مطلوبة';
+      newErrors.password = t("كلمة المرور مطلوبة");
     } else if ((!editingTeacher || showPasswordReset) && formData.password && formData.password.length < 6) {
-      newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+      newErrors.password = t("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
     }
 
     setErrors(newErrors);
@@ -131,7 +132,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-800">
-          {editingTeacher ? 'تعديل بيانات المعلم' : 'إضافة معلم جديد'}
+          {editingTeacher ? t("تعديل بيانات المعلم") : t("إضافة معلم جديد")}
         </h2>
         <button
           onClick={onClose}
@@ -145,10 +146,10 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* First Name */}
         <Input
-          label="الاسم الأول"
+          label={t("الاسم الأول")}
           value={formData.firstname || ''}
           onChange={(e) => handleChange('firstname', e.target.value)}
-          placeholder="أدخل الاسم الأول"
+          placeholder={t("أدخل الاسم الأول")}
           error={errors.firstname}
           required
           disabled={isSubmitting}
@@ -156,10 +157,10 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
 
         {/* Last Name */}
         <Input
-          label="اسم العائلة"
+          label={t("اسم العائلة")}
           value={formData.lastname || ''}
           onChange={(e) => handleChange('lastname', e.target.value)}
-          placeholder="أدخل اسم العائلة"
+          placeholder={t("أدخل اسم العائلة")}
           error={errors.lastname}
           required
           disabled={isSubmitting}
@@ -167,7 +168,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
 
         {/* Email */}
         <Input
-          label="البريد الإلكتروني"
+          label={t("البريد الإلكتروني")}
           type="email"
           value={formData.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
@@ -180,7 +181,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         {/* Riwaya */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            الرواية <span className="text-red-500">*</span>
+            {t("الرواية")}{' '}<span className="text-red-500">*</span>
           </label>
           <select
             value={formData.riwaya || 'حفص عن عاصم'}
@@ -188,11 +189,11 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
             className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-500"
             disabled={isSubmitting}
           >
-            <option value="حفص عن عاصم">حفص عن عاصم</option>
-            <option value="ورش عن نافع">ورش عن نافع</option>
-            <option value="قالون عن نافع">قالون عن نافع</option>
-            <option value="الدوري عن أبي عمرو">الدوري عن أبي عمرو</option>
-            <option value="السوسي عن أبي عمرو">السوسي عن أبي عمرو</option>
+            <option value="حفص عن عاصم">{t("حفص عن عاصم")}</option>
+            <option value="ورش عن نافع">{t("ورش عن نافع")}</option>
+            <option value="قالون عن نافع">{t("قالون عن نافع")}</option>
+            <option value="الدوري عن أبي عمرو">{t("الدوري عن أبي عمرو")}</option>
+            <option value="السوسي عن أبي عمرو">{t("السوسي عن أبي عمرو")}</option>
           </select>
           {errors.riwaya && (
             <p className="mt-1 text-sm text-red-600">{errors.riwaya}</p>
@@ -204,13 +205,13 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
           // Create mode - always show password
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              كلمة المرور <span className="text-red-500">*</span>
+              {t("كلمة المرور")}{' '}<span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
               <Input
                 value={formData.password || ''}
                 onChange={(e) => handleChange('password', e.target.value)}
-                placeholder="أدخل كلمة المرور"
+                placeholder={t("أدخل كلمة المرور")}
                 error={errors.password}
                 required
                 disabled={isSubmitting}
@@ -220,11 +221,11 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
                 type="button"
                 onClick={handleGeneratePassword}
                 className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="توليد كلمة مرور"
+                title={t("توليد كلمة مرور")}
                 disabled={isSubmitting}
               >
                 <RefreshCw size={18} />
-                توليد
+                {t("توليد")}
               </button>
             </div>
             {errors.password && (
@@ -236,11 +237,11 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-sm font-bold text-gray-800">إعادة تعيين كلمة المرور</h3>
+                <h3 className="text-sm font-bold text-gray-800">{t("إعادة تعيين كلمة المرور")}</h3>
                 <p className="text-xs text-gray-600 mt-1">
                   {showPasswordReset 
-                    ? 'قم بإدخال كلمة مرور جديدة للمعلم' 
-                    : 'في حال نسيان المعلم لكلمة المرور، يمكنك إعادة تعيينها'}
+                    ? t("قم بإدخال كلمة مرور جديدة للمعلم") 
+                    : t("في حال نسيان المعلم لكلمة المرور، يمكنك إعادة تعيينها")}
                 </p>
               </div>
               {!showPasswordReset && (
@@ -253,7 +254,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
                   className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting}
                 >
-                  إعادة تعيين كلمة المرور
+                  {t("إعادة تعيين كلمة المرور")}
                 </button>
               )}
             </div>
@@ -264,7 +265,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
                   <Input
                     value={formData.password || ''}
                     onChange={(e) => handleChange('password', e.target.value)}
-                    placeholder="أدخل كلمة المرور الجديدة"
+                    placeholder={t("أدخل كلمة المرور الجديدة")}
                     error={errors.password}
                     required
                     disabled={isSubmitting}
@@ -274,11 +275,11 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
                     type="button"
                     onClick={handleGeneratePassword}
                     className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="توليد كلمة مرور"
+                    title={t("توليد كلمة مرور")}
                     disabled={isSubmitting}
                   >
                     <RefreshCw size={18} />
-                    توليد
+                    {t("توليد")}
                   </button>
                 </div>
                 {errors.password && (
@@ -294,7 +295,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
                   className="text-sm text-gray-600 hover:text-gray-800 underline disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting}
                 >
-                  إلغاء إعادة التعيين
+                  {t("إلغاء إعادة التعيين")}
                 </button>
               </div>
             )}
@@ -309,7 +310,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
             className="flex-1"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'جاري الحفظ...' : editingTeacher ? 'حفظ التعديلات' : 'إضافة المعلم'}
+            {isSubmitting ? t("جاري الحفظ...") : editingTeacher ? t("حفظ التعديلات") : t("إضافة المعلم")}
           </Button>
           <Button 
             type="button" 
@@ -318,7 +319,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
             className="flex-1"
             disabled={isSubmitting}
           >
-            إلغاء
+            {t("إلغاء")}
           </Button>
         </div>
       </form>

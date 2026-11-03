@@ -4,6 +4,7 @@ import React from 'react';
 import { X, User, Mail, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import type { Supervisor } from '@/types/supervisor';
+import { t, getLocale } from '@/i18n';
 
 interface SupervisorDetailsDialogProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('ar-EG', {
+      return date.toLocaleDateString(getLocale(), {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -39,7 +40,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-800">
-          بيانات المشرف
+          {t("بيانات المشرف")}
         </h2>
         <button
           onClick={onClose}
@@ -70,7 +71,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
               <User size={20} className="text-teal-600" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 mb-1">الاسم الأول</p>
+              <p className="text-xs text-gray-500 mb-1">{t("الاسم الأول")}</p>
               <p className="text-sm font-semibold text-gray-800">{supervisor.firstname}</p>
             </div>
           </div>
@@ -81,7 +82,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
               <User size={20} className="text-teal-600" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 mb-1">الاسم الأخير</p>
+              <p className="text-xs text-gray-500 mb-1">{t("الاسم الأخير")}</p>
               <p className="text-sm font-semibold text-gray-800">{supervisor.lastname}</p>
             </div>
           </div>
@@ -92,7 +93,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
               <Mail size={20} className="text-blue-600" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 mb-1">البريد الإلكتروني</p>
+              <p className="text-xs text-gray-500 mb-1">{t("البريد الإلكتروني")}</p>
               <p className="text-sm font-semibold text-gray-800" dir="ltr">{supervisor.email}</p>
             </div>
           </div>
@@ -103,7 +104,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
               <Calendar size={20} className="text-purple-600" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 mb-1">تاريخ الإنشاء</p>
+              <p className="text-xs text-gray-500 mb-1">{t("تاريخ الإنشاء")}</p>
               <p className="text-sm font-semibold text-gray-800">{formatDate(supervisor.created_at)}</p>
             </div>
           </div>
@@ -120,11 +121,11 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
               )}
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 mb-1">الحالة</p>
+              <p className="text-xs text-gray-500 mb-1">{t("الحالة")}</p>
               <p className={`text-sm font-semibold ${
                 supervisor.is_active ? 'text-green-600' : 'text-red-600'
               }`}>
-                {supervisor.is_active ? 'نشط' : 'غير نشط'}
+                {supervisor.is_active ? t("نشط") : t("غير نشط")}
               </p>
             </div>
           </div>
@@ -135,7 +136,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
               <span className="text-xs font-bold text-gray-600">ID</span>
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 mb-1">رقم المستخدم</p>
+              <p className="text-xs text-gray-500 mb-1">{t("رقم المستخدم")}</p>
               <p className="text-sm font-semibold text-gray-800">{supervisor.user_id}</p>
             </div>
           </div>
@@ -147,7 +148,7 @@ export const SupervisorDetailsDialog: React.FC<SupervisorDetailsDialogProps> = (
             onClick={onClose}
             className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
           >
-            إغلاق
+            {t("إغلاق")}
           </button>
         </div>
       </div>

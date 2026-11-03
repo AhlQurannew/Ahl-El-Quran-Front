@@ -1,5 +1,6 @@
 // types/attendance.types.ts
 import { BaseModel } from './model.types';
+import { t } from '@/i18n';
 
 export type AttendanceStatus = 'present' | 'late' | 'absent' | 'excused';
 
@@ -61,13 +62,13 @@ export const AttendanceMapper = {
   getStatusArabic(status: string): string {
     switch (status) {
       case 'present':
-        return 'حاضر';
+        return t("حاضر");
       case 'late':
-        return 'متأخر';
+        return t("متأخر");
       case 'absent':
-        return 'غائب';
+        return t("غائب");
       case 'excused':
-        return 'غائب بعذر';
+        return t("غائب بعذر");
       default:
         return status;
     }

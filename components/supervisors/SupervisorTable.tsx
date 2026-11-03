@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import type { Supervisor } from '@/types/supervisor';
+import { t, getLocale } from '@/i18n';
 
 interface SupervisorTableProps {
   supervisors: Supervisor[];
@@ -28,7 +29,7 @@ export const SupervisorTable: React.FC<SupervisorTableProps> = ({
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('ar-DZ', {
+      return date.toLocaleDateString(getLocale(), {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -55,20 +56,20 @@ export const SupervisorTable: React.FC<SupervisorTableProps> = ({
               </th>
               {/* Spacer/Plus Header */}
               <th className="px-2 py-3.5 w-10" />
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الاسم الأول
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الاسم الأول")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الاسم الأخير
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الاسم الأخير")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                البريد الإلكتروني
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("البريد الإلكتروني")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                تاريخ الإنشاء
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("تاريخ الإنشاء")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الحالة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الحالة")}
               </th>
             </tr>
           </thead>
@@ -76,15 +77,15 @@ export const SupervisorTable: React.FC<SupervisorTableProps> = ({
             {isLoading ? (
               <tr>
                 <td colSpan={7} className="py-16 text-center">
-                  <Spinner size="md" label="جاري التحميل..." />
+                  <Spinner size="md" label={t("جاري التحميل...")} />
                 </td>
               </tr>
             ) : supervisors.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm text-gray-400 font-medium">لا يوجد مشرفين</p>
-                    <p className="text-xs text-gray-300">انقر على إضافة لإضافة مشرف جديد</p>
+                    <p className="text-sm text-gray-400 font-medium">{t("لا يوجد مشرفين")}</p>
+                    <p className="text-xs text-gray-300">{t("انقر على إضافة لإضافة مشرف جديد")}</p>
                   </div>
                 </td>
               </tr>
@@ -132,7 +133,7 @@ export const SupervisorTable: React.FC<SupervisorTableProps> = ({
                     </td>
                     <td className="px-4 py-3.5">
                       <Badge variant={supervisor.is_active ? 'success' : 'default'}>
-                        {supervisor.is_active ? 'نشط' : 'غير نشط'}
+                        {supervisor.is_active ? t("نشط") : t("غير نشط")}
                       </Badge>
                     </td>
                   </tr>
@@ -147,11 +148,11 @@ export const SupervisorTable: React.FC<SupervisorTableProps> = ({
       {supervisors.length > 0 && (
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex justify-between text-xs text-gray-400">
           <span>
-            عدد الصفوف: <span className="font-semibold text-gray-600">{supervisors.length}</span>
+            {t("عدد الصفوف:")}{' '}<span className="font-semibold text-gray-600">{supervisors.length}</span>
           </span>
           {selectedIds.length > 0 && (
             <span className="text-teal-600 font-semibold">
-              تم تحديد {selectedIds.length} مشرف
+              {t("تم تحديد")}{' '}{selectedIds.length}{' '}{t("مشرف")}
             </span>
           )}
         </div>

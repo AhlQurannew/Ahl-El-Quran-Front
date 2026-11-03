@@ -35,17 +35,22 @@ import {
   ChevronsLeft,
   School,
   Settings,
+  UserRound,
+  Images,
+  NotebookPen,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAdminView } from '@/contexts/AdminViewContext';
 import { useAuthStore } from '@/store/authStore';
+import { AccountAvatar } from '@/components/ui/AccountAvatar';
+import { t } from '@/i18n';
 
 /**
  * Navigation Item Interface
  * Defines the structure of a single navigation link
  */
 interface NavItem {
-  label: string;      // Display text (Arabic)
+  label: string;      // Arabic source text; translated with t() at render
   href: string;       // Link URL
   icon: React.ReactNode; // Lucide icon component
 }
@@ -73,7 +78,8 @@ const adminNavGroups: NavGroup[] = [
       { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
-      { label: 'الإعدادات', href: '/dashboard/settings', icon: <Settings size={18} /> },
+      { label: 'صور صفحة الدخول', href: '/dashboard/login-slides', icon: <Images size={18} /> },
+      { label: 'الملف الشخصي والإعدادات', href: '/dashboard/settings', icon: <Settings size={18} /> },
     ],
   },
 ];
@@ -99,6 +105,7 @@ const presidentNavGroups: NavGroup[] = [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
       { label: 'المشرفين', href: '/supervisors', icon: <UserCheck size={18} /> },
       { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الملف الشخصي', href: '/profile', icon: <UserRound size={18} /> },
       
     ],
   },
@@ -125,6 +132,7 @@ const supervisorNavGroups: NavGroup[] = [
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
       { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الملف الشخصي', href: '/profile', icon: <UserRound size={18} /> },
       
     ],
   },
@@ -149,6 +157,7 @@ const teacherNavGroups: NavGroup[] = [
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
       { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الملف الشخصي', href: '/profile', icon: <UserRound size={18} /> },
     ],
   },
   {
@@ -158,6 +167,7 @@ const teacherNavGroups: NavGroup[] = [
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'حضور الطلاب', href: '/attendance', icon: <UserCheck size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
+      { label: 'ملاحظاتي', href: '/notes', icon: <NotebookPen size={18} /> },
     ],
   },
   {
@@ -215,20 +225,20 @@ export const Sidebar: React.FC = () => {
     : '#047857';
 
   // Get user display data
-  const userName = user ? `${user.firstname} ${user.lastname}` : 'مستخدم';
-  const userInitial = user?.firstname ? user.firstname.charAt(0).toUpperCase() : 'م';
+  const userName = user ? `${user.firstname} ${user.lastname}`.trim() || t('مستخدم') : t('مستخدم');
+  const profileHref = isAdmin ? '/dashboard/settings' : '/profile';
   
   // Role labels in Arabic
   const roleLabels: Record<string, string> = {
-    ADMIN: 'المسؤول',
-    PRESIDENT: 'المشرف العام',
-    CHIEF_SUPERVISOR: 'المشرف العام',
-    SUPERVISOR: 'المشرف',
-    TEACHER: 'المعلم',
-    GUARDIAN: 'ولي الأمر',
-    STUDENT: 'الطالب',
+    ADMIN: t("المسؤول"),
+    PRESIDENT: t("المشرف العام"),
+    CHIEF_SUPERVISOR: t("المشرف العام"),
+    SUPERVISOR: t("المشرف"),
+    TEACHER: t("المعلم"),
+    GUARDIAN: t("ولي الأمر"),
+    STUDENT: t("الطالب"),
   };
-  const userRole = user?.role ? roleLabels[user.role] : 'مستخدم';
+  const userRole = t(user?.role ? roleLabels[user.role] : 'مستخدم');
 
   const renderNavContent = (isCollapsed = false) => (
     <nav className={cn('flex-1 overflow-y-auto overflow-x-hidden py-4 px-3', isCollapsed ? 'space-y-2' : 'space-y-6')}>
@@ -243,7 +253,7 @@ export const Sidebar: React.FC = () => {
               )}
               style={{ color: 'rgba(255, 255, 255, 0.7)' }}
             >
-              {group.groupLabel}
+              {t(group.groupLabel)}
             </p>
           )}
           <ul className="space-y-0.5">
@@ -262,7 +272,7 @@ export const Sidebar: React.FC = () => {
                       isCollapsed && 'justify-center gap-0 px-2'
                     )}
                     style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.85)' }}
-                    title={isCollapsed ? item.label : undefined}
+                    title={isCollapsed ? t(item.label) : undefined}
                   >
                     <span className="flex shrink-0 items-center" style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.7)' }}>
                       {item.icon}
@@ -274,13 +284,13 @@ export const Sidebar: React.FC = () => {
                         isCollapsed ? 'max-w-0 opacity-0' : 'max-w-50 opacity-100'
                       )}
                     >
-                      {item.label}
+                      {t(item.label)}
                     </span>
                     {active && (
                       <ChevronRight
                         size={14}
                         aria-hidden="true"
-                        className={cn('shrink-0 transition-all duration-300 ease-in-out', isCollapsed ? 'w-0 opacity-0' : 'opacity-60')}
+                        className={cn('ltr:-scale-x-100 shrink-0 transition-all duration-300 ease-in-out', isCollapsed ? 'w-0 opacity-0' : 'opacity-60')}
                       />
                     )}
                   </Link>
@@ -317,10 +327,10 @@ export const Sidebar: React.FC = () => {
             </div>
             <div className="min-w-0 overflow-hidden">
               <p className="whitespace-nowrap text-sm font-bold leading-tight text-white">
-                {isAdmin ? 'لوحة المسؤول' : 'نظام أهل القرآن'}
+                {isAdmin ? t('لوحة المسؤول') : t('نظام أهل القرآن')}
               </p>
               <p className="whitespace-nowrap text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                {isAdmin ? 'إدارة المنصة' : 'لوحة الإدارة'}
+                {isAdmin ? t('إدارة المنصة') : t('لوحة الإدارة')}
               </p>
             </div>
           </div>
@@ -330,11 +340,11 @@ export const Sidebar: React.FC = () => {
             onClick={() => setCollapsed((current) => !current)}
             className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white transition-colors duration-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             style={collapsed ? { backgroundColor: sidebarColor } : undefined}
-            title={collapsed ? 'توسيع القائمة (Expand sidebar)' : 'طي القائمة (Collapse sidebar)'}
-            aria-label={collapsed ? 'توسيع القائمة' : 'طي القائمة'}
+            title={collapsed ? t('توسيع القائمة') : t('طي القائمة')}
+            aria-label={collapsed ? t('توسيع القائمة') : t('طي القائمة')}
             aria-expanded={!collapsed}
           >
-            <span className="relative flex h-4 w-4 items-center justify-center">
+            <span className="relative flex h-4 w-4 items-center justify-center ltr:-scale-x-100">
               <ChevronsRight
                 size={16}
                 aria-hidden="true"
@@ -358,10 +368,12 @@ export const Sidebar: React.FC = () => {
 
         {/* User profile at bottom */}
         <div className={cn('border-t border-white/10 px-4 py-4', collapsed && 'px-2')}>
-          <div className={cn('flex items-center gap-3', collapsed && 'justify-center gap-0')}>
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-orange-500 text-sm font-bold text-white ring-2 ring-white/30">
-              {userInitial}
-            </div>
+          <Link
+            href={profileHref}
+            title={t('الملف الشخصي')}
+            className={cn('flex items-center gap-3 rounded-xl transition-colors hover:bg-white/10', collapsed && 'justify-center gap-0')}
+          >
+            <AccountAvatar name={userName} className="h-9 w-9 text-sm ring-2 ring-white/30" />
             <div className={cn(
               'min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
               collapsed ? 'max-w-0 opacity-0' : 'max-w-45 opacity-100'
@@ -369,15 +381,16 @@ export const Sidebar: React.FC = () => {
               <p className="truncate text-sm font-semibold text-white">{userName}</p>
               <p className="truncate text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{userRole}</p>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 
       {/* Mobile: hamburger button */}
       <button
-        className="lg:hidden fixed top-4 right-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"
+        className="lg:hidden fixed top-4 inset-s-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"
         style={{ backgroundColor: sidebarColor }}
         onClick={() => setMobileOpen(true)}
+        aria-label={t('فتح القائمة')}
       >
         <Menu size={20} />
       </button>
@@ -389,7 +402,7 @@ export const Sidebar: React.FC = () => {
             className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="lg:hidden fixed right-0 top-0 h-full w-64 z-50 flex flex-col shadow-2xl"
+          <aside className="lg:hidden fixed inset-s-0 top-0 h-full w-64 z-50 flex flex-col shadow-2xl"
             style={{ background: sidebarGradient }}>
             <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
               <div className="flex items-center gap-3">
@@ -397,10 +410,10 @@ export const Sidebar: React.FC = () => {
                   {isAdmin ? <Shield size={16} className="text-white" /> : <BookOpen size={16} className="text-white" />}
                 </div>
                 <p className="text-white font-bold text-sm">
-                  {isAdmin ? 'لوحة المسؤول' : 'نظام أهل القرآن'}
+                  {isAdmin ? t('لوحة المسؤول') : t('نظام أهل القرآن')}
                 </p>
               </div>
-              <button onClick={() => setMobileOpen(false)} className="text-white/70 hover:text-white">
+              <button onClick={() => setMobileOpen(false)} className="text-white/70 hover:text-white" aria-label={t('إغلاق القائمة')}>
                 <X size={20} />
               </button>
             </div>

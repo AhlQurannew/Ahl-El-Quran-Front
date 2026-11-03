@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
+import { t } from '@/i18n';
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -19,7 +20,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             htmlFor={selectId}
             className="block text-sm font-semibold text-gray-700 mb-1.5 transition-colors group-focus-within:text-emerald-600"
           >
-            {label}
+            {t(label)}
           </label>
         )}
         <div className="relative">
@@ -43,12 +44,12 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             )}
             {options.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </option>
             ))}
           </select>
           {/* Custom chevron */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+          <div className="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pe-3.5">
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>

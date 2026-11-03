@@ -7,6 +7,7 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { useAdminView } from '@/contexts/AdminViewContext';
 import { X, Eye } from 'lucide-react';
+import { t } from '@/i18n';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -45,7 +46,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
   }, [adminOutsideSchool, router]);
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden" dir="rtl">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Admin Viewing Banner */}
@@ -56,8 +57,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
                 <Eye size={18} />
               </div>
               <div>
-                <p className="text-sm font-bold">وضع عرض المسؤول</p>
-                <p className="text-xs opacity-90">تشاهد حالياً: {viewingSchoolName || 'مدرسة'}</p>
+                <p className="text-sm font-bold">{t("وضع عرض المسؤول")}</p>
+                <p className="text-xs opacity-90">{t("تشاهد حالياً:")}{' '}{viewingSchoolName || t("مدرسة")}</p>
               </div>
             </div>
             <button
@@ -65,7 +66,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
               className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
             >
               <X size={16} />
-              العودة إلى لوحة المسؤول
+              {t("العودة إلى لوحة المسؤول")}
             </button>
           </div>
         )}

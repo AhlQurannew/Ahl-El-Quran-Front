@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
+import { t } from '@/i18n';
 
 interface StatCardProps {
   label: string;
@@ -70,7 +71,7 @@ export const StudentStats: React.FC<StudentStatsProps> = ({ total, active, inact
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <StatCard
-        label="إجمالي الطلاب"
+        label={t("إجمالي الطلاب")}
         value={total}
         color="emerald"
         icon={
@@ -80,7 +81,7 @@ export const StudentStats: React.FC<StudentStatsProps> = ({ total, active, inact
         }
       />
       <StatCard
-        label="طلاب نشطون"
+        label={t("طلاب نشطون")}
         value={active}
         color="blue"
         icon={
@@ -90,7 +91,7 @@ export const StudentStats: React.FC<StudentStatsProps> = ({ total, active, inact
         }
       />
       <StatCard
-        label="طلاب غير نشطين"
+        label={t("طلاب غير نشطين")}
         value={inactive}
         color="amber"
         icon={

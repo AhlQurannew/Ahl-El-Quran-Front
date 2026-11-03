@@ -1,4 +1,5 @@
 import React from 'react';
+import { t } from '@/i18n';
 import { StatCard } from '@/components/students/StudentStats'; // reuse the generic StatCard
 
 interface MemorizationStatsProps {
@@ -11,7 +12,7 @@ export const MemorizationStats: React.FC<MemorizationStatsProps> = ({ total, act
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <StatCard
-        label="إجمالي الطلاب"
+        label={t("إجمالي الطلاب")}
         value={total}
         color="emerald"
         icon={
@@ -21,7 +22,7 @@ export const MemorizationStats: React.FC<MemorizationStatsProps> = ({ total, act
         }
       />
       <StatCard
-        label="طلاب نشطون"
+        label={t("طلاب نشطون")}
         value={active}
         color="blue"
         icon={
@@ -31,7 +32,7 @@ export const MemorizationStats: React.FC<MemorizationStatsProps> = ({ total, act
         }
       />
       <StatCard
-        label="طلاب غير نشطين"
+        label={t("طلاب غير نشطين")}
         value={inactive}
         color="amber"
         icon={

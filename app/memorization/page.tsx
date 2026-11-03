@@ -11,6 +11,8 @@ import teacherAPI from '@/app/API/teacher';
 import { useAuthStore } from '@/store/authStore';
 import { quranSurahs } from '@/data/quran_data';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { t as tr } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 
 export interface ApiAchievement {
@@ -47,7 +49,7 @@ export function studentDisplayName(s: ApiStudent): string {
   if (s.firstname || s.lastname) {
     return `${s.firstname || ''} ${s.lastname || ''}`.trim();
   }
-  return s.name || `طالب #${s.id}`;
+  return s.name || tr("طالب #{id}", { id: s.id });
 }
 
 type ToastState = { visible: boolean; type: 'success' | 'error' | 'info'; message: string };
@@ -133,6 +135,7 @@ async function deleteAchievement(studentId: number, achievementId: number): Prom
 }
 
 export default function MemorizationPage() {
+  const confirm = useConfirm();
   const user = useAuthStore((state) => state.user);
   const isTeacher = user?.role === 'TEACHER';
   const isSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'SUPERVISOR';
@@ -181,7 +184,7 @@ export default function MemorizationPage() {
         }
       } catch (err: any) {
         console.error('Error loading lectures:', err);
-        showToast('error', 'فشل تحميل الحلقات');
+        showToast('error', tr("فشل تحميل الحلقات"));
       } finally {
         setIsLoadingLectures(false);
       }
@@ -290,7 +293,7 @@ export default function MemorizationPage() {
       setAchievements(achievementsMap);
     } catch (err: any) {
       console.error('Error loading data:', err);
-      showToast('error', 'فشل تحميل البيانات');
+      showToast('error', tr("فشل تحميل البيانات"));
       setStudents([]);
       setAchievements({});
     } finally {
@@ -317,6 +320,11 @@ export default function MemorizationPage() {
   const handleFormSubmit = async (data: AchievementFormValues) => {
     if (!selectedStudent) return;
 
+    const confirmed = await confirm(editingAchievement
+      ? { title: tr('تأكيد الحفظ'), message: tr('هل أنت متأكد من حفظ تعديلات سجل الإنجاز؟'), confirmText: tr('نعم، احفظ') }
+      : { title: tr('تأكيد الإضافة'), message: tr('هل أنت متأكد من إضافة سجل الإنجاز؟'), confirmText: tr('نعم، أضف') });
+    if (!confirmed) return;
+
     setIsSaving(true);
     try {
       const formattedDate = inputDateToApi(data.date);
@@ -334,18 +342,18 @@ export default function MemorizationPage() {
       if (isTeacher) {
         if (editingAchievement) {
           await teacherAPI.updateAchievement(selectedStudent.id, editingAchievement.id, payload);
-          showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
+          showToast('success', tr("تم تعديل سجل الإنجاز بنجاح"));
         } else {
           await teacherAPI.createAchievement(selectedStudent.id, payload);
-          showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
+          showToast('success', tr("تمت إضافة سجل الإنجاز بنجاح"));
         }
       } else {
         if (editingAchievement) {
           await updateAchievement(selectedStudent.id, editingAchievement.id, payload);
-          showToast('success', 'تم تعديل سجل الإنجاز بنجاح');
+          showToast('success', tr("تم تعديل سجل الإنجاز بنجاح"));
         } else {
           await createAchievement(selectedStudent.id, payload);
-          showToast('success', 'تمت إضافة سجل الإنجاز بنجاح');
+          showToast('success', tr("تمت إضافة سجل الإنجاز بنجاح"));
         }
       }
 
@@ -357,7 +365,7 @@ export default function MemorizationPage() {
       }
     } catch (err: any) {
       console.error('Error saving achievement:', err);
-      showToast('error', err.message || 'حدث خطأ غير متوقع أثناء الحفظ');
+      showToast('error', err.message || tr("حدث خطأ غير متوقع أثناء الحفظ"));
     } finally {
       setIsSaving(false);
     }
@@ -373,12 +381,12 @@ export default function MemorizationPage() {
       } else {
         await deleteAchievement(deletingAchievement.student_id, deletingAchievement.id);
       }
-      showToast('success', 'تم حذف سجل الإنجاز بنجاح');
+      showToast('success', tr("تم حذف سجل الإنجاز بنجاح"));
       setDeletingAchievement(null);
       await loadData();
     } catch (err: any) {
       console.error('Error deleting achievement:', err);
-      showToast('error', err.message || 'حدث خطأ غير متوقع أثناء الحذف');
+      showToast('error', err.message || tr("حدث خطأ غير متوقع أثناء الحذف"));
     } finally {
       setIsDeleting(false);
     }
@@ -386,15 +394,15 @@ export default function MemorizationPage() {
 
   const getSurahName = (surahNumber: number): string => {
     const surah = quranSurahs.find((s) => s.number === surahNumber);
-    return surah ? surah.name : `سورة ${surahNumber}`;
+    return surah ? surah.name : tr("سورة {surahNumber}", { surahNumber });
   };
 
   return (
-    <AppLayout title="الحفظ والمراجعة" breadcrumb="الشؤون الإدارية / الحفظ والمراجعة">
+    <AppLayout title={tr("الحفظ والمراجعة")} breadcrumb={tr("الشؤون الإدارية / الحفظ والمراجعة")}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner */}
         <div className={`${isTeacher ? 'bg-sky-700' : 'bg-amber-500/85'} text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm`}>
-          {isTeacher ? 'الحفظ والمراجعة لطلابي / الصفحة الرئيسية' : 'متابعة الحفظ والمراجعة / الصفحة الرئيسية'}
+          {isTeacher ? tr("الحفظ والمراجعة لطلابي / الصفحة الرئيسية") : tr("متابعة الحفظ والمراجعة / الصفحة الرئيسية")}
         </div>
 
         {/* Lecture, Date Selection */}
@@ -403,7 +411,7 @@ export default function MemorizationPage() {
             {/* Lecture Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                الحلقة <span className="text-red-500">*</span>
+                {tr("الحلقة")}{' '}<span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedLecture?.lecture_id || ''}
@@ -415,7 +423,7 @@ export default function MemorizationPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
               >
                 {lectures.length === 0 ? (
-                  <option value="">لا توجد حلقات متاحة</option>
+                  <option value="">{tr("لا توجد حلقات متاحة")}</option>
                 ) : (
                   lectures.map((lecture) => (
                     <option key={lecture.lecture_id} value={lecture.lecture_id}>
@@ -429,7 +437,7 @@ export default function MemorizationPage() {
             {/* Date Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                التاريخ <span className="text-red-500">*</span>
+                {tr("التاريخ")}{' '}<span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -462,7 +470,7 @@ export default function MemorizationPage() {
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <p className="text-gray-500 text-lg">الرجاء اختيار الحلقة والتاريخ</p>
+            <p className="text-gray-500 text-lg">{tr("الرجاء اختيار الحلقة والتاريخ")}</p>
           </div>
         ) : students.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
@@ -479,7 +487,7 @@ export default function MemorizationPage() {
                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
               />
             </svg>
-            <p className="text-gray-500 text-lg">لا يوجد طلاب في هذه الحلقة</p>
+            <p className="text-gray-500 text-lg">{tr("لا يوجد طلاب في هذه الحلقة")}</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -487,9 +495,9 @@ export default function MemorizationPage() {
               <div className="min-w-[760px]">
                 <div className="bg-teal-700 px-5 py-3.5 grid grid-cols-12 gap-4 text-white font-semibold text-sm">
                   <div className="col-span-1 text-center">#</div>
-                  <div className="col-span-4 text-center">الطالب</div>
-                  <div className="col-span-5 text-center">إنجازات اليوم</div>
-                  <div className="col-span-2 text-center">الإجراءات</div>
+                  <div className="col-span-4 text-center">{tr("الطالب")}</div>
+                  <div className="col-span-5 text-center">{tr("إنجازات اليوم")}</div>
+                  <div className="col-span-2 text-center">{tr("الإجراءات")}</div>
                 </div>
 
                 <div className="divide-y divide-gray-100">
@@ -510,7 +518,7 @@ export default function MemorizationPage() {
                           <span className="font-semibold text-gray-800">{studentDisplayName(student)}</span>
                           {studentAchievements.length > 0 && (
                             <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-700">
-                              {studentAchievements.length} إنجاز
+                              {studentAchievements.length}{' '}{tr("إنجاز")}
                             </span>
                           )}
                         </div>
@@ -522,11 +530,11 @@ export default function MemorizationPage() {
                                 key={achievement.id}
                                 className="flex items-start justify-between gap-3 rounded-xl border border-teal-100 bg-white p-3 shadow-sm"
                               >
-                                <div className="min-w-0 flex-1 text-right">
+                                <div className="min-w-0 flex-1 text-start">
                                   <span className="inline-flex rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-semibold text-teal-700">
-                                    {achievement.achievement_type === 'normal' ? 'حفظ' :
-                                      achievement.achievement_type === 'small' ? 'مراجعة صغرى' :
-                                        achievement.achievement_type === 'big' ? 'مراجعة كبرى' : achievement.achievement_type}
+                                    {achievement.achievement_type === 'normal' ? tr("حفظ") :
+                                      achievement.achievement_type === 'small' ? tr("مراجعة صغرى") :
+                                        achievement.achievement_type === 'big' ? tr("مراجعة كبرى") : achievement.achievement_type}
                                   </span>
                                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-700">
                                     <span>{getSurahName(achievement.from_surah)} · {achievement.from_verse}</span>
@@ -542,8 +550,8 @@ export default function MemorizationPage() {
                                     type="button"
                                     onClick={() => handleEditAchievement(student, achievement)}
                                     className="rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50"
-                                    title="تعديل الإنجاز"
-                                    aria-label="تعديل الإنجاز"
+                                    title={tr("تعديل الإنجاز")}
+                                    aria-label={tr("تعديل الإنجاز")}
                                   >
                                     <Pencil size={15} />
                                   </button>
@@ -551,8 +559,8 @@ export default function MemorizationPage() {
                                     type="button"
                                     onClick={() => setDeletingAchievement(achievement)}
                                     className="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-50"
-                                    title="حذف الإنجاز"
-                                    aria-label="حذف الإنجاز"
+                                    title={tr("حذف الإنجاز")}
+                                    aria-label={tr("حذف الإنجاز")}
                                   >
                                     <Trash2 size={15} />
                                   </button>
@@ -560,7 +568,7 @@ export default function MemorizationPage() {
                               </article>
                             ))
                           ) : (
-                            <span className="py-2 text-center text-sm text-gray-400">لا يوجد إنجاز مسجل لهذا اليوم</span>
+                            <span className="py-2 text-center text-sm text-gray-400">{tr("لا يوجد إنجاز مسجل لهذا اليوم")}</span>
                           )}
                         </div>
 
@@ -571,7 +579,7 @@ export default function MemorizationPage() {
                             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
                           >
                             <Plus size={14} />
-                            إضافة إنجاز
+                            {tr("إضافة إنجاز")}
                           </button>
                         </div>
                       </div>
@@ -604,10 +612,10 @@ export default function MemorizationPage() {
         isOpen={!!deletingAchievement}
         onClose={() => !isDeleting && setDeletingAchievement(null)}
         onConfirm={handleDeleteConfirm}
-        title="تأكيد حذف سجل الإنجاز"
-        message={`هل أنت متأكد من حذف سجل الإنجاز؟ لا يمكن التراجع عن هذا الإجراء.`}
-        confirmText="نعم، احذف"
-        cancelText="إلغاء"
+        title={tr("تأكيد حذف سجل الإنجاز")}
+        message={tr("هل أنت متأكد من حذف سجل الإنجاز؟ لا يمكن التراجع عن هذا الإجراء.")}
+        confirmText={tr("نعم، احذف")}
+        cancelText={tr("إلغاء")}
         variant="danger"
       />
 

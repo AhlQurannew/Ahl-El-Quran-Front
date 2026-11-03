@@ -9,6 +9,7 @@ import { AchievementDialog } from '@/components/track-memorization/AchievementDi
 import { AttendanceDialog } from '@/components/track-memorization/AttendanceDialog';
 import { BulkAttendanceDialog } from '@/components/track-memorization/BulkAttendanceDialog';
 import { apiDateToInputDate } from '@/utils/dateHelpers';
+import { t as tr } from '@/i18n';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -90,7 +91,7 @@ function TrackMemorizationStudentsContent() {
       ]);
     } catch (err: any) {
       console.error('Error loading students:', err);
-      showToast('error', 'فشل تحميل بيانات الطلاب');
+      showToast('error', tr("فشل تحميل بيانات الطلاب"));
     } finally {
       setIsLoading(false);
     }
@@ -157,19 +158,19 @@ function TrackMemorizationStudentsContent() {
   const getSurahName = (surahNumber: number): string => {
     // Simple surah names - in production, import from quran_data.ts
     const surahNames: Record<number, string> = {
-      1: 'الفاتحة', 2: 'البقرة', 3: 'آل عمران', 4: 'النساء', 5: 'المائدة',
-      6: 'الأنعام', 7: 'الأعراف', 8: 'الأنفال', 9: 'التوبة', 10: 'يونس',
+      1: tr("الفاتحة"), 2: tr("البقرة"), 3: tr("آل عمران"), 4: tr("النساء"), 5: tr("المائدة"),
+      6: tr("الأنعام"), 7: tr("الأعراف"), 8: tr("الأنفال"), 9: tr("التوبة"), 10: tr("يونس"),
       // Add more as needed
     };
-    return surahNames[surahNumber] || `سورة ${surahNumber}`;
+    return surahNames[surahNumber] || tr("سورة {surahNumber}", { surahNumber });
   };
 
   const getAttendanceStyle = (status: string) => {
     const styles: Record<string, { bg: string; border: string; text: string; label: string }> = {
-      present: { bg: 'bg-green-50', border: 'border-green-500', text: 'text-green-700', label: 'حضور' },
-      late: { bg: 'bg-orange-50', border: 'border-orange-500', text: 'text-orange-700', label: 'تأخر' },
-      absent: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-700', label: 'غياب' },
-      excused: { bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-700', label: 'عذر' },
+      present: { bg: 'bg-green-50', border: 'border-green-500', text: 'text-green-700', label: tr("حضور") },
+      late: { bg: 'bg-orange-50', border: 'border-orange-500', text: 'text-orange-700', label: tr("تأخر") },
+      absent: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-700', label: tr("غياب") },
+      excused: { bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-700', label: tr("عذر") },
     };
     return styles[status] || styles.present;
   };
@@ -195,21 +196,21 @@ function TrackMemorizationStudentsContent() {
   };
 
   return (
-    <AppLayout title="متابعة الحفظ والمراجعة" breadcrumb="الشؤون الإدارية / متابعة الحفظ والمراجعة">
+    <AppLayout title={tr("متابعة الحفظ والمراجعة")} breadcrumb={tr("الشؤون الإدارية / متابعة الحفظ والمراجعة")}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          متابعة الحفظ والمراجعة / الصفحة الرئيسية
+          {tr("متابعة الحفظ والمراجعة / الصفحة الرئيسية")}
         </div>
 
         {/* Info Bar */}
         <div className="flex gap-4">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-3 flex items-center gap-3">
-            <span className="font-semibold text-gray-700">الحلقة:</span>
+            <span className="font-semibold text-gray-700">{tr("الحلقة:")}</span>
             <span className="text-gray-900">{decodeURIComponent(lectureName || '')}</span>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-3 flex items-center gap-3">
-            <span className="font-semibold text-gray-700">التاريخ:</span>
+            <span className="font-semibold text-gray-700">{tr("التاريخ:")}</span>
             <span className="text-gray-900">{date}</span>
           </div>
         </div>
@@ -228,7 +229,7 @@ function TrackMemorizationStudentsContent() {
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            المواظبة
+            {tr("المواظبة")}
           </button>
         </div>
 
@@ -252,16 +253,16 @@ function TrackMemorizationStudentsContent() {
                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
               />
             </svg>
-            <p className="text-gray-500 text-lg">لا يوجد طلاب في هذه الحلقة</p>
+            <p className="text-gray-500 text-lg">{tr("لا يوجد طلاب في هذه الحلقة")}</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             {/* Table Header */}
             <div className="bg-teal-600 px-6 py-4 grid grid-cols-12 gap-4 text-white font-semibold text-sm">
               <div className="col-span-1 text-center">#</div>
-              <div className="col-span-4 text-center">الطالب</div>
-              <div className="col-span-3 text-center">الإنجاز</div>
-              <div className="col-span-4 text-center">المواظبة</div>
+              <div className="col-span-4 text-center">{tr("الطالب")}</div>
+              <div className="col-span-3 text-center">{tr("الإنجاز")}</div>
+              <div className="col-span-4 text-center">{tr("المواظبة")}</div>
             </div>
 
             {/* Table Body */}
@@ -394,7 +395,7 @@ export default function TrackMemorizationStudentsPage() {
   return (
     <Suspense
       fallback={
-        <AppLayout title="متابعة الحفظ والمراجعة" breadcrumb="الشؤون الإدارية / متابعة الحفظ والمراجعة">
+        <AppLayout title={tr("متابعة الحفظ والمراجعة")} breadcrumb={tr("الشؤون الإدارية / متابعة الحفظ والمراجعة")}>
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
           </div>

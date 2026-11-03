@@ -3,6 +3,7 @@
 import React from 'react';
 import { Users, Shield, Briefcase, Mail } from 'lucide-react';
 import type { Guardian } from '@/types/guardian';
+import { t } from '@/i18n';
 
 interface GuardianStatsProps {
   guardians: Guardian[];
@@ -16,7 +17,7 @@ export const GuardianStats: React.FC<GuardianStatsProps> = ({ guardians }) => {
 
   const stats = [
     {
-      label: 'إجمالي أولياء الأمور',
+      label: t("إجمالي أولياء الأمور"),
       value: totalGuardians,
       icon: Users,
       color: 'bg-teal-500',
@@ -24,7 +25,7 @@ export const GuardianStats: React.FC<GuardianStatsProps> = ({ guardians }) => {
       bgLight: 'bg-teal-50',
     },
     {
-      label: 'أنواع العلاقات',
+      label: t("أنواع العلاقات"),
       value: uniqueRelationships,
       icon: Shield,
       color: 'bg-blue-500',
@@ -32,7 +33,7 @@ export const GuardianStats: React.FC<GuardianStatsProps> = ({ guardians }) => {
       bgLight: 'bg-blue-50',
     },
     {
-      label: 'لديهم مهنة محددة',
+      label: t("لديهم مهنة محددة"),
       value: guardiansWithJob,
       icon: Briefcase,
       color: 'bg-purple-500',
@@ -40,7 +41,7 @@ export const GuardianStats: React.FC<GuardianStatsProps> = ({ guardians }) => {
       bgLight: 'bg-purple-50',
     },
     {
-      label: 'لديهم بريد إلكتروني',
+      label: t("لديهم بريد إلكتروني"),
       value: guardiansWithEmail,
       icon: Mail,
       color: 'bg-amber-500',

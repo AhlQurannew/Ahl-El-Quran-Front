@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { FileText, ImagePlus, LoaderCircle, Paperclip, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
+import { t } from '@/i18n';
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
@@ -31,8 +32,8 @@ interface MessageInputProps {
 }
 
 const formatFileSize = (size: number) => {
-  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} ك.ب`;
-  return `${(size / (1024 * 1024)).toFixed(1)} م.ب`;
+  if (size < 1024 * 1024) return t("{v0} ك.ب", { v0: Math.max(1, Math.round(size / 1024)) });
+  return t("{v0} م.ب", { v0: (size / (1024 * 1024)).toFixed(1) });
 };
 
 const getExtension = (filename: string) => filename.split('.').pop()?.toLowerCase() || '';
@@ -41,7 +42,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   onSend,
   onTyping,
   disabled = false,
-  placeholder = 'اكتب رسالتك هنا...',
+  placeholder = t("اكتب رسالتك هنا..."),
 }) => {
   const [message, setMessage] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
@@ -79,19 +80,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     Array.from(incomingFiles).forEach((file) => {
       const extension = getExtension(file.name);
       if (!ALLOWED_EXTENSIONS.has(extension)) {
-        errors.push(`نوع الملف «${file.name}» غير مسموح به`);
+        errors.push(t("نوع الملف «{name}» غير مسموح به", { name: file.name }));
         return;
       }
       if (file.size > MAX_FILE_SIZE) {
-        errors.push(`حجم «${file.name}» يتجاوز 25 م.ب`);
+        errors.push(t("حجم «{name}» يتجاوز 25 م.ب", { name: file.name }));
         return;
       }
       if (selectedFiles.length + additions.length >= MAX_FILES) {
-        errors.push('الحد الأقصى هو 5 مرفقات');
+        errors.push(t("الحد الأقصى هو 5 مرفقات"));
         return;
       }
       if (totalSize + file.size > MAX_TOTAL_SIZE) {
-        errors.push('إجمالي حجم المرفقات لا يمكن أن يتجاوز 50 م.ب');
+        errors.push(t("إجمالي حجم المرفقات لا يمكن أن يتجاوز 50 م.ب"));
         return;
       }
 
@@ -103,7 +104,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     });
 
     if (additions.length) setSelectedFiles((current) => [...current, ...additions]);
-    setError(errors.join('، '));
+    setError(errors.join(t("، ")));
   };
 
   const removeFile = (id: number) => {
@@ -133,7 +134,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       }
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
     } catch (sendError) {
-      setError(sendError instanceof Error ? sendError.message : 'تعذر إرسال الرسالة. حاول مرة أخرى.');
+      setError(sendError instanceof Error ? sendError.message : t("تعذر إرسال الرسالة. حاول مرة أخرى."));
     } finally {
       setIsSending(false);
       setUploadProgress(null);
@@ -182,19 +183,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsDragging(false);
       }}
       onDrop={handleDrop}
-      aria-label="إرسال رسالة أو مرفق"
-      dir="rtl"
+      aria-label={t("إرسال رسالة أو مرفق")}
       className={cn(
         'relative flex flex-col gap-3 rounded-2xl transition-colors',
         isDragging && 'bg-emerald-50 ring-2 ring-inset ring-emerald-400',
       )}
     >
       {selectedFiles.length > 0 && (
-        <ul className="flex flex-wrap gap-2" aria-label="المرفقات المحددة">
+        <ul className="flex flex-wrap gap-2" aria-label={t("المرفقات المحددة")}>
           {selectedFiles.map(({ id, file, previewUrl }) => (
-            <li key={id} className="flex max-w-full items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2 text-right">
+            <li key={id} className="flex max-w-full items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2 text-start">
               {previewUrl ? (
-                <Image src={previewUrl} alt={`معاينة ${file.name}`} width={48} height={48} unoptimized className="h-12 w-12 rounded-lg object-cover" />
+                <Image src={previewUrl} alt={t("معاينة {name}", { name: file.name })} width={48} height={48} unoptimized className="h-12 w-12 rounded-lg object-cover" />
               ) : (
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700" aria-hidden="true">
                   <FileText size={20} />
@@ -208,7 +208,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 type="button"
                 onClick={() => removeFile(id)}
                 disabled={isSending || disabled}
-                aria-label={`إزالة المرفق ${file.name}`}
+                aria-label={t("إزالة المرفق {name}", { name: file.name })}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50"
               >
                 <X size={16} />
@@ -226,7 +226,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             accept={IMAGE_ACCEPT}
             multiple
             className="sr-only"
-            aria-label="اختيار صور"
+            aria-label={t("اختيار صور")}
             onChange={(event) => {
               if (event.target.files) addFiles(event.target.files);
               event.target.value = '';
@@ -236,8 +236,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             type="button"
             onClick={() => imageInputRef.current?.click()}
             disabled={disabled || isSending}
-            aria-label="إرفاق صورة"
-            title="إرفاق صورة"
+            aria-label={t("إرفاق صورة")}
+            title={t("إرفاق صورة")}
             className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ImagePlus size={19} />
@@ -248,7 +248,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             accept={FILE_ACCEPT}
             multiple
             className="sr-only"
-            aria-label="اختيار مستندات"
+            aria-label={t("اختيار مستندات")}
             onChange={(event) => {
               if (event.target.files) addFiles(event.target.files);
               event.target.value = '';
@@ -258,8 +258,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isSending}
-            aria-label="إرفاق ملف"
-            title="إرفاق ملف"
+            aria-label={t("إرفاق ملف")}
+            title={t("إرفاق ملف")}
             className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Paperclip size={19} />
@@ -272,7 +272,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             value={message}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            aria-label="نص الرسالة"
+            aria-label={t("نص الرسالة")}
             disabled={disabled || isSending}
             placeholder={placeholder}
             rows={1}
@@ -293,7 +293,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           className="h-12 shrink-0"
         >
           {isSending ? <LoaderCircle size={18} className="animate-spin" aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}
-          <span>{isSending ? 'جارٍ الإرسال' : 'إرسال'}</span>
+          <span>{isSending ? t("جارٍ الإرسال") : t("إرسال")}</span>
         </Button>
       </div>
 
@@ -302,18 +302,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           <progress
             value={uploadProgress ?? 0}
             max={100}
-            aria-label="تقدم رفع المرفقات"
+            aria-label={t("تقدم رفع المرفقات")}
             className="h-2 flex-1 overflow-hidden rounded-full accent-emerald-600"
           />
           <span className="min-w-10 text-xs font-medium text-gray-600">{uploadProgress ?? 0}%</span>
         </div>
       )}
 
-      <p className="text-xs text-gray-500">حتى 5 مرفقات، 25 م.ب للملف الواحد و50 م.ب إجمالًا. اسحب الملفات وأفلتها هنا.</p>
+      <p className="text-xs text-gray-500">{t("حتى 5 مرفقات، 25 م.ب للملف الواحد و50 م.ب إجمالًا. اسحب الملفات وأفلتها هنا.")}</p>
       {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-emerald-50/90 text-sm font-bold text-emerald-800">
-          أفلت الملفات لإرفاقها
+          {t("أفلت الملفات لإرفاقها")}
         </div>
       )}
     </form>

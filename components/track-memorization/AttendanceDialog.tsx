@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import studentsAPI, { AttendancePayload } from '@/app/API/students';
+import { t } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface Student {
   id: number;
@@ -46,6 +48,7 @@ export function AttendanceDialog({
   existingAttendance,
   onSaved,
 }: AttendanceDialogProps) {
+  const confirm = useConfirm();
   const [status, setStatus] = useState<string>('present');
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -86,6 +89,10 @@ export function AttendanceDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const confirmed = await confirm(existingAttendance
+      ? { title: t('تأكيد الحفظ'), message: t('هل أنت متأكد من حفظ تعديلات سجل المواظبة؟'), confirmText: t('نعم، احفظ') }
+      : { title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة سجل المواظبة؟'), confirmText: t('نعم، أضف') });
+    if (!confirmed) return;
     setIsSaving(true);
 
     try {
@@ -107,7 +114,7 @@ export function AttendanceDialog({
       onClose();
     } catch (err: any) {
       console.error('Error saving attendance:', err);
-      setError(err.response?.data?.detail || 'فشل حفظ المواظبة');
+      setError(err.response?.data?.detail || t("فشل حفظ المواظبة"));
     } finally {
       setIsSaving(false);
     }
@@ -116,7 +123,7 @@ export function AttendanceDialog({
   const handleDelete = async () => {
     if (!existingAttendance) return;
     
-    if (!confirm('هل أنت متأكد من حذف سجل المواظبة؟')) {
+    if (!(await confirm({ title: t('تأكيد الحذف'), message: t('هل أنت متأكد من حذف سجل المواظبة؟'), confirmText: t('نعم، احذف'), variant: 'danger' }))) {
       return;
     }
 
@@ -129,7 +136,7 @@ export function AttendanceDialog({
       onClose();
     } catch (err: any) {
       console.error('Error deleting attendance:', err);
-      setError(err.response?.data?.detail || 'فشل حذف المواظبة');
+      setError(err.response?.data?.detail || t("فشل حذف المواظبة"));
     } finally {
       setIsDeleting(false);
     }
@@ -143,17 +150,17 @@ export function AttendanceDialog({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="تسجيل المواظبة">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t("تسجيل المواظبة")}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Student Info */}
         <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">الطالب</p>
+              <p className="text-sm text-gray-600">{t("الطالب")}</p>
               <p className="text-lg font-semibold text-gray-900">{getStudentName(student)}</p>
             </div>
-            <div className="text-left">
-              <p className="text-sm text-gray-600">التاريخ</p>
+            <div className="text-end">
+              <p className="text-sm text-gray-600">{t("التاريخ")}</p>
               <p className="text-lg font-semibold text-gray-900">{date}</p>
             </div>
           </div>
@@ -167,7 +174,7 @@ export function AttendanceDialog({
 
         {/* Attendance Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">حالة الحضور</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">{t("حالة الحضور")}</label>
           <div className="grid grid-cols-2 gap-3">
             {ATTENDANCE_OPTIONS.map((option) => (
               <button
@@ -182,7 +189,7 @@ export function AttendanceDialog({
               >
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-xl">{option.icon}</span>
-                  <span>{option.label}</span>
+                  <span>{t(option.label)}</span>
                 </div>
               </button>
             ))}
@@ -191,13 +198,13 @@ export function AttendanceDialog({
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">ملاحظات</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t("ملاحظات")}</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-            placeholder="أضف ملاحظات إضافية (اختياري)"
+            placeholder={t("أضف ملاحظات إضافية (اختياري)")}
           />
         </div>
 
@@ -210,18 +217,18 @@ export function AttendanceDialog({
               disabled={isSaving || isDeleting}
               className="px-4 py-2 bg-red-50 border border-red-200 text-red-700 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isDeleting ? 'جاري الحذف...' : 'حذف'}
+              {isDeleting ? t("جاري الحذف...") : t("حذف")}
             </button>
           )}
           
-          <div className={`flex gap-3 ${existingAttendance ? '' : 'ml-auto'}`}>
+          <div className={`flex gap-3 ${existingAttendance ? '' : 'me-auto'}`}>
             <button
               type="button"
               onClick={handleClose}
               disabled={isSaving || isDeleting}
               className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              إلغاء
+              {t("إلغاء")}
             </button>
             <button
               type="submit"
@@ -246,12 +253,12 @@ export function AttendanceDialog({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  جاري الحفظ...
+                  {t("جاري الحفظ...")}
                 </>
               ) : existingAttendance ? (
-                'تحديث المواظبة'
+                t("تحديث المواظبة")
               ) : (
-                'حفظ المواظبة'
+                t("حفظ المواظبة")
               )}
             </button>
           </div>

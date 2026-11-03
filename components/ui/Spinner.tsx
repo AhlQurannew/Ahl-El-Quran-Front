@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
+import { t } from '@/i18n';
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -27,7 +28,7 @@ export const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className, label 
         viewBox="0 0 24 24"
         fill="none"
         role="status"
-        aria-label={label || 'التحميل...'}
+        aria-label={label || t("التحميل...")}
       >
         {/* Track */}
         <circle

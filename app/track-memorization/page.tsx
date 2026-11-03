@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Toast } from '@/components/ui/Toast';
 import lecturesAPI, { Lecture } from '@/app/API/lectures';
+import { t as tr } from '@/i18n';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -40,7 +41,7 @@ export default function TrackMemorizationPage() {
       }
     } catch (err: any) {
       console.error('Error loading lectures:', err);
-      showToast('error', err.response?.data?.detail || 'فشل تحميل الحلقات');
+      showToast('error', err.response?.data?.detail || tr("فشل تحميل الحلقات"));
     } finally {
       setIsLoading(false);
     }
@@ -48,11 +49,11 @@ export default function TrackMemorizationPage() {
 
   const handleSubmit = () => {
     if (!selectedLecture) {
-      showToast('info', 'الرجاء اختيار الحلقة');
+      showToast('info', tr("الرجاء اختيار الحلقة"));
       return;
     }
     if (!date) {
-      showToast('info', 'الرجاء اختيار التاريخ');
+      showToast('info', tr("الرجاء اختيار التاريخ"));
       return;
     }
 
@@ -67,11 +68,11 @@ export default function TrackMemorizationPage() {
   };
 
   return (
-    <AppLayout title="متابعة الحفظ والمراجعة" breadcrumb="الشؤون الإدارية / متابعة الحفظ والمراجعة">
+    <AppLayout title={tr("متابعة الحفظ والمراجعة")} breadcrumb={tr("الشؤون الإدارية / متابعة الحفظ والمراجعة")}>
       <div className="space-y-6 max-w-5xl mx-auto">
         {/* Page Banner */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          متابعة الحفظ والمراجعة / الصفحة الرئيسية
+          {tr("متابعة الحفظ والمراجعة / الصفحة الرئيسية")}
         </div>
 
         {/* Main Content */}
@@ -101,11 +102,11 @@ export default function TrackMemorizationPage() {
                         />
                       </svg>
                     </div>
-                    <h2 className="text-lg font-bold text-gray-800">الحلقة</h2>
+                    <h2 className="text-lg font-bold text-gray-800">{tr("الحلقة")}</h2>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      اختر الحلقة
+                      {tr("اختر الحلقة")}
                     </label>
                     <select
                       value={selectedLecture?.lecture_id || ''}
@@ -119,7 +120,7 @@ export default function TrackMemorizationPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                     >
                       {lectures.length === 0 ? (
-                        <option value="">لا توجد حلقات متاحة</option>
+                        <option value="">{tr("لا توجد حلقات متاحة")}</option>
                       ) : (
                         lectures.map((lecture) => (
                           <option key={lecture.lecture_id} value={lecture.lecture_id}>
@@ -149,11 +150,11 @@ export default function TrackMemorizationPage() {
                         />
                       </svg>
                     </div>
-                    <h2 className="text-lg font-bold text-gray-800">التاريخ</h2>
+                    <h2 className="text-lg font-bold text-gray-800">{tr("التاريخ")}</h2>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      اختر التاريخ
+                      {tr("اختر التاريخ")}
                     </label>
                     <input
                       type="date"
@@ -172,7 +173,7 @@ export default function TrackMemorizationPage() {
                     disabled={!selectedLecture || !date}
                     className="px-12 py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    رجاء قم باختيار التاريخ والحلقة
+                    {tr("رجاء قم باختيار التاريخ والحلقة")}
                   </button>
                 </div>
               </>

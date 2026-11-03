@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 
 import type { Guardian } from '@/types/guardian';
+import { t } from '@/i18n';
 
 interface GuardianTableProps {
   guardians: Guardian[];
@@ -42,26 +43,26 @@ export const GuardianTable: React.FC<GuardianTableProps> = ({
               </th>
               {/* Spacer/Plus Header */}
               <th className="px-2 py-3.5 w-10" />
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الاسم
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الاسم")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                اللقب
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("اللقب")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                صلة القرابة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("صلة القرابة")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الهاتف
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الهاتف")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الطلاب المرتبطون
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الطلاب المرتبطون")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                اسم مستخدم الحساب
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("اسم مستخدم الحساب")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الحالة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الحالة")}
               </th>
             </tr>
           </thead>
@@ -69,15 +70,15 @@ export const GuardianTable: React.FC<GuardianTableProps> = ({
             {isLoading ? (
               <tr>
                 <td colSpan={9} className="py-16 text-center">
-                  <Spinner size="md" label="جاري التحميل..." />
+                  <Spinner size="md" label={t("جاري التحميل...")} />
                 </td>
               </tr>
             ) : guardians.length === 0 ? (
               <tr>
                 <td colSpan={9} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm text-gray-400 font-medium">لا يوجد أولياء أمور</p>
-                    <p className="text-xs text-gray-300">انقر على إضافة لإضافة ولي أمر جديد</p>
+                    <p className="text-sm text-gray-400 font-medium">{t("لا يوجد أولياء أمور")}</p>
+                    <p className="text-xs text-gray-300">{t("انقر على إضافة لإضافة ولي أمر جديد")}</p>
                   </div>
                 </td>
               </tr>
@@ -124,14 +125,14 @@ export const GuardianTable: React.FC<GuardianTableProps> = ({
                       {guardian.phoneNumber || <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-600">
-                      {guardian.students.length ? guardian.students.map((student) => `${student.firstName} ${student.lastName}`).join('، ') : <span className="text-gray-300">—</span>}
+                      {guardian.students.length ? guardian.students.map((student) => `${student.firstName} ${student.lastName}`).join(t("، ")) : <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-600" dir="ltr">
                       {guardian.username || <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-4 py-3.5 text-sm">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${guardian.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {guardian.isActive ? 'نشط' : 'غير نشط'}
+                        {guardian.isActive ? t("نشط") : t("غير نشط")}
                       </span>
                     </td>
                   </tr>
@@ -146,11 +147,11 @@ export const GuardianTable: React.FC<GuardianTableProps> = ({
       {guardians.length > 0 && (
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex justify-between text-xs text-gray-400">
           <span>
-            عدد الصفوف: <span className="font-semibold text-gray-600">{guardians.length}</span>
+            {t("عدد الصفوف:")}{' '}<span className="font-semibold text-gray-600">{guardians.length}</span>
           </span>
           {selectedIds.length > 0 && (
             <span className="text-teal-600 font-semibold">
-              تم تحديد {selectedIds.length} ولي أمر
+              {t("تم تحديد")}{' '}{selectedIds.length}{' '}{t("ولي أمر")}
             </span>
           )}
         </div>

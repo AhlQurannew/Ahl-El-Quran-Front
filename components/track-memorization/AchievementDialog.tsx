@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import studentsAPI, { AchievementPayload } from '@/app/API/students';
 import { quranSurahs } from '@/data/quran_data';
+import { t } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface Student {
   id: number;
@@ -28,6 +30,7 @@ export function AchievementDialog({
   date,
   onSaved,
 }: AchievementDialogProps) {
+  const confirm = useConfirm();
   const [fromSurah, setFromSurah] = useState(1);
   const [toSurah, setToSurah] = useState(1);
   const [fromVerse, setFromVerse] = useState(1);
@@ -67,6 +70,7 @@ export function AchievementDialog({
     }
     
     setError(null);
+    if (!(await confirm({ title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة هذا الإنجاز؟'), confirmText: t('نعم، أضف') }))) return;
     setIsSaving(true);
 
     try {
@@ -94,7 +98,7 @@ export function AchievementDialog({
       setAchievementType('normal');
     } catch (err: any) {
       console.error('Error saving achievement:', err);
-      setError(err.response?.data?.detail || 'فشل حفظ الإنجاز');
+      setError(err.response?.data?.detail || t("فشل حفظ الإنجاز"));
     } finally {
       setIsSaving(false);
     }
@@ -140,20 +144,20 @@ export function AchievementDialog({
   // Get validation error message
   const getValidationError = (): string | null => {
     if (fromVerse < 1 || fromVerse > (fromSurahData?.numberOfAyahs || 1)) {
-      return 'رقم الآية "من" غير صحيح';
+      return t("رقم الآية \"من\" غير صحيح");
     }
     if (toVerse < 1 || toVerse > (toSurahData?.numberOfAyahs || 1)) {
-      return 'رقم الآية "إلى" غير صحيح';
+      return t("رقم الآية \"إلى\" غير صحيح");
     }
     
     // Check sequence
     if (fromSurah === toSurah) {
       if (fromVerse < toVerse) {
-        return 'يجب أن تكون الآية "من" أكبر من أو تساوي الآية "إلى" (الحفظ من الأعلى إلى الأسفل)';
+        return t("يجب أن تكون الآية \"من\" أكبر من أو تساوي الآية \"إلى\" (الحفظ من الأعلى إلى الأسفل)");
       }
     } else {
       if (fromSurah < toSurah) {
-        return 'يجب أن تكون السورة "من" أكبر من أو تساوي السورة "إلى"';
+        return t("يجب أن تكون السورة \"من\" أكبر من أو تساوي السورة \"إلى\"");
       }
     }
     
@@ -163,17 +167,17 @@ export function AchievementDialog({
   const validationError = getValidationError();
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="تسجيل الإنجاز">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t("تسجيل الإنجاز")}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Student Info */}
         <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">الطالب</p>
+              <p className="text-sm text-gray-600">{t("الطالب")}</p>
               <p className="text-lg font-semibold text-gray-900">{getStudentName(student)}</p>
             </div>
-            <div className="text-left">
-              <p className="text-sm text-gray-600">التاريخ</p>
+            <div className="text-end">
+              <p className="text-sm text-gray-600">{t("التاريخ")}</p>
               <p className="text-lg font-semibold text-gray-900">{date}</p>
             </div>
           </div>
@@ -199,7 +203,7 @@ export function AchievementDialog({
 
         {/* Achievement Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">نوع الإنجاز</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t("نوع الإنجاز")}</label>
           <div className="flex gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -209,7 +213,7 @@ export function AchievementDialog({
                 onChange={(e) => setAchievementType(e.target.value as 'normal')}
                 className="w-4 h-4 text-teal-600 focus:ring-teal-500"
               />
-              <span className="text-gray-700">حفظ</span>
+              <span className="text-gray-700">{t("حفظ")}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -219,7 +223,7 @@ export function AchievementDialog({
                 onChange={(e) => setAchievementType(e.target.value as 'review')}
                 className="w-4 h-4 text-teal-600 focus:ring-teal-500"
               />
-              <span className="text-gray-700">مراجعة</span>
+              <span className="text-gray-700">{t("مراجعة")}</span>
             </label>
           </div>
         </div>
@@ -227,11 +231,11 @@ export function AchievementDialog({
         <div className="grid grid-cols-2 gap-4">
           {/* From Section */}
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-semibold text-gray-800 text-center">من</h3>
+            <h3 className="font-semibold text-gray-800 text-center">{t("من")}</h3>
             
             {/* From Surah */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">السورة</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("السورة")}</label>
               <select
                 value={fromSurah}
                 onChange={(e) => setFromSurah(Number(e.target.value))}
@@ -248,7 +252,7 @@ export function AchievementDialog({
 
             {/* From Verse */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">الآية</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("الآية")}</label>
               <input
                 type="number"
                 min="1"
@@ -259,18 +263,18 @@ export function AchievementDialog({
                 required
               />
               <p className="text-xs text-gray-500 mt-1">
-                الحد الأقصى: {fromSurahData?.numberOfAyahs || 1} آية
+                {t("الحد الأقصى:")}{' '}{fromSurahData?.numberOfAyahs || 1}{' '}{t("آية")}
               </p>
             </div>
           </div>
 
           {/* To Section */}
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-semibold text-gray-800 text-center">إلى</h3>
+            <h3 className="font-semibold text-gray-800 text-center">{t("إلى")}</h3>
             
             {/* To Surah */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">السورة</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("السورة")}</label>
               <select
                 value={toSurah}
                 onChange={(e) => setToSurah(Number(e.target.value))}
@@ -287,7 +291,7 @@ export function AchievementDialog({
 
             {/* To Verse */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">الآية</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("الآية")}</label>
               <input
                 type="number"
                 min="1"
@@ -298,7 +302,7 @@ export function AchievementDialog({
                 required
               />
               <p className="text-xs text-gray-500 mt-1">
-                الحد الأقصى: {toSurahData?.numberOfAyahs || 1} آية
+                {t("الحد الأقصى:")}{' '}{toSurahData?.numberOfAyahs || 1}{' '}{t("آية")}
               </p>
             </div>
           </div>
@@ -306,13 +310,13 @@ export function AchievementDialog({
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">ملاحظات</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t("ملاحظات")}</label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-            placeholder="أضف ملاحظات إضافية (اختياري)"
+            placeholder={t("أضف ملاحظات إضافية (اختياري)")}
           />
         </div>
 
@@ -324,7 +328,7 @@ export function AchievementDialog({
             disabled={isSaving}
             className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            إلغاء
+            {t("إلغاء")}
           </button>
           <button
             type="submit"
@@ -353,10 +357,10 @@ export function AchievementDialog({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                جاري الحفظ...
+                {t("جاري الحفظ...")}
               </>
             ) : (
-              'حفظ الإنجاز'
+              t("حفظ الإنجاز")
             )}
           </button>
         </div>

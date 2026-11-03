@@ -13,10 +13,13 @@ import { Toast } from '@/components/ui/Toast';
 import type { Supervisor, SupervisorCreatePayload, SupervisorUpdatePayload } from '@/types/supervisor';
 import supervisorAPI from '@/app/API/supervisor';
 import { useAdminView } from '@/contexts/AdminViewContext';
+import { t as tr, getDir, getLang, getLocale } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
 export default function SupervisorsPage() {
+  const confirm = useConfirm();
   const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -43,7 +46,7 @@ export default function SupervisorsPage() {
       setSupervisors(supervisorsList);
     } catch (err: any) {
       console.error('Error loading supervisors:', err);
-      setLoadError(err.response?.data?.detail || err.message || 'فشل تحميل بيانات المشرفين');
+      setLoadError(err.response?.data?.detail || err.message || tr("فشل تحميل بيانات المشرفين"));
     } finally {
       setIsLoading(false);
     }
@@ -102,23 +105,27 @@ export default function SupervisorsPage() {
       for (const id of selectedIds) {
         await supervisorAPI.deleteSupervisor(id);
       }
-      showToast('success', `تم حذف ${selectedIds.length} مشرف بنجاح`);
+      showToast('success', tr("تم حذف {length} مشرف بنجاح", { length: selectedIds.length }));
       setSelectedIds([]);
       setIsConfirmOpen(false);
       await loadSupervisors();
     } catch (err: any) {
       console.error('Error deleting supervisors:', err);
-      showToast('error', err.response?.data?.detail || err.message || 'فشل حذف المشرفين');
+      showToast('error', err.response?.data?.detail || err.message || tr("فشل حذف المشرفين"));
     }
   };
 
   const handleFormSubmit = async (data: SupervisorCreatePayload | SupervisorUpdatePayload) => {
+    const confirmed = await confirm(editingSupervisor
+      ? { title: tr('تأكيد الحفظ'), message: tr('هل أنت متأكد من حفظ تعديلات المشرف {name}؟', { name: `${data.firstname ?? ''} ${data.lastname ?? ''}`.trim() }), confirmText: tr('نعم، احفظ') }
+      : { title: tr('تأكيد الإضافة'), message: tr('هل أنت متأكد من إضافة المشرف {name}؟', { name: `${data.firstname ?? ''} ${data.lastname ?? ''}`.trim() }), confirmText: tr('نعم، أضف') });
+    if (!confirmed) return;
     setIsSubmitting(true);
     try {
       if (editingSupervisor) {
         // Update existing supervisor via API
         await supervisorAPI.updateSupervisor(editingSupervisor.id, data as SupervisorUpdatePayload);
-        showToast('success', `تم تعديل بيانات المشرف ${data.firstname} ${data.lastname}`);
+        showToast('success', tr("تم تعديل بيانات المشرف {firstname} {lastname}", { firstname: data.firstname, lastname: data.lastname }));
         
         // Reload supervisors list
         await loadSupervisors();
@@ -127,7 +134,7 @@ export default function SupervisorsPage() {
         const createData = data as SupervisorCreatePayload;
         await supervisorAPI.createSupervisor(createData);
         
-        showToast('success', `تمت إضافة المشرف ${data.firstname} ${data.lastname} بنجاح`);
+        showToast('success', tr("تمت إضافة المشرف {firstname} {lastname} بنجاح", { firstname: data.firstname, lastname: data.lastname }));
         
         // Reload supervisors list
         await loadSupervisors();
@@ -136,7 +143,7 @@ export default function SupervisorsPage() {
       setSelectedIds([]);
     } catch (err: any) {
       console.error('Error saving supervisor:', err);
-      showToast('error', err.response?.data?.detail || err.message || 'فشل حفظ بيانات المشرف');
+      showToast('error', err.response?.data?.detail || err.message || tr("فشل حفظ بيانات المشرف"));
     } finally {
       setIsSubmitting(false);
     }
@@ -150,33 +157,33 @@ export default function SupervisorsPage() {
   const handlePrint = () => {
     const printContent = `
       <!DOCTYPE html>
-      <html dir="rtl" lang="ar">
+      <html dir="${getDir()}" lang="${getLang()}">
       <head>
         <meta charset="UTF-8"/>
-        <title>قائمة المشرفين</title>
+        <title>${tr("قائمة المشرفين")}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #111; }
+          body { font-family: Arial, sans-serif; padding: 24px; direction: ${getDir()}; color: #111; }
           h1 { font-size: 18px; margin-bottom: 4px; }
           p.subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
           table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-          th { background: #047857; color: white; padding: 8px 12px; text-align: right; border: 1px solid #047857; }
+          th { background: #047857; color: white; padding: 8px 12px; text-align: ${getDir() === 'rtl' ? 'right' : 'left'}; border: 1px solid #047857; }
           td { padding: 8px 12px; border: 1px solid #e5e7eb; }
           tr:nth-child(even) td { background: #f9fafb; }
           .footer { margin-top: 24px; font-size: 12px; color: #666; text-align: center; }
         </style>
       </head>
       <body>
-        <h1>قائمة المشرفين</h1>
-        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG-u-nu-latn', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <h1>${tr("قائمة المشرفين")}</h1>
+        <p class="subtitle">${tr("تاريخ الطباعة: {v0}", { v0: new Date().toLocaleDateString(getLocale(), { year:'numeric', month:'long', day:'numeric' }) })}</p>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>الاسم الأول</th>
-              <th>الاسم الأخير</th>
-              <th>البريد الإلكتروني</th>
-              <th>الحالة</th>
-              <th>تاريخ الإنشاء</th>
+              <th>${tr("الاسم الأول")}</th>
+              <th>${tr("الاسم الأخير")}</th>
+              <th>${tr("البريد الإلكتروني")}</th>
+              <th>${tr("الحالة")}</th>
+              <th>${tr("تاريخ الإنشاء")}</th>
             </tr>
           </thead>
           <tbody>
@@ -186,11 +193,11 @@ export default function SupervisorsPage() {
               <td>${s.lastname || ''}</td>
               <td>${s.email || ''}</td>
               <td>${s.is_active ? 'نشط' : 'غير نشط'}</td>
-              <td>${s.created_at ? new Date(s.created_at).toLocaleDateString('ar-EG') : '-'}</td>
+              <td>${s.created_at ? new Date(s.created_at).toLocaleDateString(getLocale()) : '-'}</td>
             </tr>`).join('')}
           </tbody>
         </table>
-        <p class="footer">المجموع: ${filtered.length} مشرف</p>
+        <p class="footer">${tr("المجموع: {length} مشرف", { length: filtered.length })}</p>
       </body>
       </html>
     `;
@@ -205,24 +212,24 @@ export default function SupervisorsPage() {
 
   const handleExportExcel = () => {
     const exportData = filtered.map((s) => ({
-      'الاسم الأول': s.firstname,
-      'الاسم الأخير': s.lastname,
-      'البريد الإلكتروني': s.email,
-      'تاريخ الإنشاء': s.created_at ? new Date(s.created_at).toLocaleDateString('ar-EG') : '-',
-      'الحالة': s.is_active ? 'نشط' : 'غير نشط',
+      [tr("الاسم الأول")]: s.firstname,
+      [tr("الاسم الأخير")]: s.lastname,
+      [tr("البريد الإلكتروني")]: s.email,
+      [tr("تاريخ الإنشاء")]: s.created_at ? new Date(s.created_at).toLocaleDateString(getLocale()) : '-',
+      [tr("الحالة")]: s.is_active ? tr("نشط") : tr("غير نشط"),
     }));
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'المشرفين');
-    XLSX.writeFile(workbook, 'قائمة_المشرفين.xlsx');
+    XLSX.utils.book_append_sheet(workbook, worksheet, tr("المشرفين"));
+    XLSX.writeFile(workbook, tr("قائمة_المشرفين.xlsx"));
   };
 
   return (
-    <AppLayout title="المشرفين" breadcrumb="الشؤون الإدارية / المشرفين">
+    <AppLayout title={tr("المشرفين")} breadcrumb={tr("الشؤون الإدارية / المشرفين")}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Page Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm">
-          إدارة المشرفين / الصفحة الرئيسية
+          {tr("إدارة المشرفين / الصفحة الرئيسية")}
         </div>
 
         {/* Loading State */}
@@ -238,9 +245,9 @@ export default function SupervisorsPage() {
             {loadError}
             <button 
               onClick={loadSupervisors}
-              className="mr-4 underline hover:no-underline"
+              className="ms-4 underline hover:no-underline"
             >
-              إعادة المحاولة
+              {tr("إعادة المحاولة")}
             </button>
           </div>
         )}
@@ -301,10 +308,10 @@ export default function SupervisorsPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="تأكيد حذف المشرفين"
-        message={`هل أنت متأكد من حذف عدد ${selectedIds.length} مشرف من السجلات؟ لا يمكن التراجع عن هذا الإجراء.`}
-        confirmText="نعم، احذف"
-        cancelText="إلغاء"
+        title={tr("تأكيد حذف المشرفين")}
+        message={tr("هل أنت متأكد من حذف عدد {length} مشرف من السجلات؟ لا يمكن التراجع عن هذا الإجراء.", { length: selectedIds.length })}
+        confirmText={tr("نعم، احذف")}
+        cancelText={tr("إلغاء")}
         variant="danger"
       />
 

@@ -4,6 +4,7 @@ import React from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { Modal } from './Modal';
 import { Button } from './Button';
+import { t } from '@/i18n';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -22,10 +23,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = 'تأكيد',
-  cancelText = 'إلغاء',
+  confirmText = t("تأكيد"),
+  cancelText = t("إلغاء"),
   variant = 'primary',
 }) => {
+  // onConfirm runs first; a later onClose is a no-op for callers that already settled.
   const handleConfirm = () => {
     onConfirm();
     onClose();

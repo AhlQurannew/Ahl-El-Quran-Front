@@ -4,12 +4,13 @@ import React from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { BarChart2, TrendingUp, PieChart, Activity, ChevronLeft } from 'lucide-react';
+import { t } from '@/i18n';
 
 export default function StatisticsPage() {
   const statPages = [
     {
-      title: 'إحصائيات الإنجاز',
-      description: 'نظرة شاملة على مستويات الحفظ والأجزاء المنجزة لجميع الطلاب.',
+      title: t("إحصائيات الإنجاز"),
+      description: t("نظرة شاملة على مستويات الحفظ والأجزاء المنجزة لجميع الطلاب."),
       href: '/statistics/achievement',
       icon: <BarChart2 size={32} className="text-emerald-600" />,
       bg: 'bg-emerald-50',
@@ -17,8 +18,8 @@ export default function StatisticsPage() {
       glow: 'group-hover:shadow-emerald-500/20',
     },
     {
-      title: 'إحصائيات المواظبة',
-      description: 'متابعة دقيقة لحضور وغياب الطلاب ومدى التزامهم بالحلقات.',
+      title: t("إحصائيات المواظبة"),
+      description: t("متابعة دقيقة لحضور وغياب الطلاب ومدى التزامهم بالحلقات."),
       href: '/statistics/attendance',
       icon: <Activity size={32} className="text-blue-600" />,
       bg: 'bg-blue-50',
@@ -26,8 +27,8 @@ export default function StatisticsPage() {
       glow: 'group-hover:shadow-blue-500/20',
     },
     {
-      title: 'إحصائيات الحلقة',
-      description: 'تقارير تفصيلية عن أداء كل حلقة على حدة ومقارنة بين الحلقات.',
+      title: t("إحصائيات الحلقة"),
+      description: t("تقارير تفصيلية عن أداء كل حلقة على حدة ومقارنة بين الحلقات."),
       href: '/statistics/halqa',
       icon: <PieChart size={32} className="text-purple-600" />,
       bg: 'bg-purple-50',
@@ -35,8 +36,8 @@ export default function StatisticsPage() {
       glow: 'group-hover:shadow-purple-500/20',
     },
     {
-      title: 'منحنى تطور الإنجاز',
-      description: 'رسم بياني يوضح مسار التطور الزمني لحفظ الطلاب بشكل تراكمي.',
+      title: t("منحنى تطور الإنجاز"),
+      description: t("رسم بياني يوضح مسار التطور الزمني لحفظ الطلاب بشكل تراكمي."),
       href: '/statistics/progress',
       icon: <TrendingUp size={32} className="text-amber-600" />,
       bg: 'bg-amber-50',
@@ -46,22 +47,22 @@ export default function StatisticsPage() {
   ];
 
   return (
-    <AppLayout title="الإحصاءات" breadcrumb="الشؤون الإدارية / الإحصاءات">
+    <AppLayout title={t("الإحصاءات")} breadcrumb={t("الشؤون الإدارية / الإحصاءات")}>
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Modern Header Banner */}
         <div className="relative overflow-hidden bg-gradient-to-l from-teal-800 to-emerald-700 rounded-3xl p-8 sm:p-10 shadow-lg flex items-center justify-between">
           <div className="relative z-10 max-w-2xl">
-            <h1 className="text-3xl font-bold text-white mb-3">لوحة الإحصاءات والتقارير</h1>
+            <h1 className="text-3xl font-bold text-white mb-3">{t("لوحة الإحصاءات والتقارير")}</h1>
             <p className="text-emerald-100 text-base leading-relaxed">
-              مرحباً بك في مركز التحليل الشامل لبيانات نظام أهل القرآن. هنا يمكنك استعراض التقارير الدقيقة ومتابعة تطور أداء الطلاب والحلقات لاتخاذ قرارات أفضل مبنية على البيانات.
+              {t("مرحباً بك في مركز التحليل الشامل لبيانات نظام أهل القرآن. هنا يمكنك استعراض التقارير الدقيقة ومتابعة تطور أداء الطلاب والحلقات لاتخاذ قرارات أفضل مبنية على البيانات.")}
             </p>
           </div>
           <div className="hidden lg:block relative z-10 opacity-20">
             <PieChart size={120} className="text-white" />
           </div>
           {/* Decorative shapes */}
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-300 opacity-10 rounded-full blur-3xl"></div>
+          <div className="absolute -top-24 -inset-s-24 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -inset-e-24 w-64 h-64 bg-emerald-300 opacity-10 rounded-full blur-3xl"></div>
         </div>
 
         {/* Interactive Cards Grid */}
@@ -83,8 +84,8 @@ export default function StatisticsPage() {
                   </p>
                 </div>
               </div>
-              <div className="mt-6 sm:mt-0 sm:mr-4 w-10 h-10 shrink-0 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
-                <ChevronLeft size={20} />
+              <div className="mt-6 sm:mt-0 sm:ms-4 w-10 h-10 shrink-0 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                <ChevronLeft className="ltr:-scale-x-100" size={20} />
               </div>
             </Link>
           ))}

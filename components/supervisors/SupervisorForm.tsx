@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { Supervisor, SupervisorCreatePayload, SupervisorUpdatePayload } from '@/types/supervisor';
+import { t } from '@/i18n';
 
 interface SupervisorFormProps {
   isOpen: boolean;
@@ -66,22 +67,22 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.firstname?.trim()) {
-      newErrors.firstname = 'الاسم الأول مطلوب';
+      newErrors.firstname = t("الاسم الأول مطلوب");
     }
     if (!formData.lastname?.trim()) {
-      newErrors.lastname = 'الاسم الأخير مطلوب';
+      newErrors.lastname = t("الاسم الأخير مطلوب");
     }
     if (!formData.email?.trim()) {
-      newErrors.email = 'البريد الإلكتروني مطلوب';
+      newErrors.email = t("البريد الإلكتروني مطلوب");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'البريد الإلكتروني غير صحيح';
+      newErrors.email = t("البريد الإلكتروني غير صحيح");
     }
     
     // Password is only required in create mode
     if (!editingSupervisor && !formData.password?.trim()) {
-      newErrors.password = 'كلمة المرور مطلوبة';
+      newErrors.password = t("كلمة المرور مطلوبة");
     } else if (formData.password && formData.password.length < 6) {
-      newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+      newErrors.password = t("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
     }
 
     setErrors(newErrors);
@@ -119,7 +120,7 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-800">
-          {editingSupervisor ? 'تعديل بيانات المشرف' : 'إضافة مشرف جديد'}
+          {editingSupervisor ? t("تعديل بيانات المشرف") : t("إضافة مشرف جديد")}
         </h2>
         <button
           onClick={onClose}
@@ -133,10 +134,10 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* First Name */}
         <Input
-          label="الاسم الأول"
+          label={t("الاسم الأول")}
           value={formData.firstname || ''}
           onChange={(e) => handleChange('firstname', e.target.value)}
-          placeholder="أدخل الاسم الأول"
+          placeholder={t("أدخل الاسم الأول")}
           error={errors.firstname}
           required
           disabled={isSubmitting}
@@ -144,10 +145,10 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
 
         {/* Last Name */}
         <Input
-          label="الاسم الأخير"
+          label={t("الاسم الأخير")}
           value={formData.lastname || ''}
           onChange={(e) => handleChange('lastname', e.target.value)}
-          placeholder="أدخل الاسم الأخير"
+          placeholder={t("أدخل الاسم الأخير")}
           error={errors.lastname}
           required
           disabled={isSubmitting}
@@ -155,7 +156,7 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
 
         {/* Email */}
         <Input
-          label="البريد الإلكتروني"
+          label={t("البريد الإلكتروني")}
           type="email"
           value={formData.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
@@ -168,14 +169,14 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
         {/* Password */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            كلمة المرور {!editingSupervisor && <span className="text-red-500">*</span>}
-            {editingSupervisor && <span className="text-gray-500 text-xs">(اختياري)</span>}
+            {t("كلمة المرور")}{' '}{!editingSupervisor && <span className="text-red-500">*</span>}
+            {editingSupervisor && <span className="text-gray-500 text-xs">{t("(اختياري)")}</span>}
           </label>
           <div className="flex gap-2">
             <Input
               value={formData.password || ''}
               onChange={(e) => handleChange('password', e.target.value)}
-              placeholder={editingSupervisor ? 'اترك فارغاً للحفاظ على كلمة المرور الحالية' : 'أدخل كلمة المرور'}
+              placeholder={editingSupervisor ? t("اترك فارغاً للحفاظ على كلمة المرور الحالية") : t("أدخل كلمة المرور")}
               error={errors.password}
               required={!editingSupervisor}
               disabled={isSubmitting}
@@ -185,11 +186,11 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
               type="button"
               onClick={handleGeneratePassword}
               className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="توليد كلمة مرور"
+              title={t("توليد كلمة مرور")}
               disabled={isSubmitting}
             >
               <RefreshCw size={18} />
-              توليد
+              {t("توليد")}
             </button>
           </div>
           {errors.password && (
@@ -205,7 +206,7 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
             className="flex-1"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'جاري الحفظ...' : editingSupervisor ? 'حفظ التعديلات' : 'إضافة المشرف'}
+            {isSubmitting ? t("جاري الحفظ...") : editingSupervisor ? t("حفظ التعديلات") : t("إضافة المشرف")}
           </Button>
           <Button 
             type="button" 
@@ -214,7 +215,7 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
             className="flex-1"
             disabled={isSubmitting}
           >
-            إلغاء
+            {t("إلغاء")}
           </Button>
         </div>
       </form>

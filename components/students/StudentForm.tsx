@@ -11,6 +11,8 @@ import type { Student } from '@/types/student';
 import lecturesAPI, { type Lecture } from '@/api/lectures';
 import guardianAPI, { type GuardianCreatePayload } from '@/app/API/guardian';
 import { mapGuardianResponse, type Guardian } from '@/types/guardian';
+import { t } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 export type StudentFormData = Omit<Student, 'id'> & { photoFile?: File };
 
@@ -47,6 +49,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   isLoading,
   isSubmitting,
 }) => {
+  const confirm = useConfirm();
   const [form, setForm] = React.useState<StudentFormData>(() => {
     if (!editingStudent) return EMPTY_FORM;
     const { id, ...studentData } = editingStudent;
@@ -111,12 +114,12 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     if (!file) return;
 
     if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-      setErrors((current) => ({ ...current, photo: 'اختر صورة بصيغة PNG أو JPG أو WebP' }));
+      setErrors((current) => ({ ...current, photo: t('اختر صورة بصيغة PNG أو JPG أو WebP') }));
       e.target.value = '';
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      setErrors((current) => ({ ...current, photo: 'يجب ألا يتجاوز حجم الصورة 2 ميغابايت' }));
+      setErrors((current) => ({ ...current, photo: t('يجب ألا يتجاوز حجم الصورة 2 ميغابايت') }));
       e.target.value = '';
       return;
     }
@@ -150,10 +153,10 @@ export const StudentForm: React.FC<StudentFormProps> = ({
 
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
-    if (!form.firstName.trim()) newErrors.firstName = 'الاسم مطلوب';
-    if (!form.lastName.trim()) newErrors.lastName = 'الكنية مطلوبة';
+    if (!form.firstName.trim()) newErrors.firstName = t("الاسم مطلوب");
+    if (!form.lastName.trim()) newErrors.lastName = t("الكنية مطلوبة");
     if (!form.username.trim() || !form.username.includes('@')) {
-      newErrors.username = 'بريد إلكتروني صحيح مطلوب';
+      newErrors.username = t("بريد إلكتروني صحيح مطلوب");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -189,6 +192,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({
       account_info: { username: data.username.trim(), password: data.password },
     };
 
+    if (!(await confirm({ title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة ولي الأمر {name}؟', { name: `${data.firstName} ${data.lastName}` }), confirmText: t('نعم، أضف') }))) return;
+
     try {
       const response = await guardianAPI.createGuardian(payload);
       const guardian = mapGuardianResponse(response);
@@ -202,7 +207,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
           ? detail
           : detail
             ? JSON.stringify(detail)
-            : error instanceof Error ? error.message : 'تعذر إنشاء ولي الأمر. يرجى المحاولة مرة أخرى.',
+            : error instanceof Error ? error.message : t("تعذر إنشاء ولي الأمر. يرجى المحاولة مرة أخرى."),
       );
     } finally {
       setIsCreatingGuardian(false);
@@ -214,15 +219,15 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     <Modal
       isOpen={isOpen && !isGuardianFormOpen}
       onClose={handleClose}
-      title={isEditing ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد'}
+      title={isEditing ? t("تعديل بيانات الطالب") : t("إضافة طالب جديد")}
       size="md"
       footer={
         <>
           <Button variant="ghost" size="sm" onClick={handleClose} disabled={isLoading || isSubmitting}>
-            إلغاء
+            {t("إلغاء")}
           </Button>
           <Button size="sm" isLoading={isLoading || isSubmitting} onClick={handleSubmit}>
-            {isEditing ? 'حفظ التعديلات' : 'إضافة'}
+            {isEditing ? t("حفظ التعديلات") : t("إضافة")}
           </Button>
         </>
       }
@@ -231,15 +236,15 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         {/* First & Last name */}
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="الاسم *"
-            placeholder="مثال: أحمد"
+            label={t("الاسم *")}
+            placeholder={t("مثال: أحمد")}
             value={form.firstName}
             onChange={(e) => set('firstName', e.target.value)}
             error={errors.firstName}
           />
           <Input
-            label="الكنية *"
-            placeholder="مثال: يعقوب"
+            label={t("الكنية *")}
+            placeholder={t("مثال: يعقوب")}
             value={form.lastName}
             onChange={(e) => set('lastName', e.target.value)}
             error={errors.lastName}
@@ -249,7 +254,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         {/* Username/Email & Gender */}
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="اسم المستخدم (البريد) *"
+            label={t("اسم المستخدم (البريد) *")}
             placeholder="yakoube@gmail.com"
             type="email"
             value={form.username}
@@ -257,12 +262,12 @@ export const StudentForm: React.FC<StudentFormProps> = ({
             error={errors.username}
           />
           <Select
-            label="الجنس"
+            label={t("الجنس")}
             value={form.gender}
             onChange={(e) => set('gender', e.target.value as 'male' | 'female')}
             options={[
-              { value: 'male', label: 'ذكر' },
-              { value: 'female', label: 'أنثى' },
+              { value: 'male', label: t("ذكر") },
+              { value: 'female', label: t("أنثى") },
             ]}
           />
         </div>
@@ -270,8 +275,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         {/* Halqa & DOB */}
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="الحلقة"
-            placeholder={loadingLectures ? "جاري التحميل..." : "اختر الحلقة..."}
+            label={t("الحلقة")}
+            placeholder={loadingLectures ? t("جاري التحميل...") : t("اختر الحلقة...")}
             value={form.halqaId ? String(form.halqaId) : ''}
             onChange={(e) => setLecture(Number(e.target.value))}
             options={lectures.map((lecture) => ({
@@ -281,7 +286,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
             disabled={loadingLectures}
           />
           <Input
-            label="تاريخ الميلاد"
+            label={t("تاريخ الميلاد")}
             type="date"
             value={form.dob}
             onChange={(e) => set('dob', e.target.value)}
@@ -291,13 +296,13 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         <div className="flex items-end gap-2">
           <div className="min-w-0 flex-1">
             <Select
-              label="ولي الأمر (اختياري)"
+              label={t("ولي الأمر (اختياري)")}
               value={form.guardianId ? String(form.guardianId) : ''}
               onChange={(event) => setForm((current) => ({ ...current, guardianId: event.target.value ? Number(event.target.value) : undefined }))}
               options={[
-                { value: '', label: 'بدون ولي أمر' },
+                { value: '', label: t("بدون ولي أمر") },
                 ...(form.guardianId && !guardians.some((guardian) => guardian.id === form.guardianId)
-                  ? [{ value: String(form.guardianId), label: `ولي الأمر الحالي رقم ${form.guardianId}` }]
+                  ? [{ value: String(form.guardianId), label: t("ولي الأمر الحالي رقم {guardianId}", { guardianId: form.guardianId }) }]
                   : []),
                 ...guardians.map((guardian) => ({
                   value: String(guardian.id),
@@ -317,23 +322,23 @@ export const StudentForm: React.FC<StudentFormProps> = ({
               setIsGuardianFormOpen(true);
             }}
           >
-            إضافة ولي أمر
+            {t("إضافة ولي أمر")}
           </Button>
         </div>
         <p className="-mt-2 text-xs text-gray-500">
-          {loadingGuardians ? 'جاري تحميل أولياء الأمور...' : guardianLoadError ? 'تعذر تحميل قائمة أولياء الأمور؛ يمكنك إعادة فتح النموذج والمحاولة مرة أخرى.' : 'يمكن ربط الطالب بولي أمر واحد فقط.'}
+          {loadingGuardians ? t("جاري تحميل أولياء الأمور...") : guardianLoadError ? t("تعذر تحميل قائمة أولياء الأمور؛ يمكنك إعادة فتح النموذج والمحاولة مرة أخرى.") : t("يمكن ربط الطالب بولي أمر واحد فقط.")}
         </p>
 
         {/* POB & Nationality */}
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="مكان الميلاد"
+            label={t("مكان الميلاد")}
             placeholder="bourouba"
             value={form.pob}
             onChange={(e) => set('pob', e.target.value)}
           />
           <Input
-            label="الجنسية"
+            label={t("الجنسية")}
             placeholder="Algerian"
             value={form.nationality}
             onChange={(e) => set('nationality', e.target.value)}
@@ -342,8 +347,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({
 
         {/* ID Type */}
         <Input
-          label="نوع الهوية"
-          placeholder="بطاقة تعريف / جواز..."
+          label={t("نوع الهوية")}
+          placeholder={t("بطاقة تعريف / جواز...")}
           value={form.idType || ''}
           onChange={(e) => set('idType', e.target.value)}
         />
@@ -351,7 +356,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         {/* Photo */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            صورة الطالب
+            {t("صورة الطالب")}
           </label>
           <div className="flex items-center gap-4">
             {/* Preview */}
@@ -361,7 +366,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                 photo={form.photo}
                 alt={`${form.firstName} ${form.lastName}`}
                 className="w-full h-full object-cover"
-                fallback={<span className="text-gray-400 text-xs text-center">لا صورة</span>}
+                fallback={<span className="text-gray-400 text-xs text-center">{t("لا صورة")}</span>}
               />
             </div>
             {/* Input file */}
@@ -370,9 +375,9 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 onChange={handlePhotoChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer"
+                className="block w-full text-sm text-gray-500 file:ms-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer"
               />
-              <p className="text-xs text-gray-400 mt-1">PNG أو JPG أو WebP حتى 2MB</p>
+              <p className="text-xs text-gray-400 mt-1">{t("PNG أو JPG أو WebP حتى 2MB")}</p>
               {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}
             </div>
             {/* Supprimer la photo */}
@@ -382,7 +387,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                 onClick={() => setForm((f) => ({ ...f, photo: '', photoFile: undefined }))}
                 className="text-red-400 hover:text-red-600 text-xs"
               >
-                حذف
+                {t("حذف")}
               </button>
             )}
           </div>

@@ -453,12 +453,37 @@ theme: {
 }
 ```
 
-### RTL Support
+### Languages (Arabic, French, English) and RTL
 
-The app is built with RTL (Right-to-Left) support for Arabic:
-- `dir="rtl"` on `<html>` tag
-- Tailwind directionality utilities
-- Arabic-first typography
+The UI is available in Arabic (default), French and English. Users pick a language
+from the switcher in the top bar (or on the login/register pages); the choice is stored
+in the `lang` cookie and the server renders `<html lang dir>` accordingly (RTL for
+Arabic, LTR otherwise).
+
+- **Arabic text is the translation key.** Wrap UI text with `t()` from `@/i18n`:
+  `t('تسجيل الدخول')`, with placeholders: `t('تم حذف {count} طالب', { count })`.
+- Add the English and French values to [`i18n/locales/en.ts`](i18n/locales/en.ts) and
+  [`i18n/locales/fr.ts`](i18n/locales/fr.ts). A missing key falls back to Arabic.
+- Don't call `t()` at module scope (constants are evaluated once). Keep Arabic in the
+  constant and call `t(item.label)` where it is rendered.
+- Use logical Tailwind utilities (`ms-`, `pe-`, `inset-s-`, `text-start`, …) instead of
+  `ml-`/`right-`/`text-right` so layouts mirror correctly between RTL and LTR.
+
+### Confirmations
+
+Every add, edit and delete asks the user first. Use the promise-based hook:
+
+```tsx
+const confirm = useConfirm(); // from '@/components/ui/ConfirmProvider'
+if (!(await confirm({ title: t('تأكيد الحذف'), message: t('هل أنت متأكد من الحذف؟'), variant: 'danger' }))) return;
+```
+
+### Profile pictures
+
+Every account (admin, president, supervisors, teachers, guardians, students) can upload a
+profile picture from **Profile** (`/profile`, or **Profile & settings** for admins). It is
+shown on the profile page and in the sidebar. Backend: `GET/POST/DELETE /api/v1/auth/settings/photo`
+(PNG/JPG/WebP, max 2 MB, stored as WebP under `UPLOAD_DIR/accounts/`).
 
 ## 🧪 Testing
 

@@ -8,6 +8,7 @@ import type { Student } from '@/types/student';
 import { Mail, Calendar, MapPin, Flag, IdCard, BookOpen, type LucideIcon } from 'lucide-react';
 import guardianAPI from '@/app/API/guardian';
 import type { Guardian } from '@/types/guardian';
+import { t } from '@/i18n';
 
 interface StudentDetailsDialogProps {
   isOpen: boolean;
@@ -62,11 +63,11 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="معلومات الطالب"
+      title={t("معلومات الطالب")}
       size="md"
       footer={
         <Button variant="ghost" size="sm" onClick={onClose}>
-          إغلاق
+          {t("إغلاق")}
         </Button>
       }
     >
@@ -81,7 +82,7 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
               className="w-full h-full object-cover"
               fallback={(
                 <span className="text-2xl font-bold text-teal-600">
-                  {student.firstName?.charAt(0) ?? '؟'}
+                  {student.firstName?.charAt(0) ?? t("؟")}
                 </span>
               )}
             />
@@ -91,7 +92,7 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
               {student.firstName} {student.lastName}
             </h3>
             <p className="text-sm text-gray-600">
-              {student.gender === 'male' ? 'ذكر' : 'أنثى'}
+              {student.gender === 'male' ? t("ذكر") : t("أنثى")}
             </p>
           </div>
         </div>
@@ -100,60 +101,60 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
         <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
           <DetailRow 
             icon={Mail} 
-            label="البريد الإلكتروني / اسم المستخدم" 
+            label={t("البريد الإلكتروني / اسم المستخدم")} 
             value={student.username} 
           />
           <DetailRow 
             icon={BookOpen} 
-            label="الحلقة" 
+            label={t("الحلقة")} 
             value={student.halqa} 
           />
           <DetailRow 
             icon={Calendar} 
-            label="تاريخ الميلاد" 
+            label={t("تاريخ الميلاد")} 
             value={student.dob} 
           />
           <DetailRow 
             icon={MapPin} 
-            label="مكان الميلاد" 
+            label={t("مكان الميلاد")} 
             value={student.pob} 
           />
           <DetailRow 
             icon={Flag} 
-            label="الجنسية" 
+            label={t("الجنسية")} 
             value={student.nationality} 
           />
           <DetailRow 
             icon={IdCard} 
-            label="نوع الهوية" 
+            label={t("نوع الهوية")} 
             value={student.idType} 
           />
         </div>
 
         <section className="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
-          <h4 className="mb-3 text-sm font-bold text-gray-800">ولي الأمر المرتبط</h4>
+          <h4 className="mb-3 text-sm font-bold text-gray-800">{t("ولي الأمر المرتبط")}</h4>
           {!guardianId ? (
-            <p className="text-sm text-gray-500">لا يوجد ولي أمر مرتبط بهذا الطالب.</p>
+            <p className="text-sm text-gray-500">{t("لا يوجد ولي أمر مرتبط بهذا الطالب.")}</p>
           ) : !guardianResult ? (
-            <p className="text-sm text-gray-500">جاري تحميل بيانات ولي الأمر...</p>
+            <p className="text-sm text-gray-500">{t("جاري تحميل بيانات ولي الأمر...")}</p>
           ) : linkedGuardian ? (
             <div className="space-y-2 text-sm">
               <p className="font-semibold text-gray-800">{linkedGuardian.firstName} {linkedGuardian.lastName}</p>
-              <p className="text-gray-600">صلة القرابة: {linkedGuardian.relationship || '—'}</p>
+              <p className="text-gray-600">{t("صلة القرابة:")}{' '}{linkedGuardian.relationship || '—'}</p>
               {linkedGuardian.phoneNumber && <p dir="ltr" className="text-right text-gray-600">{linkedGuardian.phoneNumber}</p>}
-              {linkedGuardian.email && <p className="text-gray-600">بريد التواصل: {linkedGuardian.email}</p>}
-              {linkedGuardian.username && <p className="text-gray-600">اسم المستخدم: {linkedGuardian.username}</p>}
+              {linkedGuardian.email && <p className="text-gray-600">{t("بريد التواصل:")}{' '}{linkedGuardian.email}</p>}
+              {linkedGuardian.username && <p className="text-gray-600">{t("اسم المستخدم:")}{' '}{linkedGuardian.username}</p>}
             </div>
           ) : (
             <div className="space-y-2 text-sm">
               <p className="font-semibold text-gray-800">
-                {student.guardianName || 'ولي أمر'}
+                {student.guardianName || t("ولي أمر")}
               </p>
-              {student.guardianEmail && <p className="text-gray-600">بريد التواصل: {student.guardianEmail}</p>}
+              {student.guardianEmail && <p className="text-gray-600">{t("بريد التواصل:")}{' '}{student.guardianEmail}</p>}
               <p className="text-xs text-gray-500">
                 {student.guardianName || student.guardianEmail
-                  ? 'تعذر تحميل بقية بيانات ولي الأمر.'
-                  : 'تعذر تحميل بيانات ولي الأمر.'}
+                  ? t("تعذر تحميل بقية بيانات ولي الأمر.")
+                  : t("تعذر تحميل بيانات ولي الأمر.")}
               </p>
             </div>
           )}

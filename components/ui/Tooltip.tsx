@@ -20,15 +20,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const positionClasses = {
     top: 'bottom-full left-1/2 -translate-x-1/2 mb-2.5',
     bottom: 'top-full left-1/2 -translate-x-1/2 mt-2.5',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2.5',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2.5',
+    left: 'inset-s-full top-1/2 -translate-y-1/2 ms-2.5',
+    right: 'inset-e-full top-1/2 -translate-y-1/2 me-2.5',
   };
 
   const arrowClasses = {
     top: 'top-full left-1/2 -translate-x-1/2 border-t-gray-900 border-4 border-transparent',
     bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-gray-900 border-4 border-transparent',
-    left: 'left-full top-1/2 -translate-y-1/2 border-l-gray-900 border-4 border-transparent',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-gray-900 border-4 border-transparent',
+    left: 'inset-e-full top-1/2 -translate-y-1/2 border-l-gray-900 border-4 border-transparent',
+    right: 'inset-s-full top-1/2 -translate-y-1/2 border-r-gray-900 border-4 border-transparent',
   };
 
   return (

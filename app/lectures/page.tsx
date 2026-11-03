@@ -20,6 +20,7 @@ import {
   ChevronDown,
   FileSpreadsheet
 } from 'lucide-react';
+import { t as tr } from '@/i18n';
 
 export default function LecturesPage() {
   const user = useAuthStore((state) => state.user);
@@ -142,10 +143,10 @@ export default function LecturesPage() {
       setIsDeleteModalOpen(false);
       fetchLectures();
 
-      showToast('تم حذف الحلقة بنجاح', 'success');
+      showToast(tr("تم حذف الحلقة بنجاح"), 'success');
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      showToast('حدث خطأ أثناء عملية الحذف', 'error');
+      showToast(tr("حدث خطأ أثناء عملية الحذف"), 'error');
     } finally {
       setIsDeleting(false);
     }
@@ -159,7 +160,7 @@ export default function LecturesPage() {
     setSelectedIds([]);
     fetchLectures();
 
-    showToast(isEdit ? 'تم تحديث الحلقة بنجاح' : 'تمت إضافة الحلقة بنجاح', 'success');
+    showToast(isEdit ? tr("تم تحديث الحلقة بنجاح") : tr("تمت إضافة الحلقة بنجاح"), 'success');
   };
 
   
@@ -173,7 +174,7 @@ export default function LecturesPage() {
         : filteredLectures;
 
       if (listToExport.length === 0) {
-        showToast('لا توجد بيانات للتصدير', 'info');
+        showToast(tr("لا توجد بيانات للتصدير"), 'info');
         return;
       }
 
@@ -190,33 +191,33 @@ export default function LecturesPage() {
 
         
         const schedulesStr = (lecture.schedules || [])
-          .map((s) => `${s.day_of_week} (${s.start_time} - ${s.end_time})`)
+          .map((s) => `${tr(s.day_of_week)} (${s.start_time} - ${s.end_time})`)
           .join(' / ');
 
         
         const catMap: Record<string, string> = {
-          male: 'ذكور',
-          female: 'إناث',
-          both: 'ذكور وإناث',
+          male: tr("ذكور"),
+          female: tr("إناث"),
+          both: tr("ذكور وإناث"),
         };
         const categoryAr = catMap[lecture.category?.toLowerCase()] || lecture.category || '—';
 
         return {
-          'اسم الحلقة (بالعربية)': lecture.lecture_name_ar || '',
-          'اسم الحلقة (بالإنجليزية)': lecture.lecture_name_en || '',
-          'نوع الحلقة': lecture.circle_type || '',
-          'الفئة': categoryAr,
-          'عدد الطلاب': lecture.student_count ?? 0,
-          'المعلمون': teachersStr || '—',
-          'التوقيت والأيام': schedulesStr || '—',
-          'الظهور في الموقع': lecture.shown_on_website ? 'نعم' : 'لا',
+          [tr("اسم الحلقة (بالعربية)")]: lecture.lecture_name_ar || '',
+          [tr("اسم الحلقة (بالإنجليزية)")]: lecture.lecture_name_en || '',
+          [tr("نوع الحلقة")]: lecture.circle_type || '',
+          [tr("الفئة")]: categoryAr,
+          [tr("عدد الطلاب")]: lecture.student_count ?? 0,
+          [tr("المعلمون")]: teachersStr || '—',
+          [tr("التوقيت والأيام")]: schedulesStr || '—',
+          [tr("الظهور في الموقع")]: lecture.shown_on_website ? tr("نعم") : tr("لا"),
         };
       });
 
       
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'الحلقات');
+      XLSX.utils.book_append_sheet(workbook, worksheet, tr("الحلقات"));
 
       
       worksheet['!cols'] = [
@@ -230,17 +231,17 @@ export default function LecturesPage() {
         { wch: 15 }, // الظهور في الموقع
       ];
       const dateStr = new Date().toISOString().split('T')[0];
-      XLSX.writeFile(workbook, `قائمة_الحلقات_${dateStr}.xlsx`);
+      XLSX.writeFile(workbook, tr("قائمة_الحلقات_{dateStr}.xlsx", { dateStr }));
 
-      showToast('تم تصدير ملف Excel بنجاح', 'success');
+      showToast(tr("تم تصدير ملف Excel بنجاح"), 'success');
     } catch (error) {
       console.error('Erreur export Excel:', error);
-      showToast('حدث خطأ أثناء تصدير ملف Excel', 'error');
+      showToast(tr("حدث خطأ أثناء تصدير ملف Excel"), 'error');
     }
   };
 
   return (
-    <AppLayout title="الحلقات" breadcrumb="الشؤون الإدارية/الحلقات">
+    <AppLayout title={tr("الحلقات")} breadcrumb={tr("الشؤون الإدارية/الحلقات")}>
       <Toast
         type={toastConfig.type}
         message={toastConfig.message}
@@ -251,22 +252,22 @@ export default function LecturesPage() {
       <div className="space-y-6">
         
         <div className={`${isTeacher ? 'bg-sky-700' : 'bg-amber-500/85'} text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm`}>
-          <h2>{isTeacher ? 'حلقاتي / الحلقات المسندة إلي' : 'إدارة الحلقات / الصفحة الرئيسية'}</h2>
+          <h2>{isTeacher ? tr("حلقاتي / الحلقات المسندة إلي") : tr("إدارة الحلقات / الصفحة الرئيسية")}</h2>
         </div>
 
 
         <div className="relative">
           <input
             type="text"
-            placeholder="البحث..."
+            placeholder={tr("البحث...")}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setVisibleCount(INITIAL_COUNT); 
             }}
-            className="w-full bg-white border border-gray-200 rounded-xl px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-right text-gray-700 placeholder-gray-400 shadow-sm"
+            className="w-full bg-white border border-gray-200 rounded-xl px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-start text-gray-700 placeholder-gray-400 shadow-sm"
           />
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
         </div>
 
         
@@ -279,7 +280,7 @@ export default function LecturesPage() {
                   className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
                 >
                   <Plus size={14} />
-                  إضافة
+                  {tr("إضافة")}
                 </button>
 
                 <button
@@ -292,7 +293,7 @@ export default function LecturesPage() {
                   }`}
                 >
                   <Edit size={14} />
-                  تعديل
+                  {tr("تعديل")}
                 </button>
 
                 <button
@@ -305,7 +306,7 @@ export default function LecturesPage() {
                   }`}
                 >
                   <Trash2 size={14} />
-                  حذف
+                  {tr("حذف")}
                 </button>
               </>
             )}
@@ -315,7 +316,7 @@ export default function LecturesPage() {
               className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
             >
               <CheckSquare size={14} />
-              تحديد الكل
+              {tr("تحديد الكل")}
             </button>
 
             <button
@@ -328,7 +329,7 @@ export default function LecturesPage() {
               }`}
             >
               <XSquare size={14} />
-              إلغاء
+              {tr("إلغاء")}
             </button>
           </div>
 
@@ -339,7 +340,7 @@ export default function LecturesPage() {
               className="px-5 py-2 text-xs font-bold rounded-xl border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/70 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
             >
               <FileSpreadsheet size={14} />
-              تصدير Excel
+              {tr("تصدير Excel")}
             </button>
 
             <button
@@ -347,7 +348,7 @@ export default function LecturesPage() {
               className="px-5 py-2 text-xs font-bold rounded-xl border border-amber-500 text-amber-600 hover:bg-amber-50 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
             >
               <Printer size={14} />
-              طباعة
+              {tr("طباعة")}
             </button>
           </div>
         </div>
@@ -369,7 +370,7 @@ export default function LecturesPage() {
               onClick={handleSeeMore}
               className="px-5 py-2 text-xs font-bold rounded-xl border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/70 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
             >
-              <span>عرض المزيد</span>
+              <span>{tr("عرض المزيد")}</span>
               <ChevronDown size={16} />
             </button>
           </div>

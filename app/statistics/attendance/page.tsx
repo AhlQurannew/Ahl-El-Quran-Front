@@ -12,16 +12,17 @@ import teacherAPI from '@/app/API/teacher';
 import lecturesAPI from '@/app/API/lectures';
 import reportsAPI from '@/app/API/reports';
 import studentsAPI from '@/app/API/students';
+import { t } from '@/i18n';
 
 export default function AttendanceStatsPage() {
   const user = useAuthStore((s) => s.user);
   const isTeacher = user?.role === 'TEACHER';
 
   const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
-    { label: 'اختر الحلقة', value: '' },
+    { label: t("اختر الحلقة"), value: '' },
   ]);
   const [studentList, setStudentList] = useState<{ label: string; value: string }[]>([
-    { label: 'جميع الطلاب (الكل)', value: '' },
+    { label: t("جميع الطلاب (الكل)"), value: '' },
   ]);
 
   const [isShowingStats, setIsShowingStats] = useState(false);
@@ -50,9 +51,9 @@ export default function AttendanceStatsPage() {
           lectures = await lecturesAPI.getAllLectures();
         }
         const options = [
-          { label: 'اختر الحلقة', value: '' },
+          { label: t("اختر الحلقة"), value: '' },
           ...lectures.map((l: any) => ({
-            label: l.lecture_name_ar || `حلقة ${l.lecture_id || l.id}`,
+            label: l.lecture_name_ar || t("حلقة {v0}", { v0: l.lecture_id || l.id }),
             value: String(l.lecture_id || l.id),
           })),
         ];
@@ -93,9 +94,9 @@ export default function AttendanceStatsPage() {
         }
         
         const options = [
-          { label: 'جميع الطلاب (الكل)', value: '' },
+          { label: t("جميع الطلاب (الكل)"), value: '' },
           ...students.map((s: any) => ({
-            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || `طالب ${s.id}`,
+            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || t("طالب {id}", { id: s.id }),
             value: String(s.id),
           })),
         ];
@@ -125,7 +126,7 @@ export default function AttendanceStatsPage() {
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!halqa && !student) {
-      alert('يرجى اختيار حلقة أو طالب على الأقل');
+      alert(t("يرجى اختيار حلقة أو طالب على الأقل"));
       return;
     }
     try {
@@ -147,30 +148,30 @@ export default function AttendanceStatsPage() {
       setIsShowingStats(true);
     } catch (err) {
       console.error('Error fetching attendance stats:', err);
-      alert('حدث خطأ أثناء جلب بيانات المواظبة');
+      alert(t("حدث خطأ أثناء جلب بيانات المواظبة"));
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || 'الكل';
-  const selectedStudentLabel = studentList.find((s) => s.value === student)?.label || 'الكل';
+  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || t("الكل");
+  const selectedStudentLabel = studentList.find((s) => s.value === student)?.label || t("الكل");
 
   return (
-    <AppLayout title="إحصائيات المواظبة" breadcrumb="الشؤون الإدارية / الإحصاءات / إحصائيات المواظبة">
+    <AppLayout title={t("إحصائيات المواظبة")} breadcrumb={t("الشؤون الإدارية / الإحصاءات / إحصائيات المواظبة")}>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm flex items-center justify-between">
-          <span>إحصائيات المواظبة</span>
+          <span>{t("إحصائيات المواظبة")}</span>
           <div className="flex items-center gap-2">
             <Link
               href="/statistics"
-              aria-label="العودة إلى صفحة الإحصاءات"
-              title="العودة إلى الإحصاءات"
+              aria-label={t("العودة إلى صفحة الإحصاءات")}
+              title={t("العودة إلى الإحصاءات")}
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:bg-white/30 hover:text-amber-100"
             >
-              <ArrowRight size={14} aria-hidden="true" />
-              الإحصاءات
+              <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+              {t("الإحصاءات")}
             </Link>
             {isShowingStats && (
               <button
@@ -178,8 +179,8 @@ export default function AttendanceStatsPage() {
                 onClick={() => setIsShowingStats(false)}
                 className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:text-amber-100"
               >
-                <ArrowRight size={14} aria-hidden="true" />
-                العودة للنموذج
+                <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+                {t("العودة للنموذج")}
               </button>
             )}
           </div>
@@ -191,14 +192,14 @@ export default function AttendanceStatsPage() {
             <form onSubmit={handleShowStats} className="max-w-2xl mx-auto space-y-8">
               <div className="space-y-6">
                 <Select
-                  label="الحلقة *"
+                  label={t("الحلقة *")}
                   value={halqa}
                   onChange={(e) => setHalqa(e.target.value)}
                   options={halqaList}
                 />
 
                 <Select
-                  label="الطالب (اختياري)"
+                  label={t("الطالب (اختياري)")}
                   value={student}
                   onChange={(e) => setStudent(e.target.value)}
                   options={studentList}
@@ -206,13 +207,13 @@ export default function AttendanceStatsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <Input
-                    label="تاريخ البداية *"
+                    label={t("تاريخ البداية *")}
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                   <Input
-                    label="تاريخ النهاية *"
+                    label={t("تاريخ النهاية *")}
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -222,7 +223,7 @@ export default function AttendanceStatsPage() {
 
               <div className="pt-4 flex justify-center">
                 <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'عرض الإحصائيات'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("عرض الإحصائيات")}
                 </Button>
               </div>
             </form>
@@ -232,13 +233,13 @@ export default function AttendanceStatsPage() {
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12 space-y-12">
             {/* Header Info */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-700 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <span>الطالب: <span className="text-emerald-600">{selectedStudentLabel}</span></span>
+              <span>{t("الطالب:")}{' '}<span className="text-emerald-600">{selectedStudentLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>الحلقة: <span className="text-emerald-600">{selectedHalqaLabel}</span></span>
+              <span>{t("الحلقة:")}{' '}<span className="text-emerald-600">{selectedHalqaLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>من: <span className="text-emerald-600">{startDate}</span></span>
+              <span>{t("من:")}{' '}<span className="text-emerald-600">{startDate}</span></span>
               <span className="text-gray-300">|</span>
-              <span>إلى: <span className="text-emerald-600">{endDate}</span></span>
+              <span>{t("إلى:")}{' '}<span className="text-emerald-600">{endDate}</span></span>
             </div>
 
             {/* Chart Section */}
@@ -274,13 +275,13 @@ export default function AttendanceStatsPage() {
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <Users size={28} className="text-emerald-500 mb-1" />
                   <span className="text-3xl font-black text-gray-800">{presentPct}%</span>
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-1">نسبة الحضور</span>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-1">{t("نسبة الحضور")}</span>
                 </div>
               </div>
 
               {/* Data Summary Stats */}
               <div className="space-y-6 bg-gray-50/50 p-6 sm:p-8 rounded-3xl border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">ملخص المواظبة</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-6">{t("ملخص المواظبة")}</h2>
 
                 {/* Present stat */}
                 <div className="flex items-center justify-between">
@@ -289,11 +290,11 @@ export default function AttendanceStatsPage() {
                       <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-800">حضور</p>
-                      <p className="text-xs text-gray-500">طالب ملتزم بالحضور</p>
+                      <p className="text-sm font-bold text-gray-800">{t("حضور")}</p>
+                      <p className="text-xs text-gray-500">{t("طالب ملتزم بالحضور")}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <p className="text-xl font-black text-emerald-600">{attendanceData.present}</p>
                     <p className="text-xs font-bold text-gray-400">{presentPct}%</p>
                   </div>
@@ -306,11 +307,11 @@ export default function AttendanceStatsPage() {
                       <div className="w-3 h-3 rounded-full bg-amber-500"></div>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-800">تأخر</p>
-                      <p className="text-xs text-gray-500">تأخر عن موعد الحلقة</p>
+                      <p className="text-sm font-bold text-gray-800">{t("تأخر")}</p>
+                      <p className="text-xs text-gray-500">{t("تأخر عن موعد الحلقة")}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <p className="text-xl font-black text-amber-600">{attendanceData.late}</p>
                     <p className="text-xs font-bold text-gray-400">{latePct}%</p>
                   </div>
@@ -323,11 +324,11 @@ export default function AttendanceStatsPage() {
                       <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-800">غياب</p>
-                      <p className="text-xs text-gray-500">غياب عن الحلقة</p>
+                      <p className="text-sm font-bold text-gray-800">{t("غياب")}</p>
+                      <p className="text-xs text-gray-500">{t("غياب عن الحلقة")}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <p className="text-xl font-black text-red-600">{attendanceData.absent}</p>
                     <p className="text-xs font-bold text-gray-400">{absentPct}%</p>
                   </div>
@@ -335,7 +336,7 @@ export default function AttendanceStatsPage() {
 
                 {/* Total */}
                 <div className="pt-4 mt-4 border-t border-gray-200 flex justify-between items-center text-sm font-bold text-gray-600">
-                  <span>إجمالي الجلسات المسجلة:</span>
+                  <span>{t("إجمالي الجلسات المسجلة:")}</span>
                   <span>{totalSessions}</span>
                 </div>
               </div>

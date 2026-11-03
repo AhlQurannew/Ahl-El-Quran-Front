@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Search, Printer, Edit, Trash2, CheckSquare, XCircle, PlusCircle, FileSpreadsheet } from 'lucide-react';
+import { t } from '@/i18n';
 
 interface StudentSearchProps {
   query: string;
@@ -35,12 +36,12 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
         <div className="relative">
           <input
             type="text"
-            placeholder="البحث..."
+            placeholder={t("البحث...")}
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-5 py-3 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500 transition-all shadow-sm"
+            className="w-full rounded-xl border border-gray-200 bg-white px-5 py-3 ps-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500 transition-all shadow-sm"
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 pointer-events-none">
+          <div className="absolute inset-y-0 inset-s-0 flex items-center ps-4 text-gray-400 pointer-events-none">
             <Search size={18} />
           </div>
         </div>
@@ -55,7 +56,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
             className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
           >
             <PlusCircle size={14} />
-            إضافة
+            {t("إضافة")}
           </button>
 
           {/* Edit */}
@@ -69,7 +70,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
             }`}
           >
             <Edit size={14} />
-            تعديل
+            {t("تعديل")}
           </button>
 
           {/* Delete */}
@@ -83,7 +84,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
             }`}
           >
             <Trash2 size={14} />
-            حذف
+            {t("حذف")}
           </button>
 
           {/* Select All */}
@@ -92,7 +93,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
             className="px-5 py-2 text-xs font-bold rounded-xl text-white bg-amber-500 hover:bg-amber-600 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
           >
             <CheckSquare size={14} />
-            تحديد الكل
+            {t("تحديد الكل")}
           </button>
 
           {/* Cancel */}
@@ -106,7 +107,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
             }`}
           >
             <XCircle size={14} />
-            إلغاء
+            {t("إلغاء")}
           </button>
         </div>
 
@@ -118,7 +119,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
               className="px-5 py-2 text-xs font-bold rounded-xl border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/70 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
             >
               <FileSpreadsheet size={14} />
-              تصدير Excel
+              {t("تصدير Excel")}
             </button>
           )}
 
@@ -127,7 +128,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
             className="px-5 py-2 text-xs font-bold rounded-xl border border-amber-500 text-amber-600 hover:bg-amber-50 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
           >
             <Printer size={14} />
-            طباعة
+            {t("طباعة")}
           </button>
         </div>
       </div>

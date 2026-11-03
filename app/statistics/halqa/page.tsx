@@ -11,13 +11,14 @@ import { useAuthStore } from '@/store/authStore';
 import teacherAPI from '@/app/API/teacher';
 import lecturesAPI from '@/app/API/lectures';
 import reportsAPI from '@/app/API/reports';
+import { t } from '@/i18n';
 
 export default function HalqaStatsPage() {
   const user = useAuthStore((s) => s.user);
   const isTeacher = user?.role === 'TEACHER';
 
   const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
-    { label: 'اختر الحلقة', value: '' },
+    { label: t("اختر الحلقة"), value: '' },
   ]);
 
   const [isShowingStats, setIsShowingStats] = useState(false);
@@ -39,9 +40,9 @@ export default function HalqaStatsPage() {
           lectures = await lecturesAPI.getAllLectures();
         }
         const options = [
-          { label: 'اختر الحلقة', value: '' },
+          { label: t("اختر الحلقة"), value: '' },
           ...lectures.map((l: any) => ({
-            label: l.lecture_name_ar || `حلقة ${l.lecture_id || l.id}`,
+            label: l.lecture_name_ar || t("حلقة {v0}", { v0: l.lecture_id || l.id }),
             value: String(l.lecture_id || l.id),
           })),
         ];
@@ -58,7 +59,7 @@ export default function HalqaStatsPage() {
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!halqa) {
-      alert('يرجى اختيار الحلقة');
+      alert(t("يرجى اختيار الحلقة"));
       return;
     }
     try {
@@ -78,7 +79,7 @@ export default function HalqaStatsPage() {
       setIsShowingStats(true);
     } catch (err) {
       console.error('Error fetching halqa stats:', err);
-      alert('حدث خطأ أثناء جلب إحصائيات الحلقة');
+      alert(t("حدث خطأ أثناء جلب إحصائيات الحلقة"));
     } finally {
       setLoading(false);
     }
@@ -87,20 +88,20 @@ export default function HalqaStatsPage() {
   const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || halqa;
 
   return (
-    <AppLayout title="إحصائيات الحلقة" breadcrumb="الشؤون الإدارية / الإحصاءات / إحصائيات الحلقة">
+    <AppLayout title={t("إحصائيات الحلقة")} breadcrumb={t("الشؤون الإدارية / الإحصاءات / إحصائيات الحلقة")}>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm flex items-center justify-between">
-          <span>إحصائيات الحلقة</span>
+          <span>{t("إحصائيات الحلقة")}</span>
           <div className="flex items-center gap-2">
             <Link
               href="/statistics"
-              aria-label="العودة إلى صفحة الإحصاءات"
-              title="العودة إلى الإحصاءات"
+              aria-label={t("العودة إلى صفحة الإحصاءات")}
+              title={t("العودة إلى الإحصاءات")}
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:bg-white/30 hover:text-amber-100"
             >
-              <ArrowRight size={14} aria-hidden="true" />
-              الإحصاءات
+              <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+              {t("الإحصاءات")}
             </Link>
             {isShowingStats && (
               <button
@@ -108,8 +109,8 @@ export default function HalqaStatsPage() {
                 onClick={() => setIsShowingStats(false)}
                 className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:text-amber-100"
               >
-                <ArrowRight size={14} aria-hidden="true" />
-                العودة للنموذج
+                <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+                {t("العودة للنموذج")}
               </button>
             )}
           </div>
@@ -121,7 +122,7 @@ export default function HalqaStatsPage() {
             <form onSubmit={handleShowStats} className="max-w-2xl mx-auto space-y-8">
               <div className="space-y-6">
                 <Select
-                  label="الحلقة *"
+                  label={t("الحلقة *")}
                   value={halqa}
                   onChange={(e) => setHalqa(e.target.value)}
                   options={halqaList}
@@ -129,13 +130,13 @@ export default function HalqaStatsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <Input
-                    label="تاريخ البداية *"
+                    label={t("تاريخ البداية *")}
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                   <Input
-                    label="تاريخ النهاية *"
+                    label={t("تاريخ النهاية *")}
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -145,7 +146,7 @@ export default function HalqaStatsPage() {
 
               <div className="pt-4 flex justify-center">
                 <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'عرض الإحصائيات'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("عرض الإحصائيات")}
                 </Button>
               </div>
             </form>
@@ -155,25 +156,25 @@ export default function HalqaStatsPage() {
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12 space-y-12">
             {/* Header Info */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-700 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <span>الحلقة: <span className="text-emerald-600">{selectedHalqaLabel}</span></span>
+              <span>{t("الحلقة:")}{' '}<span className="text-emerald-600">{selectedHalqaLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>من: <span className="text-emerald-600">{startDate}</span></span>
+              <span>{t("من:")}{' '}<span className="text-emerald-600">{startDate}</span></span>
               <span className="text-gray-300">|</span>
-              <span>إلى: <span className="text-emerald-600">{endDate}</span></span>
+              <span>{t("إلى:")}{' '}<span className="text-emerald-600">{endDate}</span></span>
             </div>
 
             {/* Chart Section */}
             <div className="space-y-10">
               <h2 className="text-center text-xl font-bold text-gray-800">
-                عدد الصفحات المحفوظة لكل طالب
+                {t("عدد الصفحات المحفوظة لكل طالب")}
               </h2>
 
               {chartData.length === 0 ? (
-                <div className="p-8 text-center text-sm text-gray-500">لا يوجد طلاب أو إنجازات مسجلة في هذه الحلقة خلال الفترة المحددة</div>
+                <div className="p-8 text-center text-sm text-gray-500">{t("لا يوجد طلاب أو إنجازات مسجلة في هذه الحلقة خلال الفترة المحددة")}</div>
               ) : (
                 <div className="relative h-80 max-w-4xl mx-auto flex items-end justify-around pb-8 border-b-2 border-gray-100 pt-10 px-4">
                   {/* Y-axis labels */}
-                  <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium pr-4 border-r-2 border-gray-100 min-h-[300px] pb-4">
+                  <div className="absolute inset-e-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium ps-4 border-s-2 border-gray-100 min-h-[300px] pb-4">
                     <span>{Math.round(maxChartValue)}</span>
                     <span>{Math.round(maxChartValue * 0.8)}</span>
                     <span>{Math.round(maxChartValue * 0.6)}</span>
@@ -189,7 +190,7 @@ export default function HalqaStatsPage() {
                       <div key={index} className="h-full flex flex-col justify-end items-center gap-3 w-1/4 group relative">
                         {/* Tooltip on hover */}
                         <div className="absolute top-0 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none z-10 whitespace-nowrap shadow-lg mb-2">
-                          {item.student}: {item.pages} صفحة
+                          {item.student}: {item.pages}{' '}{t("صفحة")}
                           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                         </div>
 

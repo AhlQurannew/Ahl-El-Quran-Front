@@ -24,6 +24,25 @@ export interface AdminAccountSettings {
     timezone: string;
     reduce_motion: boolean;
   };
+  has_photo: boolean;
+}
+
+/** Profile fields returned for non-admin accounts (extra fields depend on the role). */
+export interface UserAccountProfile {
+  firstname: string;
+  lastname: string;
+  login_email: string;
+  is_active: boolean;
+  school_name?: string | null;
+  phone_number?: string | null;
+  [key: string]: unknown;
+}
+
+export interface UserAccountSettings {
+  role: string;
+  profile: UserAccountProfile;
+  preferences: AdminAccountSettings['preferences'];
+  has_photo: boolean;
 }
 
 export interface PasswordChangeResult {
@@ -35,6 +54,34 @@ export interface PasswordChangeResult {
 const getAccountSettings = async (): Promise<AdminAccountSettings> => {
   const response = await settingsClient.get<AdminAccountSettings>('/settings');
   return response.data;
+};
+
+const getUserAccountSettings = async (): Promise<UserAccountSettings> => {
+  const response = await settingsClient.get<UserAccountSettings>('/settings');
+  return response.data;
+};
+
+const updateProfile = async (changes: Partial<Pick<UserAccountProfile, 'firstname' | 'lastname'>>) => {
+  const response = await settingsClient.patch<{ profile: UserAccountProfile }>('/settings/profile', changes);
+  return response.data.profile;
+};
+
+/** Signed-in account's avatar as a blob; rejects with 404 when there is none. */
+const getPhoto = async (): Promise<Blob> => {
+  const response = await settingsClient.get('/settings/photo', { responseType: 'blob' });
+  return response.data;
+};
+
+const uploadPhoto = async (file: File): Promise<void> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  await settingsClient.post('/settings/photo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+const deletePhoto = async (): Promise<void> => {
+  await settingsClient.delete('/settings/photo');
 };
 
 const updateAdminContactEmail = async (data: {
@@ -55,6 +102,11 @@ const changeAdminPassword = async (data: {
 
 const accountSettingsAPI = {
   getAccountSettings,
+  getUserAccountSettings,
+  updateProfile,
+  getPhoto,
+  uploadPhoto,
+  deletePhoto,
   updateAdminContactEmail,
   changeAdminPassword,
 };

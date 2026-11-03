@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { DashboardCards } from '@/components/dashboard/DashboardCards';
 import { useAuthStore } from '@/store/authStore';
 import { useAdminView } from '@/contexts/AdminViewContext';
+import { t } from '@/i18n';
 
 export default function HomePage() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function HomePage() {
   if (user?.role === 'GUARDIAN') return null;
 
   return (
-    <AppLayout title="لوحة القيادة" breadcrumb="الصفحة الرئيسية">
+    <AppLayout title={t("لوحة القيادة")} breadcrumb={t("الصفحة الرئيسية")}>
       <DashboardCards />
     </AppLayout>
   );

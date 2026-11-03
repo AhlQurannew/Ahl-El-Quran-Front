@@ -3,6 +3,7 @@
 import React from 'react';
 import { Users, UserCheck, UserX } from 'lucide-react';
 import type { Teacher } from '@/types/teacher';
+import { t as tr } from '@/i18n';
 
 interface TeacherStatsProps {
   teachers: Teacher[];
@@ -15,7 +16,7 @@ export const TeacherStats: React.FC<TeacherStatsProps> = ({ teachers }) => {
 
   const stats = [
     {
-      label: 'إجمالي المعلمين',
+      label: tr("إجمالي المعلمين"),
       value: totalTeachers,
       icon: Users,
       color: 'bg-teal-500',
@@ -23,7 +24,7 @@ export const TeacherStats: React.FC<TeacherStatsProps> = ({ teachers }) => {
       bgLight: 'bg-teal-50',
     },
     {
-      label: 'المعلمين النشطين',
+      label: tr("المعلمين النشطين"),
       value: activeTeachers,
       icon: UserCheck,
       color: 'bg-green-500',
@@ -31,7 +32,7 @@ export const TeacherStats: React.FC<TeacherStatsProps> = ({ teachers }) => {
       bgLight: 'bg-green-50',
     },
     {
-      label: 'المعلمين غير النشطين',
+      label: tr("المعلمين غير النشطين"),
       value: inactiveTeachers,
       icon: UserX,
       color: 'bg-gray-500',

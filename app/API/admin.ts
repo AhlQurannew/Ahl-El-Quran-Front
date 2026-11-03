@@ -97,6 +97,26 @@ const getAdminStatistics = async () => {
     return res.data;
 };
 
+export interface PlatformStatistics {
+    students: number;
+    teachers: number;
+    supervisors: number;
+    guardians: number;
+    lectures: number;
+    inactive_accounts: number;
+    new_schools_30d: number;
+    achievements_30d: number;
+    messages_7d: number;
+    attendance_rate_30d: number | null;
+    attendance_records_30d: number;
+    most_active_school: { name: string; achievements: number } | null;
+}
+
+const getPlatformStatistics = async (): Promise<PlatformStatistics> => {
+    const res = await axiosGlobal.get<PlatformStatistics>("/statistics/platform");
+    return res.data;
+};
+
 const getSchoolsStatistics = async (limit: number = 3) => {
     const res = await axiosGlobal.get(`/statistics/schools?limit=${limit}`);
     return res.data;
@@ -114,7 +134,8 @@ const adminAPI = {
     deleteSchool,
     getSchoolPresident,
     getAdminStatistics,
-    getSchoolsStatistics
+    getSchoolsStatistics,
+    getPlatformStatistics,
 };
 
 export default adminAPI;

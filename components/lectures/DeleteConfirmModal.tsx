@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
+import { t } from '@/i18n';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl border border-gray-100 flex flex-col items-center text-center gap-4 animate-in fade-in zoom-in-95 duration-200">
         
         
@@ -31,9 +32,9 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
 
         
         <div className="space-y-1">
-          <h3 className="text-lg font-bold text-gray-900">تأكيد حذف الحلقات</h3>
+          <h3 className="text-lg font-bold text-gray-900">{t("تأكيد حذف الحلقات")}</h3>
           <p className="text-sm text-gray-500">
-            هل أنت متأكد من حذف عدد <span className="font-bold text-red-600">{count}</span> حلقة من السجلات؟ لا يمكن التراجع عن هذا الإجراء.
+            {t("هل أنت متأكد من حذف عدد")}{' '}<span className="font-bold text-red-600">{count}</span>{' '}{t("حلقة من السجلات؟ لا يمكن التراجع عن هذا الإجراء.")}
           </p>
         </div>
 
@@ -45,7 +46,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Trash2 size={16} />
-            <span>{isLoading ? 'جاري الحذف...' : 'نعم، احذف'}</span>
+            <span>{isLoading ? t("جاري الحذف...") : t("نعم، احذف")}</span>
           </button>
           
           <button
@@ -53,7 +54,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             disabled={isLoading}
             className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors"
           >
-            إلغاء
+            {t("إلغاء")}
           </button>
         </div>
       </div>

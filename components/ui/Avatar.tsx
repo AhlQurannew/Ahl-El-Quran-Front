@@ -86,7 +86,7 @@ export const Avatar: React.FC<AvatarProps> = ({
       {status && (
         <span
           className={cn(
-            'absolute bottom-0 left-0 rounded-full border-2 border-white',
+            'absolute bottom-0 inset-e-0 rounded-full border-2 border-white',
             statusSizes[size],
             statusColors[status]
           )}

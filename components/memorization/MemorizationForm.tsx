@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import type { ApiStudent } from '@/app/memorization/page';
 import { studentDisplayName } from '@/app/memorization/page';
 import { quranSurahs } from '@/data/quran_data';
+import { t } from '@/i18n';
 
 export interface AchievementFormValues {
   studentId: number;
@@ -102,14 +103,14 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
     const newErrors: typeof errors = {};
     
     // Check student selection
-    if (!form.studentId) newErrors.studentId = 'اختيار الطالب مطلوب';
+    if (!form.studentId) newErrors.studentId = t("اختيار الطالب مطلوب");
     
     // Check surah validity
     if (!form.fromSurah || form.fromSurah < 1 || form.fromSurah > 114) {
-      newErrors.fromSurah = 'اختيار السورة مطلوب';
+      newErrors.fromSurah = t("اختيار السورة مطلوب");
     }
     if (!form.toSurah || form.toSurah < 1 || form.toSurah > 114) {
-      newErrors.toSurah = 'اختيار السورة مطلوب';
+      newErrors.toSurah = t("اختيار السورة مطلوب");
     }
     
     // Check verse validity based on selected surahs
@@ -117,33 +118,33 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
     const toSurahData = quranSurahs.find((s) => s.number === form.toSurah);
     
     if (!form.fromVerse || form.fromVerse < 1) {
-      newErrors.fromVerse = 'رقم آية غير صالح';
+      newErrors.fromVerse = t("رقم آية غير صالح");
     } else if (fromSurahData && form.fromVerse > fromSurahData.numberOfAyahs) {
-      newErrors.fromVerse = `الحد الأقصى: ${fromSurahData.numberOfAyahs} آية`;
+      newErrors.fromVerse = t("الحد الأقصى: {numberOfAyahs} آية", { numberOfAyahs: fromSurahData.numberOfAyahs });
     }
     
     if (!form.toVerse || form.toVerse < 1) {
-      newErrors.toVerse = 'رقم آية غير صالح';
+      newErrors.toVerse = t("رقم آية غير صالح");
     } else if (toSurahData && form.toVerse > toSurahData.numberOfAyahs) {
-      newErrors.toVerse = `الحد الأقصى: ${toSurahData.numberOfAyahs} آية`;
+      newErrors.toVerse = t("الحد الأقصى: {numberOfAyahs} آية", { numberOfAyahs: toSurahData.numberOfAyahs });
     }
     
     // Check logical sequence (Quran memorization goes forward: from lower to higher)
     if (form.fromSurah === form.toSurah) {
       // Same surah: from verse must be <= to verse (e.g., from verse 1 to verse 20)
       if (form.fromVerse > form.toVerse) {
-        newErrors.fromVerse = 'يجب أن تكون الآية "من" أقل من أو تساوي الآية "إلى"';
+        newErrors.fromVerse = t("يجب أن تكون الآية \"من\" أقل من أو تساوي الآية \"إلى\"");
       }
     } else {
       // Different surahs: from surah must be <= to surah (e.g., from Surah 1 to Surah 3)
       if (form.fromSurah > form.toSurah) {
-        newErrors.fromSurah = 'يجب أن تكون السورة "من" أقل من أو تساوي السورة "إلى"';
+        newErrors.fromSurah = t("يجب أن تكون السورة \"من\" أقل من أو تساوي السورة \"إلى\"");
       }
     }
     
     // Check date
     if (!form.date) {
-      newErrors.date = 'التاريخ مطلوب';
+      newErrors.date = t("التاريخ مطلوب");
     }
     
     setErrors(newErrors);
@@ -202,15 +203,15 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'تعديل سجل الإنجاز' : 'إضافة سجل إنجاز جديد'}
+      title={isEditing ? t("تعديل سجل الإنجاز") : t("إضافة سجل إنجاز جديد")}
       size="md"
       footer={
         <>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading}>
-            إلغاء
+            {t("إلغاء")}
           </Button>
           <Button size="sm" isLoading={isLoading} onClick={handleSubmit} disabled={!canSubmit() || isLoading}>
-            {isEditing ? 'حفظ التعديلات' : 'إضافة السجل'}
+            {isEditing ? t("حفظ التعديلات") : t("إضافة السجل")}
           </Button>
         </>
       }
@@ -218,13 +219,13 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Student */}
         <Select
-          label="الطالب *"
+          label={t("الطالب *")}
           value={form.studentId || ''}
           onChange={(e) => set('studentId', Number(e.target.value))}
           error={errors.studentId}
           disabled={isLoadingStudents}
           options={[
-            { value: '', label: isLoadingStudents ? 'جارٍ التحميل...' : 'اختر طالبًا' },
+            { value: '', label: isLoadingStudents ? t("جارٍ التحميل...") : t("اختر طالبًا") },
             ...students.map((s) => ({ value: String(s.id), label: studentDisplayName(s) })),
           ]}
         />
@@ -232,12 +233,12 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
         {/* Surah range */}
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="من سورة *"
+            label={t("من سورة *")}
             value={form.fromSurah}
             onChange={(e) => set('fromSurah', Number(e.target.value))}
             error={errors.fromSurah}
             options={[
-              { value: '', label: 'اختر السورة' },
+              { value: '', label: t("اختر السورة") },
               ...quranSurahs.map((surah) => ({
                 value: String(surah.number),
                 label: `${surah.number}. ${surah.name}`,
@@ -245,12 +246,12 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
             ]}
           />
           <Select
-            label="إلى سورة *"
+            label={t("إلى سورة *")}
             value={form.toSurah}
             onChange={(e) => set('toSurah', Number(e.target.value))}
             error={errors.toSurah}
             options={[
-              { value: '', label: 'اختر السورة' },
+              { value: '', label: t("اختر السورة") },
               ...quranSurahs.map((surah) => ({
                 value: String(surah.number),
                 label: `${surah.number}. ${surah.name}`,
@@ -263,7 +264,7 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Input
-              label="من آية *"
+              label={t("من آية *")}
               type="number"
               min={1}
               max={fromSurahData?.numberOfAyahs || 286}
@@ -273,13 +274,13 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
             />
             {fromSurahData && (
               <p className="text-xs text-gray-500 mt-1">
-                الحد الأقصى: {fromSurahData.numberOfAyahs} آية
+                {t("الحد الأقصى:")}{' '}{fromSurahData.numberOfAyahs}{' '}{t("آية")}
               </p>
             )}
           </div>
           <div>
             <Input
-              label="إلى آية *"
+              label={t("إلى آية *")}
               type="number"
               min={1}
               max={toSurahData?.numberOfAyahs || 286}
@@ -289,7 +290,7 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
             />
             {toSurahData && (
               <p className="text-xs text-gray-500 mt-1">
-                الحد الأقصى: {toSurahData.numberOfAyahs} آية
+                {t("الحد الأقصى:")}{' '}{toSurahData.numberOfAyahs}{' '}{t("آية")}
               </p>
             )}
           </div>
@@ -298,17 +299,17 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
         {/* Type + Date */}
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="نوع الإنجاز"
+            label={t("نوع الإنجاز")}
             value={form.achievementType}
             onChange={(e) => set('achievementType', e.target.value)}
             options={[
-              { value: 'small', label: 'صغير' },
-              { value: 'normal', label: 'عادي' },
-              { value: 'big', label: 'كبير' },
+              { value: 'small', label: t("صغير") },
+              { value: 'normal', label: t("عادي") },
+              { value: 'big', label: t("كبير") },
             ]}
           />
           <Input
-            label="التاريخ *"
+            label={t("التاريخ *")}
             type="date"
             value={form.date}
             onChange={(e) => set('date', e.target.value)}
@@ -318,9 +319,9 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
 
         {/* Note */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">ملاحظات</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t("ملاحظات")}</label>
           <textarea
-            placeholder="أي ملاحظات إضافية..."
+            placeholder={t("أي ملاحظات إضافية...")}
             value={form.note}
             onChange={(e) => set('note', e.target.value)}
             rows={3}

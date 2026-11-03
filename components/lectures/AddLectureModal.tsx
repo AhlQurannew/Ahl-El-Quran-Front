@@ -9,6 +9,8 @@ import { Plus, Trash2, Clock, BookOpen, UserCheck, X } from 'lucide-react';
 import lecturesAPI, { Lecture, LecturePayload, Schedule, TeacherRef } from '@/api/lectures';
 import teacherAPI, { Teacher } from '@/api/teacher';
 import { useAuthStore } from '@/store/authStore';
+import { t as tr } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface AddLectureModalProps {
   isOpen: boolean;
@@ -44,6 +46,7 @@ export default function AddLectureModal({
   onSuccess,
   initialData,
 }: AddLectureModalProps) {
+  const confirm = useConfirm();
   const [loading, setLoading] = useState(false);
   const user = useAuthStore((state) => state.user);
   
@@ -178,7 +181,7 @@ export default function AddLectureModal({
     if (isDuplicate) {
       setErrors((prev) => ({
         ...prev,
-        schedules: 'هذا التوقيت مضاف بالفعل لهذه الحلقة',
+        schedules: tr('هذا التوقيت مضاف بالفعل لهذه الحلقة'),
       }));
       return;
     }
@@ -204,13 +207,13 @@ export default function AddLectureModal({
     
     const newErrors: typeof errors = {};
     if (!lectureNameAr.trim()) {
-      newErrors.lectureNameAr = 'يرجى إدخال اسم الحصة بالعربية';
+      newErrors.lectureNameAr = tr("يرجى إدخال اسم الحصة بالعربية");
     }
     if (!lectureNameEn.trim()) {
-      newErrors.lectureNameEn = 'يرجى إدخال اسم الحصة بالإنجليزية';
+      newErrors.lectureNameEn = tr("يرجى إدخال اسم الحصة بالإنجليزية");
     }
     if (schedules.length === 0) {
-      newErrors.schedules = 'يرجى إضافة وقت واحد على الأقل إلى الجدول';
+      newErrors.schedules = tr("يرجى إضافة وقت واحد على الأقل إلى الجدول");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -238,6 +241,11 @@ export default function AddLectureModal({
       schedules: schedules,
     };
 
+    const confirmed = await confirm(isEditMode
+      ? { title: tr('تأكيد الحفظ'), message: tr('هل أنت متأكد من حفظ تعديلات الحلقة {name}؟', { name: lectureNameAr }), confirmText: tr('نعم، احفظ') }
+      : { title: tr('تأكيد الإضافة'), message: tr('هل أنت متأكد من إضافة الحلقة {name}؟', { name: lectureNameAr }), confirmText: tr('نعم، أضف') });
+    if (!confirmed) return;
+
     try {
       if (isEditMode && initialData) {
         await lecturesAPI.updateLecture(initialData.lecture_id, payload);
@@ -248,7 +256,7 @@ export default function AddLectureModal({
       onClose();
     } catch (error: any) {
       console.error("Erreur lors de l'enregistrement :", error.response?.data);
-      setErrors({ general: 'حدث خطأ أثناء حفظ البيانات، يرجى التأكد من صحة المدخلات' });
+      setErrors({ general: tr("حدث خطأ أثناء حفظ البيانات، يرجى التأكد من صحة المدخلات") });
     } finally {
       setLoading(false);
     }
@@ -256,14 +264,14 @@ export default function AddLectureModal({
 
   const teacherOptions = availableTeachers.map((t) => ({
     value: t.id.toString(),
-    label: `${t.firstname} ${t.lastname} (${t.riwaya || 'معلم'})`,
+    label: tr("{firstname} {lastname} ({v2})", { firstname: t.firstname, lastname: t.lastname, v2: t.riwaya || 'معلم' }),
   }));
 
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title={isEditMode ? "تعديل الحلقة" : "إضافة حصة"}
+      title={isEditMode ? tr("تعديل الحلقة") : tr("إضافة حصة")}
     >
       
       <form 
@@ -271,7 +279,6 @@ export default function AddLectureModal({
         noValidate
         className="space-y-4 max-h-[75vh] overflow-y-auto px-2 py-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" 
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        dir="rtl"
       >
         
       
@@ -284,15 +291,15 @@ export default function AddLectureModal({
         
         <div className="bg-[#006A4E] text-white p-2.5 rounded-lg font-bold text-sm flex items-center gap-2">
           <BookOpen size={18} />
-          <span>{isEditMode ? "تعديل معلومات الحصة" : "معلومات الحصة"}</span>
+          <span>{isEditMode ? tr("تعديل معلومات الحصة") : tr("معلومات الحصة")}</span>
         </div>
 
         {/* Noms */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <Input
-              label="اسم الحصة بالعربية *"
-              placeholder="أدخل اسم الحصة"
+              label={tr("اسم الحصة بالعربية *")}
+              placeholder={tr("أدخل اسم الحصة")}
               value={lectureNameAr}
               onChange={(e) => {
                 setLectureNameAr(e.target.value);
@@ -309,7 +316,7 @@ export default function AddLectureModal({
 
           <div>
             <Input
-              label="اسم الحصة بالإنجليزية *"
+              label={tr("اسم الحصة بالإنجليزية *")}
               placeholder="Enter lecture name"
               value={lectureNameEn}
               onChange={(e) => {
@@ -329,14 +336,14 @@ export default function AddLectureModal({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Select
-            label="نوع الحصة"
+            label={tr("نوع الحصة")}
             options={CIRCLE_TYPE_OPTIONS}
             value={circleType}
             onChange={(e) => setCircleType(e.target.value)}
           />
 
           <Select
-            label="الفئة"
+            label={tr("الفئة")}
             options={CATEGORY_OPTIONS}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -353,7 +360,7 @@ export default function AddLectureModal({
             className="w-4 h-4 accent-[#006A4E] cursor-pointer"
           />
           <label htmlFor="shown_on_website" className="text-xs font-bold text-gray-700 cursor-pointer">
-            عرض الحصة على الموقع الإلكتروني
+            {tr("عرض الحصة على الموقع الإلكتروني")}
           </label>
         </div>
 
@@ -363,13 +370,13 @@ export default function AddLectureModal({
         <div className="space-y-2">
           <label className="block text-xs font-bold text-gray-700 flex items-center gap-1.5">
             <UserCheck size={16} className="text-[#006A4E]" />
-            تعيين المعلمين (اختياري)
+            {tr("تعيين المعلمين (اختياري)")}
           </label>
 
           <div className="flex gap-2">
             <div className="flex-1">
               <Select
-                options={teacherOptions.length > 0 ? teacherOptions : [{ value: '', label: 'لا يوجد معلمون' }]}
+                options={teacherOptions.length > 0 ? teacherOptions : [{ value: '', label: tr("لا يوجد معلمون") }]}
                 value={selectedTeacherId}
                 onChange={(e) => setSelectedTeacherId(e.target.value)}
                 disabled={availableTeachers.length === 0}
@@ -382,7 +389,7 @@ export default function AddLectureModal({
               disabled={!selectedTeacherId || availableTeachers.length === 0}
               className="text-xs font-bold"
             >
-              <Plus size={14} /> إضافة معلم
+              <Plus size={14} />{' '}{tr("إضافة معلم")}
             </Button>
           </div>
 
@@ -414,7 +421,7 @@ export default function AddLectureModal({
         <div className="space-y-3">
           <label className=" text-xs font-bold text-gray-700 flex items-center gap-1.5">
             <Clock size={16} className="text-[#006A4E]" />
-            جدول أوقات الحصة *
+            {tr("جدول أوقات الحصة *")}
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
@@ -443,7 +450,7 @@ export default function AddLectureModal({
             onClick={handleAddSchedule}
             className="w-full text-xs font-bold flex items-center justify-center gap-1 border-dashed"
           >
-            <Plus size={14} /> إضافة الوقت إلى الجدول
+            <Plus size={14} />{' '}{tr("إضافة الوقت إلى الجدول")}
           </Button>
 
           
@@ -461,7 +468,7 @@ export default function AddLectureModal({
                   key={idx}
                   className="flex justify-between items-center bg-gray-100 px-3 py-1.5 rounded-lg text-xs"
                 >
-                  <span>{sch.day_of_week} : {sch.start_time} - {sch.end_time}</span>
+                  <span>{tr(sch.day_of_week)} : {sch.start_time} - {sch.end_time}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveSchedule(idx)}
@@ -478,10 +485,10 @@ export default function AddLectureModal({
        
         <div className="sticky bottom-0 bg-white pt-3 pb-1 border-t border-gray-100 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            إلغاء
+            {tr("إلغاء")}
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? 'جاري الحفظ...' : isEditMode ? 'تحديث' : 'حفظ'}
+            {loading ? tr("جاري الحفظ...") : isEditMode ? tr("تحديث") : tr("حفظ")}
           </Button>
         </div>
 

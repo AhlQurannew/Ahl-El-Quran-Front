@@ -13,6 +13,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import adminAPI from "@/api/admin";
+import { t } from '@/i18n';
 
 interface SchoolData {
   id: number;
@@ -67,11 +68,11 @@ export default function ViewSchoolSelectionPage() {
     } catch (err: any) {
       console.error("Error fetching schools:", err);
       if (err.response?.status === 401) {
-        setError("غير مصرح لك بالوصول. الرجاء تسجيل الدخول كمسؤول.");
+        setError(t("غير مصرح لك بالوصول. الرجاء تسجيل الدخول كمسؤول."));
       } else if (err.response?.status === 403) {
-        setError("ليس لديك صلاحية الوصول إلى هذه الصفحة.");
+        setError(t("ليس لديك صلاحية الوصول إلى هذه الصفحة."));
       } else {
-        setError("حدث خطأ أثناء تحميل المدارس.");
+        setError(t("حدث خطأ أثناء تحميل المدارس."));
       }
     } finally {
       setIsLoading(false);
@@ -91,7 +92,7 @@ export default function ViewSchoolSelectionPage() {
   };
 
   return (
-    <AppLayout title="عرض مدرسة" breadcrumb="لوحة التحكم / عرض مدرسة">
+    <AppLayout title={t("عرض مدرسة")} breadcrumb={t("لوحة التحكم / عرض مدرسة")}>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header Section */}
         <div className="text-center space-y-3">
@@ -100,8 +101,8 @@ export default function ViewSchoolSelectionPage() {
             <School size={40} />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">اختر مدرسة للعرض</h2>
-            <p className="text-gray-500 mt-2">اختر المدرسة التي تريد عرض لوحة التحكم الخاصة بها</p>
+            <h2 className="text-3xl font-bold text-gray-900">{t("اختر مدرسة للعرض")}</h2>
+            <p className="text-gray-500 mt-2">{t("اختر المدرسة التي تريد عرض لوحة التحكم الخاصة بها")}</p>
           </div>
         </div>
 
@@ -115,13 +116,13 @@ export default function ViewSchoolSelectionPage() {
         {/* Search Bar */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute inset-s-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="ابحث عن مدرسة أو رئيس..."
+              placeholder={t("ابحث عن مدرسة أو رئيس...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 text-right transition-all"
+              className="w-full ps-10 pe-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 text-start transition-all"
             />
           </div>
         </div>
@@ -135,7 +136,7 @@ export default function ViewSchoolSelectionPage() {
           <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
             <School size={48} className="mx-auto mb-3 text-gray-300" />
             <p className="text-sm text-gray-400">
-              {searchQuery ? "لا توجد نتائج للبحث" : "لا توجد مدارس متاحة"}
+              {searchQuery ? t("لا توجد نتائج للبحث") : t("لا توجد مدارس متاحة")}
             </p>
           </div>
         ) : (
@@ -144,7 +145,7 @@ export default function ViewSchoolSelectionPage() {
               <button
                 key={school.id}
                 onClick={() => handleSelectSchool(school.id, school.school_name)}
-                className="bg-white rounded-xl border-2 border-gray-100 hover:border-yellow-500/50 p-6 text-right transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                className="bg-white rounded-xl border-2 border-gray-100 hover:border-yellow-500/50 p-6 text-start transition-all duration-300 hover:shadow-xl hover:scale-105 group"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-3">
@@ -153,20 +154,20 @@ export default function ViewSchoolSelectionPage() {
                         style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}>
                         <School size={24} className="text-white" />
                       </div>
-                      <div className="text-right">
+                      <div className="text-start">
                         <h3 className="text-lg font-bold text-gray-900">{school.school_name}</h3>
                         <p className="text-sm text-gray-500">{school.president_name}</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-sm text-gray-600 pr-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 ps-3">
                       <Users size={16} className="text-gray-400" />
-                      <span>{school.student_count} طالب</span>
+                      <span>{school.student_count}{' '}{t("طالب")}</span>
                     </div>
                   </div>
 
                   <div className="shrink-0 text-gray-400 group-hover:text-yellow-600 transition-colors">
-                    <ChevronLeft size={24} className="group-hover:translate-x-1 transition-transform" />
+                    <ChevronLeft size={24} className="ltr:-scale-x-100 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </button>
@@ -180,8 +181,8 @@ export default function ViewSchoolSelectionPage() {
             onClick={() => router.push('/dashboard')}
             className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors flex items-center gap-2"
           >
-            <ArrowRight size={20} />
-            العودة إلى لوحة التحكم
+            <ArrowRight className="ltr:-scale-x-100" size={20} />
+            {t("العودة إلى لوحة التحكم")}
           </button>
         </div>
       </div>

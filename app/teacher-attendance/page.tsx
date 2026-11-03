@@ -10,6 +10,7 @@ import { Calendar, Users, Search, Download, Check, X, Clock, FileText } from 'lu
 import { TeacherAttendance, TeacherAttendanceMapper } from '@/types/teacher_attendance_new.types';
 import { cn } from '@/utils/cn';
 import { inputDateToApiDate, formatDateArabic } from '@/utils/dateHelpers';
+import { t as tr } from '@/i18n';
 
 type ToastState = {
   visible: boolean;
@@ -63,7 +64,7 @@ export default function TeacherAttendancePage() {
       setTeachers(list);
     } catch (err) {
       console.error('Error loading teachers:', err);
-      showToast('error', 'فشل تحميل بيانات الأساتذة');
+      showToast('error', tr("فشل تحميل بيانات الأساتذة"));
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +115,7 @@ export default function TeacherAttendancePage() {
       setAttendanceRecords(records);
     } catch (err) {
       console.error('Error loading attendance records:', err);
-      showToast('error', 'فشل تحميل بيانات المواظبة');
+      showToast('error', tr("فشل تحميل بيانات المواظبة"));
     }
   };
 
@@ -144,7 +145,7 @@ export default function TeacherAttendancePage() {
           : record
       )
     );
-    showToast('success', 'تم حفظ المواظبة بنجاح');
+    showToast('success', tr("تم حفظ المواظبة بنجاح"));
     
     // Reload to ensure we have latest data from backend
     loadAttendanceRecords();
@@ -173,15 +174,15 @@ export default function TeacherAttendancePage() {
   const getStatusLabel = (status: string | null) => {
     switch (status) {
       case 'present':
-        return 'حاضر';
+        return tr("حاضر");
       case 'late':
-        return 'متأخر';
+        return tr("متأخر");
       case 'absent':
-        return 'غائب';
+        return tr("غائب");
       case 'excused':
-        return 'غائب بعذر';
+        return tr("غائب بعذر");
       default:
-        return 'لم يتم التسجيل';
+        return tr("لم يتم التسجيل");
     }
   };
 
@@ -207,18 +208,18 @@ export default function TeacherAttendancePage() {
       const excelData = filteredTeachers.map((teacher) => {
         const status = getAttendanceStatus(teacher.id);
         return {
-          'الاسم الأول': teacher.firstname,
-          'اسم العائلة': teacher.lastname,
-          'البريد الإلكتروني': teacher.email || '—',
-          'الرواية': teacher.riwaya || '—',
-          'حالة المواظبة': getStatusLabel(status),
-          'التاريخ': formatDateArabic(selectedDate),
+          [tr("الاسم الأول")]: teacher.firstname,
+          [tr("اسم العائلة")]: teacher.lastname,
+          [tr("البريد الإلكتروني")]: teacher.email || '—',
+          [tr("الرواية")]: teacher.riwaya || '—',
+          [tr("حالة المواظبة")]: getStatusLabel(status),
+          [tr("التاريخ")]: formatDateArabic(selectedDate),
         };
       });
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'مواظبة الأساتذة');
+      XLSX.utils.book_append_sheet(workbook, worksheet, tr("مواظبة الأساتذة"));
 
       worksheet['!cols'] = [
         { wch: 18 },
@@ -230,11 +231,11 @@ export default function TeacherAttendancePage() {
       ];
 
       const dateStr = selectedDate.split('-').reverse().join('-');
-      XLSX.writeFile(workbook, `مواظبة_الأساتذة_${dateStr}.xlsx`);
-      showToast('success', 'تم تصدير ملف Excel بنجاح');
+      XLSX.writeFile(workbook, tr("مواظبة_الأساتذة_{dateStr}.xlsx", { dateStr }));
+      showToast('success', tr("تم تصدير ملف Excel بنجاح"));
     } catch (error) {
       console.error('Error exporting Excel:', error);
-      showToast('error', 'حدث خطأ أثناء تصدير ملف Excel');
+      showToast('error', tr("حدث خطأ أثناء تصدير ملف Excel"));
     }
   };
 
@@ -250,15 +251,15 @@ export default function TeacherAttendancePage() {
   }, [filteredTeachers, attendanceRecords]);
 
   return (
-    <AppLayout title="مواظبة الأساتذة" breadcrumb="الشؤون الإدارية / مواظبة الأساتذة">
+    <AppLayout title={tr("مواظبة الأساتذة")} breadcrumb={tr("الشؤون الإدارية / مواظبة الأساتذة")}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white py-4 px-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold">إدارة مواظبة الأساتذة</h2>
+              <h2 className="text-xl font-bold">{tr("إدارة مواظبة الأساتذة")}</h2>
               <p className="text-blue-50 text-sm mt-1">
-                تسجيل ومتابعة حضور الأساتذة اليومي
+                {tr("تسجيل ومتابعة حضور الأساتذة اليومي")}
               </p>
             </div>
             <Users size={40} className="opacity-80" />
@@ -270,8 +271,8 @@ export default function TeacherAttendancePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Date Picker */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 text-right">
-                التاريخ
+              <label className="block text-sm font-semibold text-gray-700 text-start">
+                {tr("التاريخ")}
               </label>
               <div className="relative">
                 <input
@@ -282,35 +283,35 @@ export default function TeacherAttendancePage() {
                 />
                 <Calendar
                   size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
               </div>
             </div>
 
             {/* Search */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 text-right">
-                البحث
+              <label className="block text-sm font-semibold text-gray-700 text-start">
+                {tr("البحث")}
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="ابحث عن أستاذ..."
-                  className="w-full px-4 py-2.5 pr-10 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 text-right"
+                  placeholder={tr("ابحث عن أستاذ...")}
+                  className="w-full px-4 py-2.5 ps-10 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 text-start"
                 />
                 <Search
                   size={18}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
               </div>
             </div>
 
             {/* Export Button */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 text-right invisible">
-                إجراءات
+              <label className="block text-sm font-semibold text-gray-700 text-start invisible">
+                {tr("إجراءات")}
               </label>
               <Button
                 variant="outline"
@@ -318,7 +319,7 @@ export default function TeacherAttendancePage() {
                 className="w-full"
               >
                 <Download size={16} />
-                تصدير Excel
+                {tr("تصدير Excel")}
               </Button>
             </div>
           </div>
@@ -328,27 +329,27 @@ export default function TeacherAttendancePage() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-gray-500">
             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-600 mt-1">مجموع الأساتذة</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("مجموع الأساتذة")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-green-500">
             <div className="text-2xl font-bold text-green-600">{stats.present}</div>
-            <div className="text-sm text-gray-600 mt-1">حاضر</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("حاضر")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-orange-500">
             <div className="text-2xl font-bold text-orange-600">{stats.late}</div>
-            <div className="text-sm text-gray-600 mt-1">متأخر</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("متأخر")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-red-500">
             <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
-            <div className="text-sm text-gray-600 mt-1">غائب</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("غائب")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-blue-500">
             <div className="text-2xl font-bold text-blue-600">{stats.excused}</div>
-            <div className="text-sm text-gray-600 mt-1">غائب بعذر</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("غائب بعذر")}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 border-t-4 border-amber-500">
             <div className="text-2xl font-bold text-amber-600">{stats.unmarked}</div>
-            <div className="text-sm text-gray-600 mt-1">لم يسجل</div>
+            <div className="text-sm text-gray-600 mt-1">{tr("لم يسجل")}</div>
           </div>
         </div>
 
@@ -356,7 +357,7 @@ export default function TeacherAttendancePage() {
         {isLoading ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-md">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto" />
-            <p className="text-gray-500 mt-4">جاري تحميل البيانات...</p>
+            <p className="text-gray-500 mt-4">{tr("جاري تحميل البيانات...")}</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -364,23 +365,23 @@ export default function TeacherAttendancePage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-start text-xs font-bold text-gray-700 uppercase tracking-wider">
                       #
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      اسم الأستاذ
+                    <th className="px-6 py-3 text-start text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      {tr("اسم الأستاذ")}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      البريد الإلكتروني
+                    <th className="px-6 py-3 text-start text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      {tr("البريد الإلكتروني")}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      الرواية
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      حالة المواظبة
+                    <th className="px-6 py-3 text-start text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      {tr("الرواية")}
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      إجراءات
+                      {tr("حالة المواظبة")}
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      {tr("إجراءات")}
                     </th>
                   </tr>
                 </thead>
@@ -392,19 +393,19 @@ export default function TeacherAttendancePage() {
                         key={teacher.id}
                         className="hover:bg-gray-50 transition-colors duration-150"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-start">
                           {index + 1}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-start">
                           <div className="text-sm font-semibold text-gray-900">
                             {teacher.firstname} {teacher.lastname}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-start">
                           {teacher.email || '—'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                          {teacher.riwaya || '—'}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-start">
+                          {(teacher.riwaya && tr(teacher.riwaya)) || '—'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <span
@@ -423,7 +424,7 @@ export default function TeacherAttendancePage() {
                             size="sm"
                             onClick={() => handleMarkAttendance(teacher)}
                           >
-                            {status ? 'تعديل' : 'تسجيل'}
+                            {status ? tr("تعديل") : tr("تسجيل")}
                           </Button>
                         </td>
                       </tr>
@@ -435,7 +436,7 @@ export default function TeacherAttendancePage() {
 
             {filteredTeachers.length === 0 && (
               <div className="text-center py-12 text-gray-500">
-                لا توجد نتائج مطابقة للبحث
+                {tr("لا توجد نتائج مطابقة للبحث")}
               </div>
             )}
           </div>

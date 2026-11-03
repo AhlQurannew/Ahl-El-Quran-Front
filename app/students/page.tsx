@@ -14,6 +14,8 @@ import studentsAPI, { CreateStudentPayload } from '@/app/API/students';
 import teacherAPI from '@/app/API/teacher';
 import { useAuthStore } from '@/store/authStore';
 import { getTodayApiDate } from '@/utils/dateHelpers';
+import { t as tr, getDir, getLang, getLocale } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -100,6 +102,7 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
 }
 
 export default function StudentsPage() {
+  const confirm = useConfirm();
   const user = useAuthStore((state) => state.user);
   const isTeacher = user?.role === 'TEACHER';
   const [students, setStudents] = useState<Student[]>([]);
@@ -144,7 +147,7 @@ export default function StudentsPage() {
       }
       setStudents(list.map(apiStudentToStudent));
     } catch (err) {
-      setLoadError(errMsg(err, 'فشل تحميل بيانات الطلاب'));
+      setLoadError(errMsg(err, tr("فشل تحميل بيانات الطلاب")));
     } finally {
       setIsLoading(false);
     }
@@ -198,6 +201,10 @@ export default function StudentsPage() {
   };
 
   const handleFormSubmit = async (data: StudentFormData) => {
+    const confirmed = await confirm(editingStudent
+      ? { title: tr('تأكيد الحفظ'), message: tr('هل أنت متأكد من حفظ تعديلات الطالب {name}؟', { name: `${data.firstName} ${data.lastName}` }), confirmText: tr('نعم، احفظ') }
+      : { title: tr('تأكيد الإضافة'), message: tr('هل أنت متأكد من إضافة الطالب {name}؟', { name: `${data.firstName} ${data.lastName}` }), confirmText: tr('نعم، أضف') });
+    if (!confirmed) return;
     setIsSubmitting(true);
     let studentSaved = false;
     try {
@@ -208,14 +215,14 @@ export default function StudentsPage() {
         if (data.photoFile) {
           await studentsAPI.uploadStudentPhoto(Number(editingStudent.id), data.photoFile);
         }
-        showToast('success', `تم تعديل بيانات الطالب ${data.firstName} ${data.lastName}`);
+        showToast('success', tr("تم تعديل بيانات الطالب {firstName} {lastName}", { firstName: data.firstName, lastName: data.lastName }));
       } else {
         const createdStudent = await studentsAPI.createStudent(payload);
         studentSaved = true;
         if (data.photoFile) {
           await studentsAPI.uploadStudentPhoto(Number(createdStudent.id), data.photoFile);
         }
-        showToast('success', `تمت إضافة الطالب ${data.firstName} ${data.lastName} بنجاح`);
+        showToast('success', tr("تمت إضافة الطالب {firstName} {lastName} بنجاح", { firstName: data.firstName, lastName: data.lastName }));
       }
       setIsFormOpen(false);
       setSelectedIds([]);
@@ -226,9 +233,9 @@ export default function StudentsPage() {
         setIsFormOpen(false);
         setSelectedIds([]);
         await loadStudents();
-        showToast('error', `تم حفظ بيانات الطالب، لكن تعذر رفع الصورة: ${errMsg(err, 'فشل رفع الصورة')}`);
+        showToast('error', tr("تم حفظ بيانات الطالب، لكن تعذر رفع الصورة: {v0}", { v0: errMsg(err, 'فشل رفع الصورة') }));
       } else {
-        showToast('error', errMsg(err, 'حدث خطأ أثناء الحفظ'));
+        showToast('error', errMsg(err, tr("حدث خطأ أثناء الحفظ")));
       }
     } finally {
       setIsSubmitting(false);
@@ -238,13 +245,13 @@ export default function StudentsPage() {
   const handleDeleteConfirm = async () => {
     try {
       await Promise.all(selectedIds.map((id) => studentsAPI.deleteStudent(Number(id))));
-      showToast('success', `تم حذف عدد ${selectedIds.length} طالب بنجاح`);
+      showToast('success', tr("تم حذف عدد {length} طالب بنجاح", { length: selectedIds.length }));
       setSelectedIds([]);
       setIsConfirmOpen(false);
       // Reload students to get fresh data from server
       await loadStudents();
     } catch (err) {
-      showToast('error', errMsg(err, 'فشل حذف بعض الطلاب'));
+      showToast('error', errMsg(err, tr("فشل حذف بعض الطلاب")));
       setSelectedIds([]);
       setIsConfirmOpen(false);
       // Still reload to ensure data consistency
@@ -261,24 +268,24 @@ export default function StudentsPage() {
         : filtered;
 
       if (listToExport.length === 0) {
-        showToast('info', 'لا توجد بيانات للتصدير');
+        showToast('info', tr("لا توجد بيانات للتصدير"));
         return;
       }
 
       const excelData = listToExport.map((s) => ({
-        'الاسم الأول': s.firstName,
-        'اسم العائلة': s.lastName,
-        'الجنس': s.gender === 'male' ? 'ذكر' : 'أنثى',
-        'الحلقة': s.halqa || '—',
-        'البريد / اسم المستخدم': s.username || '—',
-        'تاريخ الميلاد': s.dob || '—',
-        'مكان الميلاد': s.pob || '—',
-        'الجنسية': s.nationality || '—',
+        [tr("الاسم الأول")]: s.firstName,
+        [tr("اسم العائلة")]: s.lastName,
+        [tr("الجنس")]: s.gender === 'male' ? tr("ذكر") : tr("أنثى"),
+        [tr("الحلقة")]: s.halqa || '—',
+        [tr("البريد / اسم المستخدم")]: s.username || '—',
+        [tr("تاريخ الميلاد")]: s.dob || '—',
+        [tr("مكان الميلاد")]: s.pob || '—',
+        [tr("الجنسية")]: s.nationality || '—',
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'الطلاب');
+      XLSX.utils.book_append_sheet(workbook, worksheet, tr("الطلاب"));
 
       worksheet['!cols'] = [
         { wch: 18 },
@@ -292,11 +299,11 @@ export default function StudentsPage() {
       ];
 
       const dateStr = new Date().toISOString().split('T')[0];
-      XLSX.writeFile(workbook, `قائمة_الطلاب_${dateStr}.xlsx`);
-      showToast('success', 'تم تصدير ملف Excel بنجاح');
+      XLSX.writeFile(workbook, tr("قائمة_الطلاب_{dateStr}.xlsx", { dateStr }));
+      showToast('success', tr("تم تصدير ملف Excel بنجاح"));
     } catch (error) {
       console.error('Erreur export Excel:', error);
-      showToast('error', 'حدث خطأ أثناء تصدير ملف Excel');
+      showToast('error', tr("حدث خطأ أثناء تصدير ملف Excel"));
     }
   };
 
@@ -308,26 +315,26 @@ export default function StudentsPage() {
   const handlePrint = () => {
     const printContent = `
       <!DOCTYPE html>
-      <html dir="rtl" lang="ar">
+      <html dir="${getDir()}" lang="${getLang()}">
       <head>
         <meta charset="UTF-8"/>
-        <title>قائمة الطلاب</title>
+        <title>${tr("قائمة الطلاب")}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #111; }
+          body { font-family: Arial, sans-serif; padding: 24px; direction: ${getDir()}; color: #111; }
           h1 { font-size: 18px; margin-bottom: 4px; }
           p.subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
           table { width: 100%; border-collapse: collapse; font-size: 13px; }
-          th { background: #0f766e; color: white; padding: 8px 12px; text-align: right; }
+          th { background: #0f766e; color: white; padding: 8px 12px; text-align: ${getDir() === 'rtl' ? 'right' : 'left'}; }
           td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; }
           tr:nth-child(even) td { background: #f9fafb; }
           .footer { margin-top: 20px; font-size: 11px; color: #888; text-align: center; }
         </style>
       </head>
       <body>
-        <h1>قائمة الطلاب</h1>
-        <p class="subtitle">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG-u-nu-latn', { year:'numeric', month:'long', day:'numeric' })}</p>
+        <h1>${tr("قائمة الطلاب")}</h1>
+        <p class="subtitle">${tr("تاريخ الطباعة: {v0}", { v0: new Date().toLocaleDateString(getLocale(), { year:'numeric', month:'long', day:'numeric' }) })}</p>
         <table>
-          <thead><tr><th>#</th><th>الاسم</th><th>الكنية</th><th>الجنس</th><th>الحلقة</th><th>تاريخ الميلاد</th><th>الجنسية</th></tr></thead>
+          <thead><tr><th>#</th><th>${tr("الاسم")}</th><th>${tr("الكنية")}</th><th>${tr("الجنس")}</th><th>${tr("الحلقة")}</th><th>${tr("تاريخ الميلاد")}</th><th>${tr("الجنسية")}</th></tr></thead>
           <tbody>
             ${filtered.map((s, i) => `<tr>
               <td>${i + 1}</td>
@@ -340,7 +347,7 @@ export default function StudentsPage() {
             </tr>`).join('')}
           </tbody>
         </table>
-        <p class="footer">المجموع: ${filtered.length} طالب</p>
+        <p class="footer">${tr("المجموع: {length} طالب", { length: filtered.length })}</p>
       </body>
       </html>
     `;
@@ -349,10 +356,10 @@ export default function StudentsPage() {
   };
 
   return (
-    <AppLayout title="الطلاب" breadcrumb="الشؤون الإدارية / الطلاب">
+    <AppLayout title={tr("الطلاب")} breadcrumb={tr("الشؤون الإدارية / الطلاب")}>
       <div className="space-y-6 max-w-7xl mx-auto">
         <div className={`${isTeacher ? 'bg-sky-700' : 'bg-amber-500/85'} text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm`}>
-          {isTeacher ? 'طلابي / قائمة طلاب الحلقات' : 'إدارة الطلاب / الصفحة الرئيسية'}
+          {isTeacher ? tr("طلابي / قائمة طلاب الحلقات") : tr("إدارة الطلاب / الصفحة الرئيسية")}
         </div>
 
         {isTeacher ? (
@@ -360,7 +367,7 @@ export default function StudentsPage() {
             <div className="relative flex-1 min-w-[260px]">
               <input
                 type="text"
-                placeholder="البحث عن طالب بالاسم، الكنية، اسم المستخدم..."
+                placeholder={tr("البحث عن طالب بالاسم، الكنية، اسم المستخدم...")}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all shadow-sm"
@@ -371,13 +378,13 @@ export default function StudentsPage() {
                 onClick={handleExportExcel}
                 className="px-4 py-2 text-xs font-bold rounded-xl border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
               >
-                تصدير Excel
+                {tr("تصدير Excel")}
               </button>
               <button
                 onClick={handlePrint}
                 className="px-4 py-2 text-xs font-bold rounded-xl border border-sky-600 text-sky-700 hover:bg-sky-50 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
               >
-                طباعة
+                {tr("طباعة")}
               </button>
             </div>
           </div>
@@ -397,12 +404,12 @@ export default function StudentsPage() {
         )}
 
         {isLoading ? (
-          <div className="text-center py-10 text-gray-500">جاري تحميل بيانات الطلاب...</div>
+          <div className="text-center py-10 text-gray-500">{tr("جاري تحميل بيانات الطلاب...")}</div>
         ) : loadError ? (
           <div className="text-center py-10 text-red-500">
             {loadError}
             <button onClick={loadStudents} className="block mx-auto mt-2 underline text-amber-600 cursor-pointer">
-              إعادة المحاولة
+              {tr("إعادة المحاولة")}
             </button>
           </div>
         ) : (
@@ -431,10 +438,10 @@ export default function StudentsPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="تأكيد حذف الطلاب"
-        message={`هل أنت متأكد من حذف عدد ${selectedIds.length} طالب من السجلات؟ لا يمكن التراجع عن هذا الإجراء.`}
-        confirmText="نعم، احذف"
-        cancelText="إلغاء"
+        title={tr("تأكيد حذف الطلاب")}
+        message={tr("هل أنت متأكد من حذف عدد {length} طالب من السجلات؟ لا يمكن التراجع عن هذا الإجراء.", { length: selectedIds.length })}
+        confirmText={tr("نعم، احذف")}
+        cancelText={tr("إلغاء")}
         variant="danger"
       />
 

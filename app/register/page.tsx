@@ -8,6 +8,8 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import logo from '../../assets/logo.png';
 import authAPI from '@/app/API/auth';
+import { t } from '@/i18n';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -61,18 +63,18 @@ export default function RegisterPage() {
     }
 
     if (formData.password.length < 6) {
-      setPasswordError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      setPasswordError(t("كلمة المرور يجب أن تكون 6 أحرف على الأقل"));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setPasswordError('كلمتا المرور غير متطابقتين');
+      setPasswordError(t("كلمتا المرور غير متطابقتين"));
       return;
     }
 
     const phoneRegex = /^0\d{9}$/;
     if (!phoneRegex.test(formData.phone_number)) {
-      setPhoneError('رقم الهاتف يجب أن يبدأ بـ 0 ويتبعه 9 أرقام');
+      setPhoneError(t("رقم الهاتف يجب أن يبدأ بـ 0 ويتبعه 9 أرقام"));
       return;
     }
 
@@ -93,7 +95,7 @@ export default function RegisterPage() {
       console.error("Erreur d'inscription:", error);
       const errorMessage =
         error.response?.data?.detail ||
-        'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مجدداً.';
+        t("حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مجدداً.");
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -102,6 +104,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-[#C8963E] flex items-center justify-center p-4 font-sans overflow-hidden">
+      <LanguageSwitcher className="fixed top-4 inset-e-4 z-40 shadow-sm" />
       <div
         className={`relative bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col items-center transition-all duration-300 ease-in-out ${
           isLeaving
@@ -112,10 +115,10 @@ export default function RegisterPage() {
         <button
           type="button"
           onClick={handleBackToLogin}
-          className="absolute top-5 right-5 p-2 rounded-full text-gray-500 hover:text-[#C8963E] hover:bg-gray-100 active:scale-90 transition-all duration-200 hover:-translate-x-1 cursor-pointer"
-          title="العودة لتسجيل الدخول"
+          className="absolute top-5 inset-s-5 p-2 rounded-full text-gray-500 hover:text-[#C8963E] hover:bg-gray-100 active:scale-90 transition-all duration-200 hover:-translate-x-1 cursor-pointer"
+          title={t("العودة لتسجيل الدخول")}
         >
-          <ArrowRight className="w-6 h-6" />
+          <ArrowRight className="ltr:-scale-x-100 w-6 h-6" />
         </button>
 
         <div className="flex flex-col items-center mb-4">
@@ -126,124 +129,123 @@ export default function RegisterPage() {
             height={70}
             className="object-contain"
           />
-          <h1 className="text-[#C8963E] text-xl font-bold mt-1">أهل القرآن</h1>
-          <p className="text-[#000000] text-xl font-medium">إنشاء حساب جديد</p>
+          <h1 className="text-[#C8963E] text-xl font-bold mt-1">{t("أهل القرآن")}</h1>
+          <p className="text-[#000000] text-xl font-medium">{t("إنشاء حساب جديد")}</p>
         </div>
 
         {apiError && (
           <div
             className="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-xl text-sm font-medium text-center mb-3"
-            dir="rtl"
           >
             {apiError}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="w-full space-y-3" dir="rtl">
+        <form onSubmit={handleSubmit} className="w-full space-y-3">
           <Input
             name="firstname"
-            placeholder="الاسم الأول"
+            placeholder={t("الاسم الأول")}
             value={formData.firstname}
             onChange={handleChange}
             disabled={isLoading}
             rightIcon={<User className="text-gray-400 w-5 h-5" />}
-            error={submitted && !formData.firstname ? 'الاسم الأول مطلوب' : undefined}
-            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right"
+            error={submitted && !formData.firstname ? t("الاسم الأول مطلوب") : undefined}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !ps-10 !pe-4 text-start"
           />
 
           <Input
             name="lastname"
-            placeholder="اسم العائلة"
+            placeholder={t("اسم العائلة")}
             value={formData.lastname}
             onChange={handleChange}
             disabled={isLoading}
             rightIcon={<User className="text-gray-400 w-5 h-5" />}
-            error={submitted && !formData.lastname ? 'اسم العائلة مطلوب' : undefined}
-            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right"
+            error={submitted && !formData.lastname ? t("اسم العائلة مطلوب") : undefined}
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !ps-10 !pe-4 text-start"
           />
 
           <Input
             name="email"
             type="email"
-            placeholder="البريد الإلكتروني"
+            placeholder={t("البريد الإلكتروني")}
             value={formData.email}
             onChange={handleChange}
             disabled={isLoading}
             rightIcon={<Mail className="text-gray-400 w-5 h-5" />}
             error={
               submitted && !formData.email
-                ? 'البريد الإلكتروني مطلوب'
+                ? t("البريد الإلكتروني مطلوب")
                 : undefined
             }
-            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right"
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !ps-10 !pe-4 text-start"
           />
 
           <Input
             name="password"
             type="password"
-            placeholder="كلمة المرور"
+            placeholder={t("كلمة المرور")}
             value={formData.password}
             onChange={handleChange}
             disabled={isLoading}
             rightIcon={<Lock className="text-gray-400 w-5 h-5" />}
             error={
-              (submitted && !formData.password ? 'كلمة المرور مطلوبة' : '') ||
+              (submitted && !formData.password ? t("كلمة المرور مطلوبة") : '') ||
               (passwordError && formData.password.length < 6
                 ? passwordError
                 : undefined)
             }
-            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right"
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !ps-10 !pe-4 text-start"
           />
 
           <Input
             name="confirmPassword"
             type="password"
-            placeholder="تأكيد كلمة المرور"
+            placeholder={t("تأكيد كلمة المرور")}
             value={formData.confirmPassword}
             onChange={handleChange}
             disabled={isLoading}
             rightIcon={<Lock className="text-gray-400 w-5 h-5" />}
             error={
               (submitted && !formData.confirmPassword
-                ? 'تأكيد كلمة المرور مطلوب'
+                ? t("تأكيد كلمة المرور مطلوب")
                 : '') ||
               (passwordError && formData.password !== formData.confirmPassword
                 ? passwordError
                 : undefined)
             }
-            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right"
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !ps-10 !pe-4 text-start"
           />
 
           <Input
             name="school_name"
-            placeholder="اسم المدرسة"
+            placeholder={t("اسم المدرسة")}
             value={formData.school_name}
             onChange={handleChange}
             disabled={isLoading}
             rightIcon={<School className="text-gray-400 w-5 h-5" />}
             error={
               submitted && !formData.school_name
-                ? 'اسم المدرسة مطلوب'
+                ? t("اسم المدرسة مطلوب")
                 : undefined
             }
-            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right"
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !ps-10 !pe-4 text-start"
           />
 
           <Input
             name="phone_number"
-            placeholder="رقم الهاتف"
+            placeholder={t("رقم الهاتف")}
             value={formData.phone_number}
             onChange={handleChange}
             disabled={isLoading}
             rightIcon={<Phone className="text-gray-400 w-5 h-5" />}
             error={
               (submitted && !formData.phone_number
-                ? 'رقم الهاتف مطلوب'
+                ? t("رقم الهاتف مطلوب")
                 : '') ||
               phoneError ||
               undefined
             }
-            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !pr-10 !pl-4 text-right"
+            className="bg-[#EAEAEA] border-[#515151]/20 focus:!ring-[#C28E35]/30 focus:!border-[#C28E35] !ps-10 !pe-4 text-start"
           />
 
           <div className="flex justify-center w-full pt-2">
@@ -255,10 +257,10 @@ export default function RegisterPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>انتظر...</span>
+                  <span>{t("انتظر...")}</span>
                 </>
               ) : (
-                'إنشاء حساب'
+                t("إنشاء حساب")
               )}
             </Button>
           </div>
@@ -269,21 +271,19 @@ export default function RegisterPage() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div
             className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-xl text-center border"
-            dir="rtl"
           >
             <h3 className="text-lg font-bold text-gray-900 mb-2">
-              تم إنشاء الحساب
+              {t("تم إنشاء الحساب")}
             </h3>
             <p className="text-sm text-gray-500 mb-6">
-              تم إنشاء حسابك بنجاح وهو قيد الانتظار لموافقة المسؤول. يمكنك
-              تسجيل الدخول فور تفعيله.
+              {t("تم إنشاء حسابك بنجاح وهو قيد الانتظار لموافقة المسؤول. يمكنك تسجيل الدخول فور تفعيله.")}
             </p>
             <div className="space-y-2">
               <button
                 onClick={handleBackToLogin}
                 className="w-full bg-[#C8963E] hover:bg-[#b98e3a] text-white py-2.5 rounded-xl font-medium transition text-sm cursor-pointer"
               >
-                موافق
+                {t("موافق")}
               </button>
             </div>
           </div>

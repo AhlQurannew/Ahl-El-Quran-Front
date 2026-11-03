@@ -4,6 +4,7 @@ import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { t } from '@/i18n';
 
 interface MemorizationSearchProps {
   query: string;
@@ -27,9 +28,9 @@ export const MemorizationSearch: React.FC<MemorizationSearchProps> = ({
   onAddRecord,
 }) => {
   const statusFilters: { label: string; value: 'all' | 'active' | 'inactive' }[] = [
-    { label: 'الكل', value: 'all' },
-    { label: 'نشط', value: 'active' },
-    { label: 'غير نشط', value: 'inactive' },
+    { label: t("الكل"), value: 'all' },
+    { label: t("نشط"), value: 'active' },
+    { label: t("غير نشط"), value: 'inactive' },
   ];
 
   return (
@@ -37,7 +38,7 @@ export const MemorizationSearch: React.FC<MemorizationSearchProps> = ({
       {/* Search input */}
       <div className="w-full sm:max-w-xs">
         <Input
-          placeholder="ابحث عن طالب أو سورة..."
+          placeholder={t("ابحث عن طالب أو سورة...")}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           leftIcon={<Search size={16} />}
@@ -54,7 +55,7 @@ export const MemorizationSearch: React.FC<MemorizationSearchProps> = ({
           onChange={(e) => onHalqaFilterChange(e.target.value)}
           className="appearance-none rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500 cursor-pointer transition-all"
         >
-          <option value="">كل الحلقات</option>
+          <option value="">{t("كل الحلقات")}</option>
           {halqaOptions.map((h) => (
             <option key={h} value={h}>{h}</option>
           ))}
@@ -79,7 +80,7 @@ export const MemorizationSearch: React.FC<MemorizationSearchProps> = ({
 
         {/* Add record */}
         <Button size="sm" onClick={onAddRecord}>
-          + إضافة سجل إنجاز
+          {t("+ إضافة سجل إنجاز")}
         </Button>
       </div>
     </div>

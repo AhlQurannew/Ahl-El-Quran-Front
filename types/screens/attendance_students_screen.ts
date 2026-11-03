@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Lecture } from '../lecture.types';
+import { t } from '@/i18n';
 import { Student } from '../student.types';
 import { Attendance } from '../attendance.types';
 
@@ -53,7 +54,7 @@ export const getStatusColor = (status: AttendanceStatus): string => {
 
 export const getStatusLabel = (status: AttendanceStatus): string => {
   const option = ATTENDANCE_STATUS_OPTIONS.find((opt) => opt.value === status);
-  return option?.label || status;
+  return t(option?.label || status);
 };
 
 export const validateStudentsForAttendance = (students: Student[]): boolean => {

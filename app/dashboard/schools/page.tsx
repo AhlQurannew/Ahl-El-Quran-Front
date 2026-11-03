@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useSearchParams } from "next/navigation";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { 
   School,
@@ -15,6 +16,8 @@ import {
   X
 } from "lucide-react";
 import adminAPI from "@/app/API/admin";
+import { t } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface SchoolData {
   id: number;
@@ -46,17 +49,18 @@ function getRequestErrorMessage(error: unknown, fallback: string): string {
 
   if (typeof detail === "string") {
     const knownMessages: Record<string, string> = {
-      "Email already exists": "هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر.",
-      "Email is already in use": "هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر.",
+      "Email already exists": t("هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر."),
+      "Email is already in use": t("هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر."),
     };
     return knownMessages[detail] ?? detail;
   }
 
-  if (apiError.response?.status === 422) return "تحقق من البيانات المدخلة وحاول مرة أخرى.";
+  if (apiError.response?.status === 422) return t("تحقق من البيانات المدخلة وحاول مرة أخرى.");
   return fallback;
 }
 
 export default function SchoolsManagementPage() {
+  const confirm = useConfirm();
   const { setSelectedSchool: setAdminSchool } = useAdminView();
   const [schools, setSchools] = useState<SchoolData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +71,9 @@ export default function SchoolsManagementPage() {
   const [searchQuery, setSearchQuery] = useState("");
   
   // Dialog states
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  // Deep link from the dashboard quick links: /dashboard/schools?new=1 opens the create dialog.
+  const searchParams = useSearchParams();
+  const [showCreateDialog, setShowCreateDialog] = useState(() => searchParams.get("new") === "1");
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState<SchoolData | null>(null);
@@ -98,7 +104,7 @@ export default function SchoolsManagementPage() {
       }
     } catch (requestError: unknown) {
       console.error("Error fetching schools:", requestError);
-      setError("فشل تحميل المدارس");
+      setError(t("فشل تحميل المدارس"));
     } finally {
       setIsLoading(false);
     }
@@ -121,15 +127,17 @@ export default function SchoolsManagementPage() {
   const handleCreate = async () => {
     if (!formData.school_name.trim() || !formData.chief_supervisor_firstname.trim() || !formData.chief_supervisor_lastname.trim() ||
         !formData.email.trim() || !formData.password) {
-      setCreateError("يرجى ملء جميع الحقول المطلوبة");
+      setCreateError(t("يرجى ملء جميع الحقول المطلوبة"));
       return;
     }
 
     const normalizedEmail = formData.email.trim().toLowerCase();
     if (schools.some((school) => school.email.trim().toLowerCase() === normalizedEmail)) {
-      setCreateError("هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر.");
+      setCreateError(t("هذا البريد الإلكتروني مستخدم بالفعل. استخدم بريداً آخر."));
       return;
     }
+
+    if (!(await confirm({ title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة المدرسة {name}؟', { name: formData.school_name.trim() }), confirmText: t('نعم، أضف') }))) return;
 
     try {
       setIsSubmitting(true);
@@ -146,7 +154,7 @@ export default function SchoolsManagementPage() {
       resetForm();
       fetchSchools();
     } catch (requestError: unknown) {
-      setCreateError(getRequestErrorMessage(requestError, "فشل إنشاء المدرسة"));
+      setCreateError(getRequestErrorMessage(requestError, t("فشل إنشاء المدرسة")));
     } finally {
       setIsSubmitting(false);
     }
@@ -154,6 +162,8 @@ export default function SchoolsManagementPage() {
 
   const handleEdit = async () => {
     if (!selectedSchool) return;
+
+    if (!(await confirm({ title: t('تأكيد الحفظ'), message: t('هل أنت متأكد من حفظ تعديلات المدرسة {name}؟', { name: selectedSchool.school_name }), confirmText: t('نعم، احفظ') }))) return;
 
     try {
       setIsSubmitting(true);
@@ -173,7 +183,7 @@ export default function SchoolsManagementPage() {
       setSelectedSchool(null);
       fetchSchools();
     } catch (requestError: unknown) {
-      setEditError(getRequestErrorMessage(requestError, "فشل تحديث المدرسة"));
+      setEditError(getRequestErrorMessage(requestError, t("فشل تحديث المدرسة")));
     } finally {
       setIsSubmitting(false);
     }
@@ -190,7 +200,7 @@ export default function SchoolsManagementPage() {
       setSelectedSchool(null);
       fetchSchools();
     } catch (requestError: unknown) {
-      setDeleteError(getRequestErrorMessage(requestError, "فشل حذف المدرسة"));
+      setDeleteError(getRequestErrorMessage(requestError, t("فشل حذف المدرسة")));
     } finally {
       setIsSubmitting(false);
     }
@@ -237,7 +247,7 @@ export default function SchoolsManagementPage() {
   };
 
   return (
-    <AppLayout title="إدارة المدارس" breadcrumb="لوحة التحكم / إدارة المدارس">
+    <AppLayout title={t("إدارة المدارس")} breadcrumb={t("لوحة التحكم / إدارة المدارس")}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -247,8 +257,8 @@ export default function SchoolsManagementPage() {
               <School size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">إدارة المدارس</h2>
-              <p className="text-sm text-gray-500">عرض وإدارة جميع المدارس المسجلة</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t("إدارة المدارس")}</h2>
+              <p className="text-sm text-gray-500">{t("عرض وإدارة جميع المدارس المسجلة")}</p>
             </div>
           </div>
 
@@ -261,7 +271,7 @@ export default function SchoolsManagementPage() {
             style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}
           >
             <Plus size={20} />
-            إضافة مدرسة
+            {t("إضافة مدرسة")}
           </button>
         </div>
 
@@ -275,13 +285,13 @@ export default function SchoolsManagementPage() {
         {/* Search Bar */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute inset-s-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="ابحث عن مدرسة..."
+              placeholder={t("ابحث عن مدرسة...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pr-10 pl-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-right"
+              className="w-full ps-10 pe-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-start"
             />
           </div>
         </div>
@@ -296,19 +306,19 @@ export default function SchoolsManagementPage() {
             <div className="text-center py-16 text-gray-400">
               <School size={48} className="mx-auto mb-3 text-gray-300" />
               <p className="text-sm">
-                {searchQuery ? "لا توجد نتائج للبحث" : "لا توجد مدارس مسجلة حالياً"}
+                {searchQuery ? t("لا توجد نتائج للبحث") : t("لا توجد مدارس مسجلة حالياً")}
               </p>
             </div>
           ) : (
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">اسم المدرسة</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">الرئيس</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">البريد الإلكتروني</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">رقم الهاتف</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600">الطلاب</th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600">الإجراءات</th>
+                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("اسم المدرسة")}</th>
+                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("الرئيس")}</th>
+                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("البريد الإلكتروني")}</th>
+                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("رقم الهاتف")}</th>
+                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("الطلاب")}</th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600">{t("الإجراءات")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -322,7 +332,7 @@ export default function SchoolsManagementPage() {
                     <td className="px-6 py-4 text-gray-600">{school.phone_number}</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {school.student_count} طالب
+                        {school.student_count}{' '}{t("طالب")}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -330,21 +340,21 @@ export default function SchoolsManagementPage() {
                         <button
                           onClick={() => handleEnterSchool(school)}
                           className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="دخول المدرسة"
+                          title={t("دخول المدرسة")}
                         >
                           <Eye size={18} className="text-blue-600" />
                         </button>
                         <button
                           onClick={() => openEditDialog(school)}
                           className="p-2 hover:bg-yellow-50 rounded-lg transition-colors"
-                          title="تعديل"
+                          title={t("تعديل")}
                         >
                           <Edit size={18} className="text-yellow-600" />
                         </button>
                         <button
                           onClick={() => openDeleteDialog(school)}
                           className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          title="حذف"
+                          title={t("حذف")}
                         >
                           <Trash2 size={18} className="text-red-600" />
                         </button>
@@ -362,8 +372,8 @@ export default function SchoolsManagementPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
             <div role="dialog" aria-modal="true" aria-labelledby="create-school-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h3 id="create-school-title" className="text-xl font-bold text-gray-900">إضافة مدرسة جديدة</h3>
-                <button aria-label="إغلاق" onClick={() => setShowCreateDialog(false)} className="text-gray-400 hover:text-gray-600">
+                <h3 id="create-school-title" className="text-xl font-bold text-gray-900">{t("إضافة مدرسة جديدة")}</h3>
+                <button aria-label={t("إغلاق")} onClick={() => setShowCreateDialog(false)} className="text-gray-400 hover:text-gray-600">
                   <X size={24} />
                 </button>
               </div>
@@ -375,30 +385,30 @@ export default function SchoolsManagementPage() {
               )}
 
               <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700">اسم المدرسة <span className="text-red-500">*</span>
-                  <input type="text" autoComplete="organization" placeholder="مثال: مدرسة النور" value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <label className="block text-sm font-medium text-gray-700">{t("اسم المدرسة")}{' '}<span className="text-red-500">*</span>
+                  <input type="text" autoComplete="organization" placeholder={t("مثال: مدرسة النور")} value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block text-sm font-medium text-gray-700">الاسم الأول للمشرف العام <span className="text-red-500">*</span>
-                    <input type="text" autoComplete="given-name" placeholder="مثال: أحمد" value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <label className="block text-sm font-medium text-gray-700">{t("الاسم الأول للمشرف العام")}{' '}<span className="text-red-500">*</span>
+                    <input type="text" autoComplete="given-name" placeholder={t("مثال: أحمد")} value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
-                  <label className="block text-sm font-medium text-gray-700">اسم العائلة للمشرف العام <span className="text-red-500">*</span>
-                    <input type="text" autoComplete="family-name" placeholder="مثال: اليعقوبي" value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <label className="block text-sm font-medium text-gray-700">{t("اسم العائلة للمشرف العام")}{' '}<span className="text-red-500">*</span>
+                    <input type="text" autoComplete="family-name" placeholder={t("مثال: اليعقوبي")} value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
                 </div>
-                <label className="block text-sm font-medium text-gray-700">البريد الإلكتروني <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700">{t("البريد الإلكتروني")}{' '}<span className="text-red-500">*</span>
                   <input type="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={formData.email} onChange={(e) => { setFormData({...formData, email: e.target.value}); setCreateError(""); }} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
-                <label className="block text-sm font-medium text-gray-700">كلمة المرور <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700">{t("كلمة المرور")}{' '}<span className="text-red-500">*</span>
                   <span className="relative mt-1.5 block">
-                    <input type={showCreatePassword ? "text" : "password"} autoComplete="new-password" placeholder="أدخل كلمة مرور للمشرف" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pl-12 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
-                    <button type="button" aria-label={showCreatePassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"} aria-pressed={showCreatePassword} onClick={() => setShowCreatePassword((visible) => !visible)} className="absolute left-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                    <input type={showCreatePassword ? "text" : "password"} autoComplete="new-password" placeholder={t("أدخل كلمة مرور للمشرف")} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pe-12 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                    <button type="button" aria-label={showCreatePassword ? t("إخفاء كلمة المرور") : t("إظهار كلمة المرور")} aria-pressed={showCreatePassword} onClick={() => setShowCreatePassword((visible) => !visible)} className="absolute inset-e-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                       {showCreatePassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </span>
                 </label>
-                <label className="block text-sm font-medium text-gray-700">رقم الهاتف <span className="font-normal text-gray-400">(اختياري)</span>
-                  <input type="tel" autoComplete="tel" dir="ltr" placeholder="مثال: 0555 123 456" value={formData.phone_number} onChange={(e) => setFormData({...formData, phone_number: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <label className="block text-sm font-medium text-gray-700">{t("رقم الهاتف")}{' '}<span className="font-normal text-gray-400">{t("(اختياري)")}</span>
+                  <input type="tel" autoComplete="tel" dir="ltr" placeholder={t("مثال: 0555 123 456")} value={formData.phone_number} onChange={(e) => setFormData({...formData, phone_number: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
               </div>
 
@@ -409,13 +419,13 @@ export default function SchoolsManagementPage() {
                   className="flex-1 px-4 py-2.5 rounded-lg text-white font-medium disabled:opacity-50"
                   style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}
                 >
-                  {isSubmitting ? "جاري الإضافة..." : "إضافة"}
+                  {isSubmitting ? t("جاري الإضافة...") : t("إضافة")}
                 </button>
                 <button
                   onClick={() => setShowCreateDialog(false)}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
                 >
-                  إلغاء
+                  {t("إلغاء")}
                 </button>
               </div>
             </div>
@@ -427,8 +437,8 @@ export default function SchoolsManagementPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
             <div role="dialog" aria-modal="true" aria-labelledby="edit-school-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h3 id="edit-school-title" className="text-xl font-bold text-gray-900">تعديل المدرسة</h3>
-                <button aria-label="إغلاق" onClick={() => setShowEditDialog(false)} className="text-gray-400 hover:text-gray-600">
+                <h3 id="edit-school-title" className="text-xl font-bold text-gray-900">{t("تعديل المدرسة")}</h3>
+                <button aria-label={t("إغلاق")} onClick={() => setShowEditDialog(false)} className="text-gray-400 hover:text-gray-600">
                   <X size={24} />
                 </button>
               </div>
@@ -440,30 +450,30 @@ export default function SchoolsManagementPage() {
               )}
 
               <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700">اسم المدرسة
-                  <input type="text" autoComplete="organization" placeholder="اسم المدرسة" value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <label className="block text-sm font-medium text-gray-700">{t("اسم المدرسة")}
+                  <input type="text" autoComplete="organization" placeholder={t("اسم المدرسة")} value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block text-sm font-medium text-gray-700">الاسم الأول للمشرف العام
-                    <input type="text" autoComplete="given-name" placeholder="الاسم الأول" value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <label className="block text-sm font-medium text-gray-700">{t("الاسم الأول للمشرف العام")}
+                    <input type="text" autoComplete="given-name" placeholder={t("الاسم الأول")} value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
-                  <label className="block text-sm font-medium text-gray-700">اسم العائلة للمشرف العام
-                    <input type="text" autoComplete="family-name" placeholder="اسم العائلة" value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <label className="block text-sm font-medium text-gray-700">{t("اسم العائلة للمشرف العام")}
+                    <input type="text" autoComplete="family-name" placeholder={t("اسم العائلة")} value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
                 </div>
-                <label className="block text-sm font-medium text-gray-700">البريد الإلكتروني
+                <label className="block text-sm font-medium text-gray-700">{t("البريد الإلكتروني")}
                   <input type="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
-                <label className="block text-sm font-medium text-gray-700">كلمة مرور جديدة <span className="font-normal text-gray-400">(اختياري)</span>
+                <label className="block text-sm font-medium text-gray-700">{t("كلمة مرور جديدة")}{' '}<span className="font-normal text-gray-400">{t("(اختياري)")}</span>
                   <span className="relative mt-1.5 block">
-                    <input type={showEditPassword ? "text" : "password"} autoComplete="new-password" placeholder="اتركها فارغة دون تغيير" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pl-12 text-right focus:outline-none focus:ring-2 focus:ring-amber-500" />
-                    <button type="button" aria-label={showEditPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"} aria-pressed={showEditPassword} onClick={() => setShowEditPassword((visible) => !visible)} className="absolute left-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                    <input type={showEditPassword ? "text" : "password"} autoComplete="new-password" placeholder={t("اتركها فارغة دون تغيير")} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pe-12 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                    <button type="button" aria-label={showEditPassword ? t("إخفاء كلمة المرور") : t("إظهار كلمة المرور")} aria-pressed={showEditPassword} onClick={() => setShowEditPassword((visible) => !visible)} className="absolute inset-e-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                       {showEditPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </span>
                 </label>
-                <label className="block text-sm font-medium text-gray-700">رقم الهاتف <span className="font-normal text-gray-400">(اختياري)</span>
-                  <input type="tel" autoComplete="tel" dir="ltr" placeholder="مثال: 0555 123 456" value={formData.phone_number} onChange={(e) => setFormData({...formData, phone_number: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <label className="block text-sm font-medium text-gray-700">{t("رقم الهاتف")}{' '}<span className="font-normal text-gray-400">{t("(اختياري)")}</span>
+                  <input type="tel" autoComplete="tel" dir="ltr" placeholder={t("مثال: 0555 123 456")} value={formData.phone_number} onChange={(e) => setFormData({...formData, phone_number: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
               </div>
 
@@ -474,13 +484,13 @@ export default function SchoolsManagementPage() {
                   className="flex-1 px-4 py-2.5 rounded-lg text-white font-medium disabled:opacity-50"
                   style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}
                 >
-                  {isSubmitting ? "جاري التحديث..." : "تحديث"}
+                  {isSubmitting ? t("جاري التحديث...") : t("تحديث")}
                 </button>
                 <button
                   onClick={() => setShowEditDialog(false)}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
                 >
-                  إلغاء
+                  {t("إلغاء")}
                 </button>
               </div>
             </div>
@@ -492,7 +502,7 @@ export default function SchoolsManagementPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">تأكيد الحذف</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t("تأكيد الحذف")}</h3>
                 <button onClick={() => setShowDeleteDialog(false)} className="text-gray-400 hover:text-gray-600">
                   <X size={24} />
                 </button>
@@ -505,8 +515,7 @@ export default function SchoolsManagementPage() {
               )}
 
               <p className="text-gray-600 mb-6">
-                هل أنت متأكد من حذف مدرسة <strong>{selectedSchool.school_name}</strong>؟ 
-                سيتم حذف جميع البيانات المرتبطة بها (المعلمين، الطلاب، إلخ). هذا الإجراء لا يمكن التراجع عنه.
+                {t("هل أنت متأكد من حذف مدرسة")}{' '}<strong>{selectedSchool.school_name}</strong>{t("؟ سيتم حذف جميع البيانات المرتبطة بها (المعلمين، الطلاب، إلخ). هذا الإجراء لا يمكن التراجع عنه.")}
               </p>
 
               <div className="flex gap-3">
@@ -515,13 +524,13 @@ export default function SchoolsManagementPage() {
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium disabled:opacity-50"
                 >
-                  {isSubmitting ? "جاري الحذف..." : "حذف"}
+                  {isSubmitting ? t("جاري الحذف...") : t("حذف")}
                 </button>
                 <button
                   onClick={() => setShowDeleteDialog(false)}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
                 >
-                  إلغاء
+                  {t("إلغاء")}
                 </button>
               </div>
             </div>

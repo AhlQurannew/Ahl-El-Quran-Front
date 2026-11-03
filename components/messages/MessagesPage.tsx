@@ -13,6 +13,7 @@ import { useAdminView } from '@/contexts/AdminViewContext';
 import messagesAPI from '@/app/API/messages';
 import type { Message, WebSocketMessage, SenderRole } from '@/types/message';
 import { cn } from '@/utils/cn';
+import { t as tr } from '@/i18n';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -80,7 +81,7 @@ export const MessagesPage: React.FC = () => {
       setTimeout(() => scrollToBottom('auto'), 100);
     } catch (err) {
       console.error('Failed to load message history:', err);
-      showToast('error', 'فشل تحميل سجل الرسائل');
+      showToast('error', tr("فشل تحميل سجل الرسائل"));
     } finally {
       setIsLoadingHistory(false);
     }
@@ -147,7 +148,7 @@ export const MessagesPage: React.FC = () => {
 
   const handleConnected = useCallback((data: WebSocketMessage) => {
     console.log('Connected to chat:', data);
-    showToast('success', 'تم الاتصال بالدردشة');
+    showToast('success', tr("تم الاتصال بالدردشة"));
   }, []);
 
   const handleError = useCallback((error: Event) => {
@@ -188,10 +189,10 @@ export const MessagesPage: React.FC = () => {
     attachments: File[],
     onProgress: (progress: number) => void,
   ) => {
-    if (!userRole) throw new Error('غير قادر على تحديد دورك');
+    if (!userRole) throw new Error(tr("غير قادر على تحديد دورك"));
 
     const allowedRoles: SenderRole[] = ['teacher', 'supervisor', 'chief_supervisor', 'president', 'student', 'guardian', 'admin'];
-    if (!allowedRoles.includes(userRole)) throw new Error('غير مسموح لك بإرسال الرسائل');
+    if (!allowedRoles.includes(userRole)) throw new Error(tr("غير مسموح لك بإرسال الرسائل"));
 
     if (attachments.length > 0) {
       const formData = new FormData();
@@ -205,11 +206,11 @@ export const MessagesPage: React.FC = () => {
           if (existingIndex === -1) return [...previous, sentMessage];
           return previous.map((item, index) => index === existingIndex ? { ...item, ...sentMessage } : item);
         });
-        showToast('success', 'تم إرسال الرسالة والمرفقات');
+        showToast('success', tr("تم إرسال الرسالة والمرفقات"));
         setTimeout(() => scrollToBottom(), 100);
       } catch (error) {
         console.error('Failed to send message with attachments:', error);
-        throw new Error('فشل رفع المرفقات. تحقق من الاتصال وحاول مرة أخرى.');
+        throw new Error(tr("فشل رفع المرفقات. تحقق من الاتصال وحاول مرة أخرى."));
       }
       return;
     }
@@ -219,11 +220,11 @@ export const MessagesPage: React.FC = () => {
     if (!sentOverWebSocket) {
       try {
         await messagesAPI.createMessage({ message: messageText, sender_role: userRole });
-        showToast('info', 'تم إرسال الرسالة عبر الخادم');
+        showToast('info', tr("تم إرسال الرسالة عبر الخادم"));
         await loadMessageHistory();
       } catch (error) {
         console.error('Failed to send message via REST:', error);
-        throw new Error('فشل إرسال الرسالة');
+        throw new Error(tr("فشل إرسال الرسالة"));
       }
     }
   };
@@ -240,18 +241,18 @@ export const MessagesPage: React.FC = () => {
     const success = sendDeleteMessage(messageId);
     if (success) {
       setMessages((prev) => prev.filter((m) => m.id !== messageId));
-      showToast('success', 'تم حذف الرسالة بنجاح');
+      showToast('success', tr("تم حذف الرسالة بنجاح"));
     } else {
       // Fallback to REST API
       messagesAPI
         .deleteMessage(messageId)
         .then(() => {
           setMessages((prev) => prev.filter((m) => m.id !== messageId));
-          showToast('success', 'تم حذف الرسالة بنجاح');
+          showToast('success', tr("تم حذف الرسالة بنجاح"));
         })
         .catch((err) => {
           console.error('Failed to delete message via REST:', err);
-          showToast('error', 'فشل حذف الرسالة');
+          showToast('error', tr("فشل حذف الرسالة"));
         });
     }
   };
@@ -270,22 +271,22 @@ export const MessagesPage: React.FC = () => {
               <MessageCircle size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">الرسائل الجماعية</h1>
+              <h1 className="text-xl font-bold text-gray-800">{tr("الرسائل الجماعية")}</h1>
               <p className="text-sm text-gray-500">
                 {isConnected ? (
                   <span className="flex items-center gap-1.5">
                     <Wifi size={14} className="text-emerald-500" />
-                    <span className="text-emerald-600 font-medium">متصل</span>
+                    <span className="text-emerald-600 font-medium">{tr("متصل")}</span>
                   </span>
                 ) : reconnectCount > 0 ? (
                   <span className="flex items-center gap-1.5">
                     <RefreshCw size={14} className="text-orange-500 animate-spin" />
-                    <span className="text-orange-600 font-medium">إعادة الاتصال...</span>
+                    <span className="text-orange-600 font-medium">{tr("إعادة الاتصال...")}</span>
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
                     <WifiOff size={14} className="text-red-500" />
-                    <span className="text-red-600 font-medium">غير متصل</span>
+                    <span className="text-red-600 font-medium">{tr("غير متصل")}</span>
                   </span>
                 )}
               </p>
@@ -302,7 +303,7 @@ export const MessagesPage: React.FC = () => {
                 : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 cursor-pointer'
             )}
           >
-            إعادة الاتصال
+            {tr("إعادة الاتصال")}
           </button>
         </div>
       </div>
@@ -313,7 +314,7 @@ export const MessagesPage: React.FC = () => {
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <RefreshCw size={32} className="text-emerald-500 animate-spin mx-auto mb-3" />
-              <p className="text-gray-600 font-medium">جاري تحميل الرسائل...</p>
+              <p className="text-gray-600 font-medium">{tr("جاري تحميل الرسائل...")}</p>
             </div>
           </div>
         ) : messages.length === 0 ? (
@@ -322,8 +323,8 @@ export const MessagesPage: React.FC = () => {
               <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageCircle size={40} className="text-emerald-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">لا توجد رسائل بعد</h2>
-              <p className="text-gray-600">ابدأ محادثة جديدة بإرسال رسالتك الأولى</p>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">{tr("لا توجد رسائل بعد")}</h2>
+              <p className="text-gray-600">{tr("ابدأ محادثة جديدة بإرسال رسالتك الأولى")}</p>
             </div>
           </div>
         ) : (
@@ -348,7 +349,7 @@ export const MessagesPage: React.FC = () => {
           onSend={handleSendMessage}
           onTyping={handleTyping}
           disabled={!userId}
-          placeholder={isConnected ? 'اكتب رسالتك هنا...' : 'اكتب رسالة أو أرفق ملفًا، وسيتم الإرسال عبر الخادم'}
+          placeholder={isConnected ? tr("اكتب رسالتك هنا...") : tr("اكتب رسالة أو أرفق ملفًا، وسيتم الإرسال عبر الخادم")}
         />
       </div>
 
@@ -356,10 +357,10 @@ export const MessagesPage: React.FC = () => {
         isOpen={deleteConfirmMessageId !== null}
         onClose={() => setDeleteConfirmMessageId(null)}
         onConfirm={handleConfirmDelete}
-        title="تأكيد حذف الرسالة"
-        message="هل أنت متأكد من حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء."
-        confirmText="نعم، احذف"
-        cancelText="إلغاء"
+        title={tr("تأكيد حذف الرسالة")}
+        message={tr("هل أنت متأكد من حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء.")}
+        confirmText={tr("نعم، احذف")}
+        cancelText={tr("إلغاء")}
         variant="danger"
       />
 

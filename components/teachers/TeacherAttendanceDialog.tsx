@@ -9,6 +9,8 @@ import { TeacherAttendance, TeacherAttendanceMapper } from '@/types/teacher_atte
 import { cn } from '@/utils/cn';
 
 import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
+import { t } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 interface TeacherAttendanceDialogProps {
   isOpen: boolean;
@@ -71,6 +73,7 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
   date,
   onSaved,
 }) => {
+  const confirm = useConfirm();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [currentAttendance, setCurrentAttendance] = useState<TeacherAttendance | null>(null);
@@ -117,7 +120,7 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
       console.error('Error loading teacher attendance:', err);
       // Don't set error for 404 - it just means no record exists yet
       if ((err as any)?.response?.status !== 404) {
-        setError('فشل تحميل بيانات المواظبة');
+        setError(t("فشل تحميل بيانات المواظبة"));
       }
     } finally {
       setIsLoading(false);
@@ -126,10 +129,11 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
 
   const handleSave = async () => {
     if (!selectedStatus) {
-      setError('الرجاء اختيار حالة المواظبة');
+      setError(t("الرجاء اختيار حالة المواظبة"));
       return;
     }
 
+    if (!(await confirm({ title: t('تأكيد الحفظ'), message: t('هل أنت متأكد من حفظ سجل الحضور؟'), confirmText: t('نعم، احفظ') }))) return;
     setIsSaving(true);
     setError(null);
 
@@ -182,7 +186,7 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
       console.error('❌ Error headers:', err?.response?.headers);
       console.error('❌ Full error:', JSON.stringify(err?.response || err, null, 2));
       
-      let errorMsg = 'فشل في حفظ المواظبة';
+      let errorMsg = t("فشل في حفظ المواظبة");
       
       if (err?.response?.data?.detail) {
         const detail = err.response.data.detail;
@@ -218,7 +222,7 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={isSaving}>
-            إلغاء
+            {t("إلغاء")}
           </Button>
           <Button
             variant="primary"
@@ -226,7 +230,7 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
             disabled={!selectedStatus || isSaving}
             isLoading={isSaving}
           >
-            حفظ
+            {t("حفظ")}
           </Button>
         </>
       }
@@ -234,9 +238,9 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
       <div className="space-y-6">
         {/* Header with teacher info */}
         <div className="bg-gradient-to-br from-blue-500 to-blue-700 -mx-6 -mt-5 px-6 py-4 rounded-t-2xl">
-          <h3 className="text-white font-bold text-lg">مواظبة الأستاذ</h3>
+          <h3 className="text-white font-bold text-lg">{t("مواظبة الأستاذ")}</h3>
           <p className="text-blue-50 text-sm mt-1">{teacherName}</p>
-          <p className="text-blue-100 text-xs mt-0.5">التاريخ: {date}</p>
+          <p className="text-blue-100 text-xs mt-0.5">{t("التاريخ:")}{' '}{date}</p>
         </div>
 
         {error && (
@@ -253,8 +257,8 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
           <>
             {/* Status Selection */}
             <div className="space-y-3">
-              <label className="block text-sm font-bold text-gray-900 text-right">
-                حالة المواظبة <span className="text-red-500">*</span>
+              <label className="block text-sm font-bold text-gray-900 text-start">
+                {t("حالة المواظبة")}{' '}<span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {statusOptions.map((option) => {
@@ -286,11 +290,11 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
                           isSelected ? 'text-gray-900' : 'text-gray-600'
                         )}
                       >
-                        {option.label}
+                        {t(option.label)}
                       </span>
                       {isSelected && (
                         <div
-                          className="mr-auto w-5 h-5 rounded-full flex items-center justify-center"
+                          className="ms-auto w-5 h-5 rounded-full flex items-center justify-center"
                           style={{ backgroundColor: option.color }}
                         >
                           <Check size={14} className="text-white" />
@@ -304,15 +308,15 @@ export const TeacherAttendanceDialog: React.FC<TeacherAttendanceDialogProps> = (
 
             {/* Notes Section */}
             <div className="space-y-3">
-              <label className="block text-sm font-bold text-gray-900 text-right">
-                ملاحظات
+              <label className="block text-sm font-bold text-gray-900 text-start">
+                {t("ملاحظات")}
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="أضف ملاحظة (اختياري)..."
+                placeholder={t("أضف ملاحظة (اختياري)...")}
                 rows={3}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 text-right resize-none"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 text-start resize-none"
               />
             </div>
           </>

@@ -12,16 +12,17 @@ import teacherAPI from '@/app/API/teacher';
 import lecturesAPI from '@/app/API/lectures';
 import reportsAPI from '@/app/API/reports';
 import studentsAPI from '@/app/API/students';
+import { t } from '@/i18n';
 
 export default function AchievementStatsPage() {
   const user = useAuthStore((s) => s.user);
   const isTeacher = user?.role === 'TEACHER';
 
   const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
-    { label: 'اختر الحلقة', value: '' },
+    { label: t("اختر الحلقة"), value: '' },
   ]);
   const [studentList, setStudentList] = useState<{ label: string; value: string }[]>([
-    { label: 'اختر الطالب', value: '' },
+    { label: t("اختر الطالب"), value: '' },
   ]);
 
   const [isShowingStats, setIsShowingStats] = useState(false);
@@ -32,9 +33,9 @@ export default function AchievementStatsPage() {
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [chartData, setChartData] = useState([
-    { label: 'حفظ', value: 0, color: 'bg-emerald-400' },
-    { label: 'مراجعة صغرى', value: 0, color: 'bg-amber-400' },
-    { label: 'مراجعة كبرى', value: 0, color: 'bg-blue-400' },
+    { label: t("حفظ"), value: 0, color: 'bg-emerald-400' },
+    { label: t("مراجعة صغرى"), value: 0, color: 'bg-amber-400' },
+    { label: t("مراجعة كبرى"), value: 0, color: 'bg-blue-400' },
   ]);
 
   // Load lectures (episodes) - scoped to teacher if teacher
@@ -48,9 +49,9 @@ export default function AchievementStatsPage() {
           lectures = await lecturesAPI.getAllLectures();
         }
         const options = [
-          { label: 'اختر الحلقة', value: '' },
+          { label: t("اختر الحلقة"), value: '' },
           ...lectures.map((l: any) => ({
-            label: l.lecture_name_ar || `حلقة ${l.lecture_id || l.id}`,
+            label: l.lecture_name_ar || t("حلقة {v0}", { v0: l.lecture_id || l.id }),
             value: String(l.lecture_id || l.id),
           })),
         ];
@@ -91,9 +92,9 @@ export default function AchievementStatsPage() {
         }
         
         const options = [
-          { label: 'اختر الطالب', value: '' },
+          { label: t("اختر الطالب"), value: '' },
           ...students.map((s: any) => ({
-            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || `طالب ${s.id}`,
+            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || t("طالب {id}", { id: s.id }),
             value: String(s.id),
           })),
         ];
@@ -111,7 +112,7 @@ export default function AchievementStatsPage() {
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!halqa && !student) {
-      alert('يرجى اختيار حلقة أو طالب على الأقل');
+      alert(t("يرجى اختيار حلقة أو طالب على الأقل"));
       return;
     }
     try {
@@ -124,37 +125,37 @@ export default function AchievementStatsPage() {
       });
 
       setChartData([
-        { label: 'حفظ', value: res.normal || 0, color: 'bg-emerald-400' },
-        { label: 'مراجعة صغرى', value: res.small || 0, color: 'bg-amber-400' },
-        { label: 'مراجعة كبرى', value: res.big || 0, color: 'bg-blue-400' },
+        { label: t("حفظ"), value: res.normal || 0, color: 'bg-emerald-400' },
+        { label: t("مراجعة صغرى"), value: res.small || 0, color: 'bg-amber-400' },
+        { label: t("مراجعة كبرى"), value: res.big || 0, color: 'bg-blue-400' },
       ]);
       setIsShowingStats(true);
     } catch (err) {
       console.error('Error fetching achievement stats:', err);
-      alert('حدث خطأ أثناء جلب بيانات الإنجاز');
+      alert(t("حدث خطأ أثناء جلب بيانات الإنجاز"));
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || 'الكل';
-  const selectedStudentLabel = studentList.find((s) => s.value === student)?.label || 'الكل';
+  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || t("الكل");
+  const selectedStudentLabel = studentList.find((s) => s.value === student)?.label || t("الكل");
 
   return (
-    <AppLayout title="إحصائيات الإنجاز" breadcrumb="الشؤون الإدارية / الإحصاءات / إحصائيات الإنجاز">
+    <AppLayout title={t("إحصائيات الإنجاز")} breadcrumb={t("الشؤون الإدارية / الإحصاءات / إحصائيات الإنجاز")}>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm flex items-center justify-between">
-          <span>إحصائيات الإنجاز</span>
+          <span>{t("إحصائيات الإنجاز")}</span>
           <div className="flex items-center gap-2">
             <Link
               href="/statistics"
-              aria-label="العودة إلى صفحة الإحصاءات"
-              title="العودة إلى الإحصاءات"
+              aria-label={t("العودة إلى صفحة الإحصاءات")}
+              title={t("العودة إلى الإحصاءات")}
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:bg-white/30 hover:text-amber-100"
             >
-              <ArrowRight size={14} aria-hidden="true" />
-              الإحصاءات
+              <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+              {t("الإحصاءات")}
             </Link>
             {isShowingStats && (
               <button
@@ -162,8 +163,8 @@ export default function AchievementStatsPage() {
                 onClick={() => setIsShowingStats(false)}
                 className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:text-amber-100"
               >
-                <ArrowRight size={14} aria-hidden="true" />
-                العودة للنموذج
+                <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+                {t("العودة للنموذج")}
               </button>
             )}
           </div>
@@ -175,14 +176,14 @@ export default function AchievementStatsPage() {
             <form onSubmit={handleShowStats} className="max-w-2xl mx-auto space-y-8">
               <div className="space-y-6">
                 <Select
-                  label="الحلقة"
+                  label={t("الحلقة")}
                   value={halqa}
                   onChange={(e) => setHalqa(e.target.value)}
                   options={halqaList}
                 />
 
                 <Select
-                  label="الطالب"
+                  label={t("الطالب")}
                   value={student}
                   onChange={(e) => setStudent(e.target.value)}
                   options={studentList}
@@ -190,13 +191,13 @@ export default function AchievementStatsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <Input
-                    label="تاريخ البداية"
+                    label={t("تاريخ البداية")}
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                   <Input
-                    label="تاريخ النهاية"
+                    label={t("تاريخ النهاية")}
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -206,7 +207,7 @@ export default function AchievementStatsPage() {
 
               <div className="pt-4 flex justify-center">
                 <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'عرض الإحصائيات'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("عرض الإحصائيات")}
                 </Button>
               </div>
             </form>
@@ -216,24 +217,24 @@ export default function AchievementStatsPage() {
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12 space-y-12">
             {/* Header Info */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-700 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <span>الطالب: <span className="text-emerald-600">{selectedStudentLabel}</span></span>
+              <span>{t("الطالب:")}{' '}<span className="text-emerald-600">{selectedStudentLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>الحلقة: <span className="text-emerald-600">{selectedHalqaLabel}</span></span>
+              <span>{t("الحلقة:")}{' '}<span className="text-emerald-600">{selectedHalqaLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>من: <span className="text-emerald-600">{startDate}</span></span>
+              <span>{t("من:")}{' '}<span className="text-emerald-600">{startDate}</span></span>
               <span className="text-gray-300">|</span>
-              <span>إلى: <span className="text-emerald-600">{endDate}</span></span>
+              <span>{t("إلى:")}{' '}<span className="text-emerald-600">{endDate}</span></span>
             </div>
 
             {/* Chart Section */}
             <div className="space-y-10">
               <h2 className="text-center text-xl font-bold text-gray-800">
-                عدد الصفحات حسب نوع الإنجاز
+                {t("عدد الصفحات حسب نوع الإنجاز")}
               </h2>
 
               <div className="relative h-80 max-w-3xl mx-auto flex items-end justify-around pb-8 border-b-2 border-gray-100 pt-10 px-4">
                 {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium pr-4 border-r-2 border-gray-100">
+                <div className="absolute inset-e-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium ps-4 border-s-2 border-gray-100">
                   <span>{Math.round(maxChartValue)}</span>
                   <span>{Math.round(maxChartValue * 0.75)}</span>
                   <span>{Math.round(maxChartValue * 0.5)}</span>
@@ -248,7 +249,7 @@ export default function AchievementStatsPage() {
                     <div key={index} className="h-full flex flex-col justify-end items-center gap-3 w-1/4 group relative">
                       {/* Tooltip on hover */}
                       <div className="absolute top-0 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none z-10 whitespace-nowrap shadow-lg mb-2">
-                        {item.label}: {item.value} صفحة
+                        {item.label}: {item.value}{' '}{t("صفحة")}
                         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                       </div>
 
@@ -273,7 +274,7 @@ export default function AchievementStatsPage() {
                   <div key={index} className="flex items-center gap-2">
                     <span className={`w-3.5 h-3.5 rounded-full shadow-sm ${item.color}`}></span>
                     <span className="text-sm font-semibold text-gray-600">
-                      {item.label}: <span className="text-gray-900">{item.value} صفحة</span>
+                      {item.label}: <span className="text-gray-900">{item.value}{' '}{t("صفحة")}</span>
                     </span>
                   </div>
                 ))}

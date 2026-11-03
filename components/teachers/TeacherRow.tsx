@@ -4,6 +4,7 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import type { Teacher } from '@/types/teacher';
+import { t, getLocale } from '@/i18n';
 
 interface TeacherRowProps {
   teacher: Teacher;
@@ -21,7 +22,7 @@ export const TeacherRow: React.FC<TeacherRowProps> = ({
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('ar-DZ', {
+      return date.toLocaleDateString(getLocale(), {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -67,14 +68,14 @@ export const TeacherRow: React.FC<TeacherRowProps> = ({
         {teacher.email}
       </td>
       <td className="px-4 py-3.5 text-sm text-gray-600">
-        {teacher.riwaya || <span className="text-gray-300">—</span>}
+        {(teacher.riwaya && t(teacher.riwaya)) || <span className="text-gray-300">—</span>}
       </td>
       <td className="px-4 py-3.5 text-sm text-gray-600">
         {formatDate(teacher.hire_date)}
       </td>
       <td className="px-4 py-3.5">
         <Badge variant={teacher.is_active ? 'success' : 'default'}>
-          {teacher.is_active ? 'نشط' : 'غير نشط'}
+          {teacher.is_active ? t("نشط") : t("غير نشط")}
         </Badge>
       </td>
     </tr>

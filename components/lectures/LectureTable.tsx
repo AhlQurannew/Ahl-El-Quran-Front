@@ -4,6 +4,7 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Lecture } from '@/api/lectures';
+import { t as tr } from '@/i18n';
 
 interface LectureTableProps {
   lectures: Lecture[];
@@ -30,18 +31,18 @@ export const LectureTable: React.FC<LectureTableProps> = ({
   const formatCategory = (cat?: string) => {
     switch (cat?.toLowerCase()) {
       case 'male': 
-        return 'ذكور';
+        return tr("ذكور");
       case 'female': 
-        return 'إناث';
+        return tr("إناث");
       case 'both': 
-        return 'ذكور وإناث';
+        return tr("ذكور وإناث");
       default: 
         return cat || '—';
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" dir="rtl">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -57,23 +58,23 @@ export const LectureTable: React.FC<LectureTableProps> = ({
 
               <th className="px-2 py-3.5 w-10" />
 
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                اسم الحلقة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {tr("اسم الحلقة")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                نوع الحلقة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {tr("نوع الحلقة")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الفئة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {tr("الفئة")}
               </th>
               <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                عدد الطلاب
+                {tr("عدد الطلاب")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                المعلمون
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {tr("المعلمون")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                التوقيت والأيام
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {tr("التوقيت والأيام")}
               </th>
             </tr>
           </thead>
@@ -81,15 +82,15 @@ export const LectureTable: React.FC<LectureTableProps> = ({
             {isLoading ? (
               <tr>
                 <td colSpan={8} className="py-16 text-center">
-                  <Spinner size="md" label="جاري تحميل الحلقات..." />
+                  <Spinner size="md" label={tr("جاري تحميل الحلقات...")} />
                 </td>
               </tr>
             ) : lectures.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm text-gray-400 font-medium">لا توجد حلقات حالياً</p>
-                    <p className="text-xs text-gray-300">انقر على إضافة لإضافة حلقة جديدة</p>
+                    <p className="text-sm text-gray-400 font-medium">{tr("لا توجد حلقات حالياً")}</p>
+                    <p className="text-xs text-gray-300">{tr("انقر على إضافة لإضافة حلقة جديدة")}</p>
                   </div>
                 </td>
               </tr>
@@ -130,7 +131,7 @@ export const LectureTable: React.FC<LectureTableProps> = ({
 
                     <td className="px-4 py-3.5 text-sm text-gray-700 font-medium">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs text-gray-600">
-                        {lecture.circle_type}
+                        {tr(lecture.circle_type)}
                       </span>
                     </td>
 
@@ -166,8 +167,8 @@ export const LectureTable: React.FC<LectureTableProps> = ({
                       {lecture.schedules && lecture.schedules.length > 0 ? (
                         <div className="text-xs space-y-1">
                           {lecture.schedules.map((s, idx) => (
-                            <div key={idx} className="text-teal-700 bg-teal-50/50 px-2 py-0.5 rounded inline-block ml-1">
-                              {s.day_of_week} ({s.start_time} - {s.end_time})
+                            <div key={idx} className="text-teal-700 bg-teal-50/50 px-2 py-0.5 rounded inline-block me-1">
+                              {tr(s.day_of_week)} ({s.start_time} - {s.end_time})
                             </div>
                           ))}
                         </div>
@@ -187,11 +188,11 @@ export const LectureTable: React.FC<LectureTableProps> = ({
       {totalCount > 0 && (
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex justify-between text-xs text-gray-400">
           <span>
-            عرض <span className="font-semibold text-gray-600">{lectures.length}</span> من أصل <span className="font-semibold text-gray-600">{totalCount}</span> حلقة
+            {tr("عرض")}{' '}<span className="font-semibold text-gray-600">{lectures.length}</span>{' '}{tr("من أصل")}{' '}<span className="font-semibold text-gray-600">{totalCount}</span>{' '}{tr("حلقة")}
           </span>
           {selectedIds.length > 0 && (
             <span className="text-teal-600 font-semibold">
-              تم تحديد {selectedIds.length} حلقة
+              {tr("تم تحديد")}{' '}{selectedIds.length}{' '}{tr("حلقة")}
             </span>
           )}
         </div>

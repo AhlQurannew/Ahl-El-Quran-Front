@@ -79,6 +79,13 @@ const createMessageWithAttachments = async (
     return res.data;
 };
 
+/** Avatar of a chat participant; rejects with 404 when they have none. */
+const getSenderPhoto = async (sender: { sender_id?: number | null; admin_sender_id?: number | null }): Promise<Blob> => {
+    const params = sender.admin_sender_id != null ? { admin_sender_id: sender.admin_sender_id } : { sender_id: sender.sender_id };
+    const res = await axiosGlobal.get<Blob>("/sender-photo", { params, responseType: "blob" });
+    return res.data;
+};
+
 const getAttachment = async (attachmentId: number): Promise<Blob> => {
     const res = await axiosGlobal.get<Blob>(`/attachments/${attachmentId}`, {
         responseType: "blob",
@@ -117,6 +124,7 @@ const messagesAPI = {
     createMessage,
     createMessageWithAttachments,
     getAttachment,
+    getSenderPhoto,
     getMessages,
     getRecentMessages,
     deleteMessage,

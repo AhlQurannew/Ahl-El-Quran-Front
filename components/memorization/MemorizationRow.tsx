@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { MemorizationRecord } from '@/types/memorization';
+import { t } from '@/i18n';
 
 interface MemorizationRowProps {
   record: MemorizationRecord;
@@ -45,9 +46,9 @@ export const MemorizationRow: React.FC<MemorizationRowProps> = ({
         <div className="flex items-center gap-2 text-sm text-emerald-700 font-semibold bg-emerald-50 px-3 py-1.5 rounded-xl w-fit">
           <Award size={14} className="text-emerald-500 shrink-0" />
           <span>
-            سورة {record.surah}
+            {t("سورة")}{' '}{record.surah}
             <span className="text-emerald-500 mx-1.5">|</span>
-            إلى آية: {record.ayah}
+            {t("إلى آية:")}{' '}{record.ayah}
           </span>
         </div>
       </td>
@@ -58,14 +59,14 @@ export const MemorizationRow: React.FC<MemorizationRowProps> = ({
           variant={record.status === 'active' ? 'success' : 'default'}
           dot={record.status === 'active'}
         >
-          {record.status === 'active' ? 'نشط' : 'غير نشط'}
+          {record.status === 'active' ? t("نشط") : t("غير نشط")}
         </Badge>
       </td>
 
       {/* Actions */}
-      <td className="px-6 py-4 text-left">
+      <td className="px-6 py-4 text-end">
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-          <Tooltip content="تعديل" position="top">
+          <Tooltip content={t("تعديل")} position="top">
             <button
               onClick={() => onEdit(record)}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
@@ -73,7 +74,7 @@ export const MemorizationRow: React.FC<MemorizationRowProps> = ({
               <Pencil size={15} />
             </button>
           </Tooltip>
-          <Tooltip content="حذف" position="top">
+          <Tooltip content={t("حذف")} position="top">
             <button
               onClick={() => onDelete(record)}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"

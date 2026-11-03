@@ -1,5 +1,7 @@
+import { t } from '@/i18n';
+
 /**
- * Map API error messages to user-friendly Arabic messages
+ * Map API error messages to user-friendly Arabic messages (translated via t()).
  */
 export const errorMessages: Record<string, string> = {
   // Auth errors
@@ -26,6 +28,17 @@ export const errorMessages: Record<string, string> = {
   'Server error': 'حدث خطأ في الخادم',
   'Not found': 'غير موجود',
   'Something went wrong': 'حدث خطأ',
+
+  // Profile image errors
+  'Upload a PNG, JPG, JPEG, or WebP image': 'يرجى اختيار صورة بصيغة PNG أو JPG أو WebP',
+  'Only PNG, JPG, JPEG, and WebP images are supported': 'يرجى اختيار صورة بصيغة PNG أو JPG أو WebP',
+  'Image must be 2 MB or smaller': 'يجب ألا يتجاوز حجم الصورة 2 ميغابايت',
+  'The uploaded image is empty': 'الصورة المرفوعة فارغة',
+  'The uploaded file is not a valid supported image': 'الملف المرفوع ليس صورة صالحة',
+  'Image dimensions are too large': 'أبعاد الصورة كبيرة جداً',
+  'Image must be 5 MB or smaller': 'يجب ألا يتجاوز حجم الصورة 5 ميغابايت',
+  'slides is allowed': 'تم بلوغ الحد الأقصى لعدد الصور',
+  'Note limit reached': 'تم بلوغ الحد الأقصى لعدد الملاحظات',
 };
 
 /**
@@ -35,7 +48,7 @@ export const getErrorMessage = (error: string): string => {
   // Check if error contains any known substring
   for (const [key, value] of Object.entries(errorMessages)) {
     if (error.includes(key)) {
-      return value;
+      return t(value);
     }
   }
 
@@ -59,5 +72,12 @@ export const extractErrorMessage = (error: any): string => {
     return getErrorMessage(error.message);
   }
 
-  return errorMessages['Something went wrong'];
+  return t(errorMessages['Something went wrong']);
+};
+
+/** Translated message for any thrown value, or `fallback` when it carries none. */
+export const describeError = (error: unknown, fallback: string): string => {
+  const response = (error as { response?: { data?: { detail?: unknown; message?: unknown } } })?.response;
+  const detail = response?.data?.detail ?? response?.data?.message;
+  return typeof detail === 'string' ? getErrorMessage(detail) : fallback;
 };

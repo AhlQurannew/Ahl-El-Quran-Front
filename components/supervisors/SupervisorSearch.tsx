@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Search, Plus, Edit2, Trash2, CheckSquare, X, Printer, FileSpreadsheet } from 'lucide-react';
+import { t } from '@/i18n';
 
 interface SupervisorSearchProps {
   query: string;
@@ -36,10 +37,10 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           type="text"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="البحث عن مشرف بالاسم أو البريد الإلكتروني..."
-          className="w-full px-4 py-3 pr-11 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all"
+          placeholder={t("البحث عن مشرف بالاسم أو البريد الإلكتروني...")}
+          className="w-full px-4 py-3 ps-11 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all"
         />
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+        <div className="absolute inset-e-4 top-1/2 -translate-y-1/2 text-gray-400">
           <Search size={20} />
         </div>
       </div>
@@ -52,7 +53,7 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
         >
           <Plus size={18} />
-          <span>إضافة</span>
+          <span>{t("إضافة")}</span>
         </button>
 
         {/* Edit Button */}
@@ -62,7 +63,7 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           className="flex items-center gap-2 px-4 py-2.5 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <Edit2 size={18} />
-          <span>تعديل</span>
+          <span>{t("تعديل")}</span>
         </button>
 
         {/* Delete Button */}
@@ -72,7 +73,7 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           className="flex items-center gap-2 px-4 py-2.5 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <Trash2 size={18} />
-          <span>حذف</span>
+          <span>{t("حذف")}</span>
         </button>
 
         {/* Select All Button */}
@@ -81,7 +82,7 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
         >
           <CheckSquare size={18} />
-          <span>تحديد الكل</span>
+          <span>{t("تحديد الكل")}</span>
         </button>
 
         {/* Cancel Selection Button */}
@@ -91,7 +92,7 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           className="flex items-center gap-2 px-4 py-2.5 border-2 border-gray-400 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <X size={18} />
-          <span>إلغاء</span>
+          <span>{t("إلغاء")}</span>
         </button>
 
         {/* Spacer */}
@@ -103,7 +104,7 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           className="flex items-center gap-2 px-4 py-2.5 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium"
         >
           <Printer size={18} />
-          <span>طباعة</span>
+          <span>{t("طباعة")}</span>
         </button>
 
         {/* Export Excel Button */}
@@ -112,7 +113,7 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           className="flex items-center gap-2 px-4 py-2.5 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium"
         >
           <FileSpreadsheet size={18} />
-          <span>تصدير Excel</span>
+          <span>{t("تصدير Excel")}</span>
         </button>
       </div>
     </div>

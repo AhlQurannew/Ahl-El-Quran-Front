@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import type { Teacher } from '@/types/teacher';
+import { t, getLocale } from '@/i18n';
 
 interface TeacherTableProps {
   teachers: Teacher[];
@@ -28,7 +29,7 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('ar-DZ', {
+      return date.toLocaleDateString(getLocale(), {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -55,23 +56,23 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
               </th>
               {/* Spacer/Plus Header */}
               <th className="px-2 py-3.5 w-10" />
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الاسم
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الاسم")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                اللقب
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("اللقب")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                البريد الإلكتروني
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("البريد الإلكتروني")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الرواية
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الرواية")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                تاريخ التوظيف
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("تاريخ التوظيف")}
               </th>
-              <th className="px-4 py-3.5 text-xs font-bold text-right uppercase tracking-wider">
-                الحالة
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
+                {t("الحالة")}
               </th>
             </tr>
           </thead>
@@ -79,15 +80,15 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
             {isLoading ? (
               <tr>
                 <td colSpan={8} className="py-16 text-center">
-                  <Spinner size="md" label="جاري التحميل..." />
+                  <Spinner size="md" label={t("جاري التحميل...")} />
                 </td>
               </tr>
             ) : teachers.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm text-gray-400 font-medium">لا يوجد معلمين</p>
-                    <p className="text-xs text-gray-300">انقر على إضافة لإضافة معلم جديد</p>
+                    <p className="text-sm text-gray-400 font-medium">{t("لا يوجد معلمين")}</p>
+                    <p className="text-xs text-gray-300">{t("انقر على إضافة لإضافة معلم جديد")}</p>
                   </div>
                 </td>
               </tr>
@@ -115,8 +116,8 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                     <td className="px-2 py-3.5 text-center">
                       <button
                         type="button"
-                        aria-label={`عرض تفاصيل المعلم ${teacher.firstname} ${teacher.lastname}`}
-                        title="عرض تفاصيل المعلم"
+                        aria-label={t("عرض تفاصيل المعلم {firstname} {lastname}", { firstname: teacher.firstname, lastname: teacher.lastname })}
+                        title={t("عرض تفاصيل المعلم")}
                         onClick={() => onPlusClick(teacher)}
                         className="w-5 h-5 rounded-full flex items-center justify-center border border-amber-500 bg-transparent text-amber-500 hover:bg-amber-500 hover:text-white transition-all cursor-pointer"
                       >
@@ -134,14 +135,14 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                       {teacher.email}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-600">
-                      {teacher.riwaya || <span className="text-gray-300">—</span>}
+                      {(teacher.riwaya && t(teacher.riwaya)) || <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-600">
                       {formatDate(teacher.hire_date)}
                     </td>
                     <td className="px-4 py-3.5">
                       <Badge variant={teacher.is_active ? 'success' : 'default'}>
-                        {teacher.is_active ? 'نشط' : 'غير نشط'}
+                        {teacher.is_active ? t("نشط") : t("غير نشط")}
                       </Badge>
                     </td>
                   </tr>
@@ -156,11 +157,11 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
       {teachers.length > 0 && (
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex justify-between text-xs text-gray-400">
           <span>
-            عدد الصفوف: <span className="font-semibold text-gray-600">{teachers.length}</span>
+            {t("عدد الصفوف:")}{' '}<span className="font-semibold text-gray-600">{teachers.length}</span>
           </span>
           {selectedIds.length > 0 && (
             <span className="text-teal-600 font-semibold">
-              تم تحديد {selectedIds.length} معلم
+              {t("تم تحديد")}{' '}{selectedIds.length}{' '}{t("معلم")}
             </span>
           )}
         </div>

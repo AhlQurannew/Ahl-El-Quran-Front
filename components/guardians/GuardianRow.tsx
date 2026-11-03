@@ -3,6 +3,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import type { Guardian } from '@/types/guardian';
+import { t } from '@/i18n';
 
 interface GuardianRowProps {
   guardian: Guardian;
@@ -25,7 +26,7 @@ export const GuardianRow: React.FC<GuardianRowProps> = ({ guardian, isSelected, 
       <button
         type="button"
         onClick={() => onPlusClick(guardian)}
-        aria-label={`عرض تفاصيل ${guardian.firstName} ${guardian.lastName}`}
+        aria-label={t("عرض تفاصيل {firstName} {lastName}", { firstName: guardian.firstName, lastName: guardian.lastName })}
         className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-amber-500 text-amber-500 transition-all hover:bg-amber-500 hover:text-white"
       >
         <Plus size={12} strokeWidth={3} />
@@ -35,8 +36,8 @@ export const GuardianRow: React.FC<GuardianRowProps> = ({ guardian, isSelected, 
     <td className="px-4 py-3.5 text-sm text-gray-700">{guardian.lastName}</td>
     <td className="px-4 py-3.5 text-sm text-gray-600">{guardian.relationship}</td>
     <td className="px-4 py-3.5 text-sm text-gray-600" dir="ltr">{guardian.phoneNumber || '—'}</td>
-    <td className="px-4 py-3.5 text-sm text-gray-600">{guardian.students.map((student) => `${student.firstName} ${student.lastName}`).join('، ') || '—'}</td>
+    <td className="px-4 py-3.5 text-sm text-gray-600">{guardian.students.map((student) => `${student.firstName} ${student.lastName}`).join(t("، ")) || '—'}</td>
     <td className="px-4 py-3.5 text-sm text-gray-600" dir="ltr">{guardian.username}</td>
-    <td className="px-4 py-3.5 text-sm text-gray-600">{guardian.isActive ? 'نشط' : 'غير نشط'}</td>
+    <td className="px-4 py-3.5 text-sm text-gray-600">{guardian.isActive ? t("نشط") : t("غير نشط")}</td>
   </tr>
 );

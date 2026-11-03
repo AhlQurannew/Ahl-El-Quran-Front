@@ -10,6 +10,9 @@ import { setAuthCookies } from '@/utils/auth';
 import { Spinner } from '@/components/ui/Spinner';
 import { Toast } from '@/components/ui/Toast';
 import logo from '../../assets/logo.png';
+import { t } from '@/i18n';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { LoginSlideshow } from '@/components/login/LoginSlideshow';
 
 const ROLES = [
   { value: 'PRESIDENT', label: 'الرئيس' },
@@ -38,7 +41,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (searchParams?.get('expired') === 'true') {
-      showToast('انتهت جلسة العمل، يرجى إعادة تسجيل الدخول', 'error');
+      showToast(t("انتهت جلسة العمل، يرجى إعادة تسجيل الدخول"), 'error');
       router.replace('/login');
     }
   }, [searchParams, router]);
@@ -46,7 +49,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const loginId = (role === 'ADMIN' || role === 'PRESIDENT') ? (username || email) : email;
-    if (!loginId || !password) { showToast('يرجى ملء جميع الحقول', 'error'); return; }
+    if (!loginId || !password) { showToast(t("يرجى ملء جميع الحقول"), 'error'); return; }
     setIsLoading(true);
     try {
       let res: any;
@@ -75,13 +78,13 @@ export default function LoginPage() {
         };
         setUser(loggedUser);
         setAuthCookies(res.access_token, role);
-        showToast('تم تسجيل الدخول بنجاح', 'success');
+        showToast(t("تم تسجيل الدخول بنجاح"), 'success');
         setTimeout(() => router.push(role === 'ADMIN' || role === 'PRESIDENT' ? '/dashboard' : '/students'), 500);
       } else {
-        showToast(res?.message || 'فشل تسجيل الدخول', 'error');
+        showToast(res?.message || t("فشل تسجيل الدخول"), 'error');
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.detail || err?.message || 'حدث خطأ في الاتصال بالخادم';
+      const msg = err?.response?.data?.detail || err?.message || t("حدث خطأ في الاتصال بالخادم");
       showToast(typeof msg === 'string' ? msg : JSON.stringify(msg), 'error');
     } finally {
       setIsLoading(false);
@@ -89,34 +92,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-row-reverse" dir="rtl">
+    <div className="min-h-screen flex flex-row-reverse">
+      <LanguageSwitcher className="fixed top-4 inset-e-4 z-40 shadow-sm" />
       <Toast
         type={toast.type} message={toast.message} isVisible={toast.visible}
         onClose={() => setToast((p) => ({ ...p, visible: false }))}
       />
 
-      {/* ─── Right panel: Mosque photo ─── */}
-      <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
-        <Image src="/masjid.jpg" alt="المسجد النبوي الشريف" fill className="object-cover" priority />
-        {/* layered overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
-
-        {/* bottom caption */}
-        <div className="absolute bottom-12 right-10 left-10 text-white">
-          <span className="inline-block bg-amber-500/90 text-white text-[10px] font-bold uppercase tracking-[0.18em] px-3 py-1 rounded-full mb-4">
-            منصة أهل القرآن
-          </span>
-          <h2 className="text-4xl font-bold leading-tight drop-shadow-lg">
-            المسجد النبوي<br />الشريف
-          </h2>
-          <p className="text-sm text-white/60 mt-2 font-light">
-            المدينة المنورة — المملكة العربية السعودية
-          </p>
-          {/* decorative line */}
-          <div className="mt-5 w-12 h-0.5 bg-amber-400/70 rounded-full" />
-        </div>
-      </div>
+      {/* ─── Right panel: admin-managed slideshow (default: mosque photo) ─── */}
+      <LoginSlideshow />
 
       {/* ─── Left panel: Form ─── */}
       <div
@@ -128,28 +112,28 @@ export default function LoginPage() {
           {/* Logo block */}
           <div className="flex flex-col items-center mb-10">
             <div className="w-16 h-16 rounded-2xl shadow-md overflow-hidden mb-4 ring-2 ring-amber-100">
-              <Image src={logo} alt="أهل القرآن" width={64} height={64} className="object-cover" />
+              <Image src={logo} alt={t("أهل القرآن")} width={64} height={64} className="object-cover" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">أهل القرآن</h1>
-            <p className="text-[13px] text-gray-400 mt-1">منصة إدارة المدارس القرآنية</p>
+            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">{t("أهل القرآن")}</h1>
+            <p className="text-[13px] text-gray-400 mt-1">{t("منصة إدارة المدارس القرآنية")}</p>
             {/* amber rule */}
             <div className="mt-4 w-8 h-0.5 rounded-full bg-amber-400" />
           </div>
 
           {/* Heading */}
           <h2 className="text-[15px] font-semibold text-gray-500 text-center mb-6 uppercase tracking-widest">
-            تسجيل الدخول
+            {t("تسجيل الدخول")}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Email / Username */}
-            <Field label={(role === 'ADMIN' || role === 'PRESIDENT') ? 'اسم المستخدم / البريد الإلكتروني' : 'البريد الإلكتروني'}>
+            <Field label={(role === 'ADMIN' || role === 'PRESIDENT') ? t("اسم المستخدم / البريد الإلكتروني") : t("البريد الإلكتروني")}>
               <FieldIcon><Mail size={15} /></FieldIcon>
               {(role === 'ADMIN' || role === 'PRESIDENT') ? (
                 <input
                   type="text"
-                  placeholder="أدخل اسم المستخدم أو البريد"
+                  placeholder={t("أدخل اسم المستخدم أو البريد")}
                   value={username || email}
                   onChange={(e) => { setUsername(e.target.value); setEmail(e.target.value); }}
                   className={inputCls}
@@ -166,36 +150,36 @@ export default function LoginPage() {
             </Field>
 
             {/* Password */}
-            <Field label="كلمة المرور">
+            <Field label={t("كلمة المرور")}>
               <FieldIcon><Lock size={15} /></FieldIcon>
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`${inputCls} pl-10`}
+                className={`${inputCls} pe-10`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-amber-500 transition-colors"
+                className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-amber-500 transition-colors"
               >
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </Field>
 
             {/* Role */}
-            <Field label="نوع الحساب">
+            <Field label={t("نوع الحساب")}>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 className={`${inputCls} appearance-none cursor-pointer`}
               >
                 {ROLES.map((r) => (
-                  <option key={r.value} value={r.value}>{r.label}</option>
+                  <option key={r.value} value={r.value}>{t(r.label)}</option>
                 ))}
               </select>
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none">
+              <span className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none">
                 <ChevronDown size={15} />
               </span>
             </Field>
@@ -212,9 +196,9 @@ export default function LoginPage() {
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Spinner size="sm" /> جاري التحميل...
+                  <Spinner size="sm" />{' '}{t("جاري التحميل...")}
                 </span>
-              ) : 'تسجيل الدخول'}
+              ) : t("تسجيل الدخول")}
             </button>
 
           </form>
@@ -226,14 +210,14 @@ export default function LoginPage() {
 
 /* ── Tiny local helpers ── */
 const inputCls =
-  'w-full bg-white border border-gray-200 rounded-xl pr-10 px-4 py-3 text-sm text-gray-800 ' +
+  'w-full bg-white border border-gray-200 rounded-xl ps-10 px-4 py-3 text-sm text-gray-800 ' +
   'placeholder-gray-300 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 ' +
   'transition-all shadow-sm';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-[13px] font-medium text-gray-500">{label}</label>
+      <label className="block text-[13px] font-medium text-gray-500">{t(label)}</label>
       <div className="relative">{children}</div>
     </div>
   );
@@ -241,7 +225,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function FieldIcon({ children }: { children: React.ReactNode }) {
   return (
-    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none">
+    <span className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none">
       {children}
     </span>
   );

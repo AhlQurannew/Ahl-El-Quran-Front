@@ -12,6 +12,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
 import guardianAPI, { type GuardianProfilePayload } from '@/app/API/guardian';
 import type { Guardian } from '@/types/guardian';
+import { t, getDir, getLang } from '@/i18n';
+import { useConfirm } from '@/components/ui/ConfirmProvider';
 
 type ToastState = { visible: boolean; type: 'success' | 'error' | 'info'; message: string };
 
@@ -45,6 +47,7 @@ function escapeHtml(value: string): string {
 }
 
 export default function GuardiansPage() {
+  const confirm = useConfirm();
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -68,7 +71,7 @@ export default function GuardiansPage() {
       setGuardians(result);
       setSelectedIds((current) => current.filter((id) => result.some((guardian) => guardian.id === id)));
     } catch (error) {
-      setLoadError(errorMessage(error, 'تعذر تحميل بيانات أولياء الأمور'));
+      setLoadError(errorMessage(error, t("تعذر تحميل بيانات أولياء الأمور")));
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +81,7 @@ export default function GuardiansPage() {
     let active = true;
     guardianAPI.getAllGuardians()
       .then((result) => { if (active) setGuardians(result); })
-      .catch((error: unknown) => { if (active) setLoadError(errorMessage(error, 'تعذر تحميل بيانات أولياء الأمور')); })
+      .catch((error: unknown) => { if (active) setLoadError(errorMessage(error, t("تعذر تحميل بيانات أولياء الأمور"))); })
       .finally(() => { if (active) setIsLoading(false); });
     return () => { active = false; };
   }, []);
@@ -123,6 +126,10 @@ export default function GuardiansPage() {
   };
 
   const handleSubmit = async (data: GuardianFormData) => {
+    const confirmed = await confirm(editingGuardian
+      ? { title: t('تأكيد الحفظ'), message: t('هل أنت متأكد من حفظ تعديلات ولي الأمر {name}؟', { name: `${data.firstName} ${data.lastName}` }), confirmText: t('نعم، احفظ') }
+      : { title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة ولي الأمر {name}؟', { name: `${data.firstName} ${data.lastName}` }), confirmText: t('نعم، أضف') });
+    if (!confirmed) return;
     setIsSubmitting(true);
     try {
       const profilePayload = toProfilePayload(data);
@@ -134,19 +141,19 @@ export default function GuardiansPage() {
             ...(data.password.trim() ? { password: data.password } : {}),
           },
         });
-        showToast('success', `تم تعديل بيانات ولي الأمر ${data.firstName} ${data.lastName}`);
+        showToast('success', t("تم تعديل بيانات ولي الأمر {firstName} {lastName}", { firstName: data.firstName, lastName: data.lastName }));
       } else {
         await guardianAPI.createGuardian({
           ...profilePayload,
           account_info: { username: data.username.trim(), password: data.password },
         });
-        showToast('success', `تمت إضافة ولي الأمر ${data.firstName} ${data.lastName} بنجاح`);
+        showToast('success', t("تمت إضافة ولي الأمر {firstName} {lastName} بنجاح", { firstName: data.firstName, lastName: data.lastName }));
       }
       setIsFormOpen(false);
       setSelectedIds([]);
       await loadGuardians();
     } catch (error) {
-      showToast('error', errorMessage(error, 'تعذر حفظ بيانات ولي الأمر'));
+      showToast('error', errorMessage(error, t("تعذر حفظ بيانات ولي الأمر")));
     } finally {
       setIsSubmitting(false);
     }
@@ -162,10 +169,10 @@ export default function GuardiansPage() {
       setGuardianToDelete([]);
       await loadGuardians();
       showToast(failedCount ? 'error' : 'success', failedCount
-        ? `تم حذف ${deletedCount} وتعذر حذف ${failedCount} من أولياء الأمور`
-        : `تم حذف ${deletedCount} من أولياء الأمور بنجاح`);
+        ? t("تم حذف {deletedCount} وتعذر حذف {failedCount} من أولياء الأمور", { deletedCount, failedCount })
+        : t("تم حذف {deletedCount} من أولياء الأمور بنجاح", { deletedCount }));
     } catch (error) {
-      showToast('error', errorMessage(error, 'تعذر حذف أولياء الأمور'));
+      showToast('error', errorMessage(error, t("تعذر حذف أولياء الأمور")));
     } finally {
       setIsDeleting(false);
     }
@@ -181,7 +188,7 @@ export default function GuardiansPage() {
     </tr>`).join('');
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) return;
-    printWindow.document.write(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>قائمة أولياء الأمور</title><style>body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:10px;border:1px solid #ddd;text-align:right}th{background:#115e59;color:#fff}</style></head><body><h1>قائمة أولياء الأمور</h1><table><thead><tr><th>#</th><th>الاسم</th><th>صلة القرابة</th><th>الهاتف</th><th>الطلاب</th></tr></thead><tbody>${rows}</tbody></table><p>المجموع: ${filtered.length}</p></body></html>`);
+    printWindow.document.write(`<!doctype html><html dir="${getDir()}" lang="${getLang()}"><head><meta charset="UTF-8"><title>${t('قائمة أولياء الأمور')}</title><style>body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:10px;border:1px solid #ddd;text-align:${getDir() === 'rtl' ? 'right' : 'left'}}th{background:#115e59;color:#fff}</style></head><body><h1>${t('قائمة أولياء الأمور')}</h1><table><thead><tr><th>#</th><th>${t('الاسم')}</th><th>${t('صلة القرابة')}</th><th>${t('الهاتف')}</th><th>${t('الطلاب')}</th></tr></thead><tbody>${rows}</tbody></table><p>${t('المجموع: {count}', { count: filtered.length })}</p></body></html>`);
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
@@ -189,27 +196,27 @@ export default function GuardiansPage() {
 
   const handleExportExcel = () => {
     const rows = filtered.map((guardian) => ({
-      'الاسم': `${guardian.firstName} ${guardian.lastName}`,
-      'صلة القرابة': guardian.relationship,
-      'الهاتف': guardian.phoneNumber || '-',
-      'بريد التواصل': guardian.email || '-',
-      'اسم مستخدم الحساب': guardian.username,
-      'الطلاب': guardian.students.map((student) => `${student.firstName} ${student.lastName}`).join('، '),
-      'العنوان': guardian.address || '-',
-      'المهنة': guardian.job || '-',
-      'الحالة': guardian.isActive ? 'نشط' : 'غير نشط',
+      [t("الاسم")]: `${guardian.firstName} ${guardian.lastName}`,
+      [t("صلة القرابة")]: guardian.relationship,
+      [t("الهاتف")]: guardian.phoneNumber || '-',
+      [t("بريد التواصل")]: guardian.email || '-',
+      [t("اسم مستخدم الحساب")]: guardian.username,
+      [t("الطلاب")]: guardian.students.map((student) => `${student.firstName} ${student.lastName}`).join(t("، ")),
+      [t("العنوان")]: guardian.address || '-',
+      [t("المهنة")]: guardian.job || '-',
+      [t("الحالة")]: guardian.isActive ? t("نشط") : t("غير نشط"),
     }));
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'أولياء الأمور');
-    XLSX.writeFile(workbook, 'قائمة_أولياء_الأمور.xlsx');
+    XLSX.utils.book_append_sheet(workbook, worksheet, t("أولياء الأمور"));
+    XLSX.writeFile(workbook, t("قائمة_أولياء_الأمور.xlsx"));
   };
 
   return (
-    <AppLayout title="أولياء الأمور" breadcrumb="الشؤون الإدارية / أولياء الأمور">
+    <AppLayout title={t("أولياء الأمور")} breadcrumb={t("الشؤون الإدارية / أولياء الأمور")}>
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="rounded-xl bg-amber-500/85 px-6 py-3.5 text-sm font-semibold text-white shadow-sm">
-          إدارة أولياء الأمور / الصفحة الرئيسية
+          {t("إدارة أولياء الأمور / الصفحة الرئيسية")}
         </div>
         <GuardianStats guardians={guardians} />
         <GuardianSearch
@@ -227,7 +234,7 @@ export default function GuardiansPage() {
         {loadError && !isLoading && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             <span>{loadError}</span>
-            <button onClick={() => void loadGuardians()} className="mr-3 font-bold underline">إعادة المحاولة</button>
+            <button onClick={() => void loadGuardians()} className="ms-3 font-bold underline">{t("إعادة المحاولة")}</button>
           </div>
         )}
         <GuardianTable
@@ -254,13 +261,13 @@ export default function GuardiansPage() {
         isOpen={guardianToDelete.length > 0}
         onClose={() => setGuardianToDelete([])}
         onConfirm={() => void handleDelete()}
-        title="تأكيد حذف أولياء الأمور"
-        message={`هل أنت متأكد من حذف ${guardianToDelete.length} ولي أمر؟ لا يمكن التراجع عن هذا الإجراء.`}
-        confirmText={isDeleting ? 'جارٍ الحذف...' : 'نعم، احذف'}
-        cancelText="إلغاء"
+        title={t("تأكيد حذف أولياء الأمور")}
+        message={t("هل أنت متأكد من حذف {length} ولي أمر؟ لا يمكن التراجع عن هذا الإجراء.", { length: guardianToDelete.length })}
+        confirmText={isDeleting ? t("جارٍ الحذف...") : t("نعم، احذف")}
+        cancelText={t("إلغاء")}
         variant="danger"
       />
-      <Modal isOpen={Boolean(guardianDetails)} onClose={() => setGuardianDetails(null)} title="تفاصيل ولي الأمر" size="md">
+      <Modal isOpen={Boolean(guardianDetails)} onClose={() => setGuardianDetails(null)} title={t("تفاصيل ولي الأمر")} size="md">
         {guardianDetails && (
           <div className="space-y-4 text-sm">
             <div>
@@ -268,18 +275,18 @@ export default function GuardiansPage() {
               <p className="text-gray-500">{guardianDetails.relationship}</p>
             </div>
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div><dt className="text-gray-500">الهاتف</dt><dd dir="ltr" className="text-right font-medium">{guardianDetails.phoneNumber || '—'}</dd></div>
-              <div><dt className="text-gray-500">بريد التواصل</dt><dd className="font-medium">{guardianDetails.email || '—'}</dd></div>
-              <div><dt className="text-gray-500">اسم مستخدم الحساب</dt><dd className="font-medium">{guardianDetails.username || '—'}</dd></div>
-              <div><dt className="text-gray-500">الحالة</dt><dd className="font-medium">{guardianDetails.isActive ? 'نشط' : 'غير نشط'}</dd></div>
+              <div><dt className="text-gray-500">{t("الهاتف")}</dt><dd dir="ltr" className="text-right font-medium">{guardianDetails.phoneNumber || '—'}</dd></div>
+              <div><dt className="text-gray-500">{t("بريد التواصل")}</dt><dd className="font-medium">{guardianDetails.email || '—'}</dd></div>
+              <div><dt className="text-gray-500">{t("اسم مستخدم الحساب")}</dt><dd className="font-medium">{guardianDetails.username || '—'}</dd></div>
+              <div><dt className="text-gray-500">{t("الحالة")}</dt><dd className="font-medium">{guardianDetails.isActive ? t("نشط") : t("غير نشط")}</dd></div>
             </dl>
             <div>
-              <h4 className="mb-2 font-bold">الطلاب المرتبطون</h4>
+              <h4 className="mb-2 font-bold">{t("الطلاب المرتبطون")}</h4>
               {guardianDetails.students.length ? (
                 <ul className="list-inside list-disc space-y-1 text-gray-700">
                   {guardianDetails.students.map((student) => <li key={student.id}>{student.firstName} {student.lastName}</li>)}
                 </ul>
-              ) : <p className="text-gray-500">لا يوجد طلاب مرتبطون.</p>}
+              ) : <p className="text-gray-500">{t("لا يوجد طلاب مرتبطون.")}</p>}
             </div>
           </div>
         )}

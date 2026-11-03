@@ -1,9 +1,8 @@
-'use client';
-
 import { Cairo } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
-import { AdminViewProvider } from "@/contexts/AdminViewContext";
-import { Suspense } from "react";
+import { Providers } from "./providers";
+import { getDir, LANG_COOKIE, normalizeLang } from "@/i18n";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -11,19 +10,18 @@ const cairo = Cairo({
   variable: "--font-cairo",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read on the server so the first paint already has the right language and direction.
+  const lang = normalizeLang((await cookies()).get(LANG_COOKIE)?.value);
+
   return (
-    <html lang="ar" dir="rtl" className={cairo.variable}>
+    <html lang={lang} dir={getDir(lang)} className={cairo.variable}>
       <body className={cairo.className}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <AdminViewProvider>
-            {children}
-          </AdminViewProvider>
-        </Suspense>
+        <Providers lang={lang}>{children}</Providers>
       </body>
     </html>
   );

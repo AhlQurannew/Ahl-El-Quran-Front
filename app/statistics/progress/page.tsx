@@ -12,16 +12,17 @@ import teacherAPI from '@/app/API/teacher';
 import lecturesAPI from '@/app/API/lectures';
 import reportsAPI from '@/app/API/reports';
 import studentsAPI from '@/app/API/students';
+import { t } from '@/i18n';
 
 export default function ProgressStatsPage() {
   const user = useAuthStore((s) => s.user);
   const isTeacher = user?.role === 'TEACHER';
 
   const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
-    { label: 'اختر الحلقة', value: '' },
+    { label: t("اختر الحلقة"), value: '' },
   ]);
   const [studentList, setStudentList] = useState<{ label: string; value: string }[]>([
-    { label: 'اختر الطالب', value: '' },
+    { label: t("اختر الطالب"), value: '' },
   ]);
 
   const [isShowingStats, setIsShowingStats] = useState(false);
@@ -46,9 +47,9 @@ export default function ProgressStatsPage() {
           lectures = await lecturesAPI.getAllLectures();
         }
         const options = [
-          { label: 'اختر الحلقة', value: '' },
+          { label: t("اختر الحلقة"), value: '' },
           ...lectures.map((l: any) => ({
-            label: l.lecture_name_ar || `حلقة ${l.lecture_id || l.id}`,
+            label: l.lecture_name_ar || t("حلقة {v0}", { v0: l.lecture_id || l.id }),
             value: String(l.lecture_id || l.id),
           })),
         ];
@@ -89,9 +90,9 @@ export default function ProgressStatsPage() {
         }
         
         const options = [
-          { label: 'اختر الطالب', value: '' },
+          { label: t("اختر الطالب"), value: '' },
           ...students.map((s: any) => ({
-            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || `طالب ${s.id}`,
+            label: `${s.personalInfo?.firstNameAr || s.firstname || ''} ${s.personalInfo?.lastNameAr || s.lastname || ''}`.trim() || t("طالب {id}", { id: s.id }),
             value: String(s.id),
           })),
         ];
@@ -110,7 +111,7 @@ export default function ProgressStatsPage() {
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!student) {
-      alert('يرجى اختيار الطالب');
+      alert(t("يرجى اختيار الطالب"));
       return;
     }
     try {
@@ -126,7 +127,7 @@ export default function ProgressStatsPage() {
       setIsShowingStats(true);
     } catch (err) {
       console.error('Error fetching progress stats:', err);
-      alert('حدث خطأ أثناء جلب مسار التطور');
+      alert(t("حدث خطأ أثناء جلب مسار التطور"));
     } finally {
       setLoading(false);
     }
@@ -156,24 +157,24 @@ export default function ProgressStatsPage() {
       .join(' ');
   };
 
-  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || 'الكل';
+  const selectedHalqaLabel = halqaList.find((h) => h.value === halqa)?.label || t("الكل");
   const selectedStudentLabel = studentList.find((s) => s.value === student)?.label || student;
 
   return (
-    <AppLayout title="منحنى تطور الإنجاز" breadcrumb="الشؤون الإدارية / الإحصاءات / منحنى تطور الإنجاز">
+    <AppLayout title={t("منحنى تطور الإنجاز")} breadcrumb={t("الشؤون الإدارية / الإحصاءات / منحنى تطور الإنجاز")}>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Banner Title */}
         <div className="bg-amber-500/85 text-white py-3.5 px-6 rounded-xl shadow-sm font-semibold text-sm flex items-center justify-between">
-          <span>منحنى تطور الإنجاز</span>
+          <span>{t("منحنى تطور الإنجاز")}</span>
           <div className="flex items-center gap-2">
             <Link
               href="/statistics"
-              aria-label="العودة إلى صفحة الإحصاءات"
-              title="العودة إلى الإحصاءات"
+              aria-label={t("العودة إلى صفحة الإحصاءات")}
+              title={t("العودة إلى الإحصاءات")}
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:bg-white/30 hover:text-amber-100"
             >
-              <ArrowRight size={14} aria-hidden="true" />
-              الإحصاءات
+              <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+              {t("الإحصاءات")}
             </Link>
             {isShowingStats && (
               <button
@@ -181,8 +182,8 @@ export default function ProgressStatsPage() {
                 onClick={() => setIsShowingStats(false)}
                 className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs transition-colors hover:text-amber-100"
               >
-                <ArrowRight size={14} aria-hidden="true" />
-                العودة للنموذج
+                <ArrowRight className="ltr:-scale-x-100" size={14} aria-hidden="true" />
+                {t("العودة للنموذج")}
               </button>
             )}
           </div>
@@ -194,14 +195,14 @@ export default function ProgressStatsPage() {
             <form onSubmit={handleShowStats} className="max-w-2xl mx-auto space-y-8">
               <div className="space-y-6">
                 <Select
-                  label="الحلقة (اختياري للفلترة)"
+                  label={t("الحلقة (اختياري للفلترة)")}
                   value={halqa}
                   onChange={(e) => setHalqa(e.target.value)}
                   options={halqaList}
                 />
 
                 <Select
-                  label="الطالب *"
+                  label={t("الطالب *")}
                   value={student}
                   onChange={(e) => setStudent(e.target.value)}
                   options={studentList}
@@ -209,13 +210,13 @@ export default function ProgressStatsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <Input
-                    label="تاريخ البداية *"
+                    label={t("تاريخ البداية *")}
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                   <Input
-                    label="تاريخ النهاية *"
+                    label={t("تاريخ النهاية *")}
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -225,7 +226,7 @@ export default function ProgressStatsPage() {
 
               <div className="pt-4 flex justify-center">
                 <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'عرض الإحصائيات'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("عرض الإحصائيات")}
                 </Button>
               </div>
             </form>
@@ -235,20 +236,20 @@ export default function ProgressStatsPage() {
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-12 space-y-12">
             {/* Header Info */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-700 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <span>الطالب: <span className="text-emerald-600">{selectedStudentLabel}</span></span>
+              <span>{t("الطالب:")}{' '}<span className="text-emerald-600">{selectedStudentLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>الحلقة: <span className="text-emerald-600">{selectedHalqaLabel}</span></span>
+              <span>{t("الحلقة:")}{' '}<span className="text-emerald-600">{selectedHalqaLabel}</span></span>
               <span className="text-gray-300">|</span>
-              <span>من: <span className="text-emerald-600">{startDate}</span></span>
+              <span>{t("من:")}{' '}<span className="text-emerald-600">{startDate}</span></span>
               <span className="text-gray-300">|</span>
-              <span>إلى: <span className="text-emerald-600">{endDate}</span></span>
+              <span>{t("إلى:")}{' '}<span className="text-emerald-600">{endDate}</span></span>
             </div>
 
             {/* Chart Section */}
             <div className="space-y-10">
               <div className="text-center space-y-3">
                 <h2 className="text-xl font-bold text-gray-800">
-                  منحنى تطور الإنجاز
+                  {t("منحنى تطور الإنجاز")}
                 </h2>
 
                 {/* Legend */}
@@ -257,29 +258,29 @@ export default function ProgressStatsPage() {
                     <span className="w-6 h-0.5 bg-emerald-400 relative">
                       <span className="absolute w-2 h-2 rounded-full bg-emerald-400 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></span>
                     </span>
-                    <span className="text-xs font-semibold text-gray-600">حفظ</span>
+                    <span className="text-xs font-semibold text-gray-600">{t("حفظ")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-0.5 bg-amber-400 relative">
                       <span className="absolute w-2 h-2 rounded-full bg-amber-400 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></span>
                     </span>
-                    <span className="text-xs font-semibold text-gray-600">مراجعة صغرى</span>
+                    <span className="text-xs font-semibold text-gray-600">{t("مراجعة صغرى")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-0.5 bg-blue-400 relative">
                       <span className="absolute w-2 h-2 rounded-full bg-blue-400 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></span>
                     </span>
-                    <span className="text-xs font-semibold text-gray-600">مراجعة كبرى</span>
+                    <span className="text-xs font-semibold text-gray-600">{t("مراجعة كبرى")}</span>
                   </div>
                 </div>
               </div>
 
               {chartData.length === 0 ? (
-                <div className="p-8 text-center text-sm text-gray-500">لا توجد إنجازات مسجلة لهذا الطالب خلال الفترة المحددة</div>
+                <div className="p-8 text-center text-sm text-gray-500">{t("لا توجد إنجازات مسجلة لهذا الطالب خلال الفترة المحددة")}</div>
               ) : (
                 <div className="relative w-full overflow-hidden flex pb-6 border-b-2 border-gray-100">
                   {/* Y-axis labels */}
-                  <div className="flex flex-col justify-between text-xs text-gray-400 font-medium pr-4 border-r-2 border-gray-100 min-h-[300px] shrink-0 pb-4">
+                  <div className="flex flex-col justify-between text-xs text-gray-400 font-medium ps-4 border-s-2 border-gray-100 min-h-[300px] shrink-0 pb-4">
                     <span>{maxChartValue}</span>
                     <span>{Math.round(maxChartValue * 0.8)}</span>
                     <span>{Math.round(maxChartValue * 0.6)}</span>
@@ -325,7 +326,7 @@ export default function ProgressStatsPage() {
                     </svg>
 
                     {/* X-axis labels (Dates) */}
-                    <div className="absolute left-0 right-0 -bottom-8 flex justify-between px-[40px]">
+                    <div className="absolute inset-e-0 inset-s-0 -bottom-8 flex justify-between px-[40px]">
                       {chartData.map((d, i) => (
                         <span key={i} className="text-xs font-semibold text-gray-500 absolute -translate-x-1/2" style={{ left: `${(getX(i) / SVG_WIDTH) * 100}%` }}>
                           {d.date}

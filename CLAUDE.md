@@ -59,6 +59,12 @@ utils/                  # Utility functions
 - Feature-specific components go in their feature folder
 - Use TypeScript interfaces for props (not `type` for component props)
 
+### i18n, direction and confirmations
+- Never hardcode UI text: wrap Arabic with `t()` from `@/i18n` and add en/fr values in `i18n/locales/` (see README "Languages")
+- No `t()` at module scope; translate constants where they render (`t(item.label)`)
+- Use logical Tailwind classes (`ms-`/`me-`/`ps-`/`pe-`/`inset-s-`/`inset-e-`/`text-start`) — the UI is RTL in Arabic and LTR in en/fr
+- Every create/update/delete must ask first via `useConfirm()` from `@/components/ui/ConfirmProvider`
+
 ### File Naming
 - Components: PascalCase (e.g., `StudentForm.tsx`)
 - Utils/hooks: camelCase (e.g., `useStudentData.ts`)

@@ -3,6 +3,7 @@
 import { Mail, School, CheckCircle, Info, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { t } from '@/i18n';
 
 interface President {
   id: number;
@@ -38,7 +39,7 @@ export default function PresidentCard({
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-bold text-gray-800 truncate">{president.name}</h2>
-          <Badge variant="warning">رئيس</Badge>
+          <Badge variant="warning">{t("رئيس")}</Badge>
         </div>
       </div>
 
@@ -61,7 +62,7 @@ export default function PresidentCard({
           className="!border-[#C8963E] !text-[#C8963E] hover:!bg-[#C8963E]/10 flex items-center justify-center gap-1 cursor-pointer"
         >
           <Info size={14} />
-          تفاصيل
+          {t("تفاصيل")}
         </Button>
 
         {onReject ? (
@@ -72,7 +73,7 @@ export default function PresidentCard({
             className="!border-red-500 !text-red-500 hover:!bg-red-50 flex items-center justify-center gap-1 cursor-pointer"
           >
             <XCircle size={14} />
-            رفض
+            {t("رفض")}
           </Button>
         ) : null}
 
@@ -83,7 +84,7 @@ export default function PresidentCard({
           className={`${onReject ? "" : "col-span-2"} !bg-[#C8963E] hover:!bg-[#b98e3a] text-white flex items-center justify-center gap-1 cursor-pointer`}
         >
           <CheckCircle size={14} />
-          قبول
+          {t("قبول")}
         </Button>
       </div>
     </div>

@@ -2,11 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Download, FileText, LoaderCircle, Trash2, User } from 'lucide-react';
+import { Download, FileText, LoaderCircle, Trash2 } from 'lucide-react';
+import { AccountAvatar } from '@/components/ui/AccountAvatar';
+import { SenderAvatar } from './SenderAvatar';
 import { cn } from '@/utils/cn';
 import type { Message, MessageAttachment } from '@/types/message';
 import { getSenderRoleColor, getSenderRoleLabel, formatMessageTime } from '@/types/message';
 import messagesAPI from '@/app/API/messages';
+import { t } from '@/i18n';
 
 interface MessageBubbleProps {
   message: Message;
@@ -17,8 +20,8 @@ interface MessageBubbleProps {
 const RASTER_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 const formatFileSize = (size: number) => {
-  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} ك.ب`;
-  return `${(size / (1024 * 1024)).toFixed(1)} م.ب`;
+  if (size < 1024 * 1024) return t("{v0} ك.ب", { v0: Math.max(1, Math.round(size / 1024)) });
+  return t("{v0} م.ب", { v0: (size / (1024 * 1024)).toFixed(1) });
 };
 
 const AuthenticatedImage: React.FC<{ attachment: MessageAttachment }> = ({ attachment }) => {
@@ -45,10 +48,10 @@ const AuthenticatedImage: React.FC<{ attachment: MessageAttachment }> = ({ attac
     };
   }, [attachment.id]);
 
-  if (hasError) return <p className="text-xs text-red-100">تعذر تحميل معاينة الصورة</p>;
+  if (hasError) return <p className="text-xs text-red-100">{t("تعذر تحميل معاينة الصورة")}</p>;
   if (!src) {
     return (
-      <div className="flex h-40 w-56 max-w-full items-center justify-center rounded-lg bg-black/10" aria-label="جارٍ تحميل الصورة">
+      <div className="flex h-40 w-56 max-w-full items-center justify-center rounded-lg bg-black/10" aria-label={t("جارٍ تحميل الصورة")}>
         <LoaderCircle size={22} className="animate-spin" aria-hidden="true" />
       </div>
     );
@@ -84,7 +87,7 @@ const AttachmentCard: React.FC<{ attachment: MessageAttachment }> = ({ attachmen
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch {
-      setError('تعذر تنزيل الملف. حاول مرة أخرى.');
+      setError(t("تعذر تنزيل الملف. حاول مرة أخرى."));
     } finally {
       setIsDownloading(false);
     }
@@ -103,7 +106,7 @@ const AttachmentCard: React.FC<{ attachment: MessageAttachment }> = ({ attachmen
         type="button"
         onClick={() => void download()}
         disabled={isDownloading}
-        aria-label={`تنزيل ${attachment.filename}`}
+        aria-label={t("تنزيل {filename}", { filename: attachment.filename })}
         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-60"
       >
         {isDownloading ? <LoaderCircle size={18} className="animate-spin" /> : <Download size={18} />}
@@ -136,26 +139,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, on
           : getSenderRoleColor(message.sender_role);
 
   const roleLabel = (message.sender_role as string) === 'admin'
-    ? 'مدير النظام'
+    ? t("مدير النظام")
     : isSenderAdmin
-      ? 'الرئيس'
+      ? t("الرئيس")
     : isSenderChiefSupervisor
-      ? 'مشرف عام'
+      ? t("مشرف عام")
       : isSenderSupervisor
-        ? 'مشرف'
+        ? t("مشرف")
         : getSenderRoleLabel(message.sender_role);
   const timeLabel = formatMessageTime(message.created_at);
   const attachments = message.attachments ?? [];
 
   return (
     <div className={cn('mb-4 flex animate-in slide-in-from-bottom-2 gap-3 fade-in duration-300', isOwn ? 'flex-row-reverse' : 'flex-row')}>
-      <div
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
-        style={{ backgroundColor: roleColor }}
-        aria-hidden="true"
-      >
-        <User size={18} />
-      </div>
+      {isOwn ? (
+        // Own messages follow the live account photo (updates right after a change in Profile).
+        <AccountAvatar name={message.sender_name} className="h-10 w-10 text-sm shadow-md" />
+      ) : (
+        <SenderAvatar senderId={message.sender_id} adminSenderId={message.admin_sender_id} name={message.sender_name} color={roleColor} />
+      )}
 
       <div className={cn('relative flex max-w-[85%] flex-col gap-2 sm:max-w-[70%]', isOwn ? 'items-end' : 'items-start')}>
         <div className={cn('mb-1 flex items-center gap-2', isOwn ? 'flex-row-reverse' : 'flex-row')}>
@@ -170,8 +172,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, on
             className={cn(
               'rounded-2xl px-4 py-3 shadow-sm',
               isOwn
-                ? 'rounded-br-md bg-gradient-to-br from-emerald-500 to-emerald-600 text-white'
-                : 'rounded-bl-md border border-gray-200 bg-white text-gray-800',
+                ? 'rounded-es-md bg-gradient-to-br from-emerald-500 to-emerald-600 text-white'
+                : 'rounded-ee-md border border-gray-200 bg-white text-gray-800',
             )}
           >
             <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.message}</p>
@@ -192,9 +194,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, on
           <button
             type="button"
             onClick={() => onDelete(message.id)}
-            aria-label="حذف الرسالة"
-            title="حذف الرسالة"
-            className="absolute -left-2 -top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-all duration-200 hover:scale-110 hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+            aria-label={t("حذف الرسالة")}
+            title={t("حذف الرسالة")}
+            className="absolute -inset-e-2 -top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-all duration-200 hover:scale-110 hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
           >
             <Trash2 size={12} />
           </button>
