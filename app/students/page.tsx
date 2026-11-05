@@ -210,6 +210,9 @@ export default function StudentsPage() {
     try {
       const payload = studentToFullPayload(data);
       if (editingStudent) {
+        // An empty passcode tells the backend to keep the current password; the default
+        // below is only for new accounts, otherwise every edit would reset it to 123456.
+        payload.accountInfo.passcode = '';
         await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
         studentSaved = true;
         if (data.photoFile) {

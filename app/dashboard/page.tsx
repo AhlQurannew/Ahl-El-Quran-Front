@@ -88,15 +88,7 @@ export default function AdminDashboard() {
       .finally(() => setIsLoadingPlatform(false));
   }, []);
 
-  const pending = stats?.pending_requests ?? 0;
-  const quickLinks: { href: string; label: string; hint: string; icon: React.ReactNode; badge?: number }[] = [
-    {
-      href: "/dashboard/approvals",
-      label: t("قبول الرؤساء"),
-      hint: pending > 0 ? t("{count} طلب بانتظار المراجعة", { count: pending }) : t("لا توجد طلبات معلقة"),
-      icon: <CheckCircle size={18} />,
-      badge: pending > 0 ? pending : undefined,
-    },
+  const quickLinks: { href: string; label: string; hint: string; icon: React.ReactNode }[] = [
     {
       href: "/dashboard/schools?new=1",
       label: t("إضافة مدرسة جديدة"),
@@ -285,13 +277,7 @@ export default function AdminDashboard() {
                   <span className="block text-sm font-semibold text-gray-800">{link.label}</span>
                   <span className="block truncate text-xs text-gray-500">{link.hint}</span>
                 </span>
-                {link.badge ? (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ backgroundColor: '#C8963E' }}>
-                    {link.badge}
-                  </span>
-                ) : (
-                  <ChevronLeft size={16} className="ltr:-scale-x-100 text-gray-300 transition-colors group-hover:text-amber-600" />
-                )}
+                <ChevronLeft size={16} className="ltr:-scale-x-100 text-gray-300 transition-colors group-hover:text-amber-600" />
               </Link>
             ))}
           </div>

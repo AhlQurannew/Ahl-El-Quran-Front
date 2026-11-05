@@ -207,8 +207,8 @@ export function BulkAttendanceDialog({
         </div>
 
         {/* Table Container */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden max-h-[500px] overflow-y-auto">
-          <table className="w-full">
+        <div className="border border-gray-200 rounded-lg max-h-[60dvh] overflow-auto">
+          <table className="w-full min-w-[26rem]">
             {/* Table Header */}
             <thead className="bg-teal-600 text-white sticky top-0 z-10">
               <tr>

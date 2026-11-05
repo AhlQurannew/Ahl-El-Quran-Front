@@ -46,12 +46,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
   }, [adminOutsideSchool, router]);
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-dvh bg-gray-50 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Admin Viewing Banner */}
         {isAdminViewing && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 flex items-center justify-between shadow-md z-10">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-2 shadow-md z-10">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                 <Eye size={18} />
@@ -72,7 +72,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
         )}
         
         <Topbar title={title} breadcrumb={breadcrumb} />
-        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-6">
+        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-6">
           {isResolved && !adminOutsideSchool ? children : null}
         </main>
       </div>

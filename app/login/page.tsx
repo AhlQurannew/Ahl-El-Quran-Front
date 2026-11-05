@@ -92,7 +92,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-row-reverse">
+    <div className="min-h-dvh flex flex-row-reverse">
       <LanguageSwitcher className="fixed top-4 inset-e-4 z-40 shadow-sm" />
       <Toast
         type={toast.type} message={toast.message} isVisible={toast.visible}

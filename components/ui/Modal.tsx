@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { t } from '@/i18n';
 
 let openModalCount = 0;
 let bodyOverflowBeforeModal = '';
@@ -55,7 +56,7 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Glassmorphic backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -67,7 +68,9 @@ export const Modal: React.FC<ModalProps> = ({
         ref={panelRef}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          'relative w-full rounded-2xl overflow-hidden',
+          // Flex column capped to the viewport: header/footer stay put and only the body scrolls,
+          // so the action buttons of long forms stay reachable on small screens (dvh = real mobile height).
+          'relative flex w-full max-h-[calc(100dvh-1.5rem)] flex-col rounded-2xl overflow-hidden sm:max-h-[calc(100dvh-2rem)]',
           'bg-white/95 backdrop-blur-xl',
           'shadow-2xl shadow-black/20',
           'border border-white/60',
@@ -77,11 +80,12 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+          <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 sm:px-6 sm:py-4">
+            <h2 className="min-w-0 break-words text-base font-bold text-gray-900 sm:text-lg">{title}</h2>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-150 cursor-pointer"
+              aria-label={t('إغلاق')}
+              className="shrink-0 rounded-lg p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-150 cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -89,11 +93,11 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Body */}
-        <div className="px-6 py-5">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">{children}</div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/80 border-t border-gray-100">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 px-4 py-3 bg-gray-50/80 border-t border-gray-100 sm:gap-3 sm:px-6 sm:py-4">
             {footer}
           </div>
         )}

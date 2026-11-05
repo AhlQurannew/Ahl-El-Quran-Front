@@ -234,7 +234,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* First & Last name */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             label={t("الاسم *")}
             placeholder={t("مثال: أحمد")}
@@ -252,7 +252,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         </div>
 
         {/* Username/Email & Gender */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             label={t("اسم المستخدم (البريد) *")}
             placeholder="yakoube@gmail.com"
@@ -273,7 +273,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         </div>
 
         {/* Halqa & DOB */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Select
             label={t("الحلقة")}
             placeholder={loadingLectures ? t("جاري التحميل...") : t("اختر الحلقة...")}
@@ -330,7 +330,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         </p>
 
         {/* POB & Nationality */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             label={t("مكان الميلاد")}
             placeholder="bourouba"

@@ -231,7 +231,7 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
         />
 
         {/* Surah range */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Select
             label={t("من سورة *")}
             value={form.fromSurah}
@@ -297,7 +297,7 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
         </div>
 
         {/* Type + Date */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Select
             label={t("نوع الإنجاز")}
             value={form.achievementType}

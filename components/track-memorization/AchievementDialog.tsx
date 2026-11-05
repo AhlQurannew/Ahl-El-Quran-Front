@@ -228,7 +228,7 @@ export function AchievementDialog({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* From Section */}
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold text-gray-800 text-center">{t("من")}</h3>
