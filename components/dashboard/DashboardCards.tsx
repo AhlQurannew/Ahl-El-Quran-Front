@@ -16,7 +16,6 @@ import {
   FileCheck2,
   Layers
 } from 'lucide-react';
-import { ExamsPanel } from '@/components/dashboard/ExamsPanel';
 import Link from 'next/link';
 import type { AxiosError } from 'axios';
 import presidentAPI from '@/app/API/president';
@@ -225,9 +224,6 @@ export function DashboardCards() {
           ))}
         </div>
       </div>
-
-      {/* Exams & specialities */}
-      {!invalidSchoolContext && <ExamsPanel />}
 
       {/* Report Cards */}
       <div>
