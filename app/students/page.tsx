@@ -62,6 +62,13 @@ function apiStudentToStudent(api: any): Student {
   };
 }
 
+/** 24 random characters from the browser's CSPRNG. */
+function randomPasscode(): string {
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes)).replace(/[+/=]/g, 'x');
+}
+
 function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
   // With a speciality the server enrolls the student in all of its circles.
   const lectures = !data.specialityId && data.halqaId ? [{
@@ -86,7 +93,8 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
     },
     accountInfo: {
       username: data.username,
-      passcode: '123456',
+      // Students do not sign in to the app: their account gets a strong random password, never a guessable default.
+      passcode: randomPasscode(),
       accountType: 'Student',
     },
     contactInfo: {
@@ -180,8 +188,10 @@ export default function StudentsPage() {
   };
 
   useEffect(() => {
+    // Wait for the account, otherwise a teacher first calls the managers' endpoint (403).
+    if (!user?.role) return;
     loadStudents();
-  }, [isTeacher]);
+  }, [isTeacher, user?.role]);
 
   // Update selected student details when students data changes
   useEffect(() => {
@@ -239,7 +249,7 @@ export default function StudentsPage() {
       const payload = studentToFullPayload(data);
       if (editingStudent) {
         // An empty passcode tells the backend to keep the current password; the default
-        // below is only for new accounts, otherwise every edit would reset it to 123456.
+        // above is only for new accounts, otherwise every edit would reset it.
         payload.accountInfo.passcode = '';
         await studentsAPI.updateStudentFull(Number(editingStudent.id), payload);
         studentSaved = true;

@@ -21,6 +21,8 @@ type ToastState = {
 };
 
 type StudentData = {
+  /** One row per student and circle: a student of a speciality attends several circles. */
+  key: string;
   id: number;
   firstName: string;
   lastName: string;
@@ -29,13 +31,14 @@ type StudentData = {
 };
 
 type AttendanceRecord = {
-  studentId: number;
+  key: string;
   attendance: Attendance | null;
 };
 
 export default function AttendancePage() {
   const user = useAuthStore((state) => state.user);
-  const isTeacher = user?.role === 'TEACHER';
+  const role = user?.role;
+  const isTeacher = role === 'TEACHER';
   const today = new Date().toISOString().split('T')[0];
   
   const [selectedDate, setSelectedDate] = useState(today);
@@ -58,8 +61,10 @@ export default function AttendancePage() {
   };
 
   useEffect(() => {
+    // Wait for the account: before it loads, a teacher would be treated as a manager (403 on /students/).
+    if (!role) return;
     loadStudents();
-  }, [isTeacher]);
+  }, [role]);
 
   useEffect(() => {
     if (students.length > 0) {
@@ -70,21 +75,35 @@ export default function AttendancePage() {
   const loadStudents = async () => {
     setIsLoading(true);
     try {
-      const res = isTeacher ? await teacherAPI.getMyStudents() : await studentsAPI.getStudents();
+      const [res, myLectures] = await Promise.all([
+        isTeacher ? teacherAPI.getMyStudents() : studentsAPI.getStudents(),
+        isTeacher ? teacherAPI.getMyLectures() : Promise.resolve(null),
+      ]);
       const list = Array.isArray(res) ? res : res.students ?? [];
-      
-      console.log('📊 Raw student data sample:', list.slice(0, 2));
-      
-      const studentsData: StudentData[] = list.map((api: any) => ({
-        id: api.id ?? api.user_id,
-        firstName: (api.personalInfo?.firstNameAr || api.firstname || '').trim(),
-        lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
-        halqa: api.lectures?.[0]?.lectureNameAr || '',
-        lectureId: Number(api.lectures?.[0]?.lectureId) || undefined,
-      }));
-      
-      console.log('📊 Mapped student data sample:', studentsData.slice(0, 2));
-      
+      // A teacher only records attendance in the circles they teach.
+      const taught: Set<number> | null = Array.isArray(myLectures)
+        ? new Set(myLectures.map((l: { lecture_id: number }) => Number(l.lecture_id)))
+        : null;
+
+      const studentsData: StudentData[] = list.flatMap((api: any) => {
+        const base = {
+          id: api.id ?? api.user_id,
+          firstName: (api.personalInfo?.firstNameAr || api.firstname || '').trim(),
+          lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
+        };
+        const lectures = ((api.lectures ?? []) as { lectureId: number | string; lectureNameAr?: string }[])
+          .filter((l) => !taught || taught.has(Number(l.lectureId)));
+        if (lectures.length === 0) {
+          return taught ? [] : [{ ...base, key: `${base.id}-none`, halqa: '', lectureId: undefined }];
+        }
+        return lectures.map((l) => ({
+          ...base,
+          key: `${base.id}-${l.lectureId}`,
+          halqa: l.lectureNameAr || '',
+          lectureId: Number(l.lectureId) || undefined,
+        }));
+      });
+
       setStudents(studentsData);
     } catch (err) {
       console.error('Error loading students:', err);
@@ -104,7 +123,7 @@ export default function AttendancePage() {
       const records = await Promise.all(
         students.map(async (student) => {
           if (!student.lectureId) {
-            return { studentId: student.id, attendance: null };
+            return { key: student.key, attendance: null };
           }
 
           try {
@@ -126,7 +145,7 @@ export default function AttendancePage() {
             if (attendanceArray.length > 0) {
               console.log(`✅ Found attendance for student ${student.id}:`, attendanceArray[0]);
               return {
-                studentId: student.id,
+                key: student.key,
                 attendance: AttendanceMapper.fromJson(attendanceArray[0]),
               };
             } else {
@@ -142,7 +161,7 @@ export default function AttendancePage() {
           }
           
           return {
-            studentId: student.id,
+            key: student.key,
             attendance: null,
           };
         })
@@ -178,10 +197,11 @@ export default function AttendancePage() {
   };
 
   const handleAttendanceSaved = (attendance: Attendance) => {
-    // Update the local state immediately for instant UI feedback
+    // Update the local state immediately for instant UI feedback (only the circle that was edited)
+    const key = selectedStudent?.key;
     setAttendanceRecords((prev) =>
       prev.map((record) =>
-        record.studentId === attendance.studentId
+        record.key === key
           ? { ...record, attendance }
           : record
       )
@@ -192,8 +212,8 @@ export default function AttendancePage() {
     // If you need to verify, reload only the specific student's record
   };
 
-  const getAttendanceStatus = (studentId: number) => {
-    const record = attendanceRecords.find((r) => r.studentId === studentId);
+  const getAttendanceStatus = (key: string) => {
+    const record = attendanceRecords.find((r) => r.key === key);
     return record?.attendance?.status || null;
   };
 
@@ -247,7 +267,7 @@ export default function AttendancePage() {
       const XLSX = await import('xlsx');
 
       const excelData = filteredStudents.map((student) => {
-        const status = getAttendanceStatus(student.id);
+        const status = getAttendanceStatus(student.key);
         return {
           [tr("الاسم الأول")]: student.firstName,
           [tr("اسم العائلة")]: student.lastName,
@@ -279,11 +299,14 @@ export default function AttendancePage() {
   };
 
   const stats = useMemo(() => {
+    // Counted on the visible rows so the cards match the filtered table.
+    const visible = new Set(filteredStudents.map((s) => s.key));
+    const shown = attendanceRecords.filter((r) => visible.has(r.key));
     const total = filteredStudents.length;
-    const present = attendanceRecords.filter((r) => r.attendance?.status === 'present').length;
-    const late = attendanceRecords.filter((r) => r.attendance?.status === 'late').length;
-    const absent = attendanceRecords.filter((r) => r.attendance?.status === 'absent').length;
-    const excused = attendanceRecords.filter((r) => r.attendance?.status === 'excused').length;
+    const present = shown.filter((r) => r.attendance?.status === 'present').length;
+    const late = shown.filter((r) => r.attendance?.status === 'late').length;
+    const absent = shown.filter((r) => r.attendance?.status === 'absent').length;
+    const excused = shown.filter((r) => r.attendance?.status === 'excused').length;
     const unmarked = total - (present + late + absent + excused);
 
     return { total, present, late, absent, excused, unmarked };
@@ -423,10 +446,10 @@ export default function AttendancePage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredStudents.map((student, index) => {
-                    const status = getAttendanceStatus(student.id);
+                    const status = getAttendanceStatus(student.key);
                     return (
                       <tr
-                        key={student.id}
+                        key={student.key}
                         className="hover:bg-gray-50 transition-colors duration-150"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-start">

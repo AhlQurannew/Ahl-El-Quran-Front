@@ -1290,6 +1290,10 @@ const en: Record<string, string> = {
   "يمكنك إدارة امتحانات حلقاتك فقط": "You can only manage exams of your own circles",
   "يمكنك إضافة طلاب حلقاتك فقط": "You can only add students of your own circles",
   "عرض التخصصات": "View specialities",
+  "اسم المستخدم أو كلمة المرور غير صحيحة": "Incorrect username or password",
+  "محاولات دخول فاشلة كثيرة. يرجى المحاولة لاحقاً.": "Too many failed login attempts. Please try again later.",
+  "هذا الإجراء مخصص لإدارة المدرسة": "This action is reserved for the school management",
+  "هذا الإجراء مخصص للمعلمين وإدارة المدرسة": "This action is reserved for teachers and the school management",
 };
 
 export default en;

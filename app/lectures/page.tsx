@@ -78,8 +78,10 @@ export default function LecturesPage() {
   };
 
   useEffect(() => {
+    // Wait for the account, otherwise a teacher first calls the managers' endpoint (403).
+    if (!user?.role) return;
     fetchLectures();
-  }, [isTeacher]);
+  }, [isTeacher, user?.role]);
 
   const filteredLectures = lectures.filter((lecture) =>
     lecture.lecture_name_ar?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -272,7 +274,7 @@ export default function LecturesPage() {
 
         
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {!isTeacher && (
               <>
                 <button

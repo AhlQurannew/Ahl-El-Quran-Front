@@ -7,9 +7,7 @@ import { useAdminView } from "@/contexts/AdminViewContext";
 import { 
   Users, 
   Shield,
-  TrendingUp,
   School,
-  CheckCircle,
   Loader2,
   ChevronLeft,
   PlusCircle,
@@ -28,8 +26,6 @@ import { t } from '@/i18n';
 interface Statistics {
   total_schools: number;
   total_presidents: number;
-  pending_requests: number;
-  performance: number | null;
 }
 
 interface SchoolData {
@@ -156,7 +152,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Total Schools */}
           <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
@@ -189,35 +185,6 @@ export default function AdminDashboard() {
             <p className="text-xs text-gray-400">{t("الرؤساء المعتمدين")}</p>
           </div>
 
-          {/* Pending Approvals */}
-          <Link href="/dashboard/approvals">
-            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(200, 150, 62, 0.1)' }}>
-                  <CheckCircle size={24} style={{ color: '#C8963E' }} />
-                </div>
-                {isLoading ? (
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                ) : (
-                  <span className="text-2xl font-bold text-gray-900">{stats?.pending_requests || 0}</span>
-                )}
-              </div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">{t("طلبات معلقة")}</h3>
-              <p className="text-xs" style={{ color: '#C8963E' }}>{t("انقر للمراجعة")}</p>
-            </div>
-          </Link>
-
-          {/* Performance */}
-          <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                <TrendingUp size={24} className="text-green-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-900">--</span>
-            </div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">{t("معدل الأداء")}</h3>
-            <p className="text-xs text-gray-400">{t("قريباً")}</p>
-          </div>
         </div>
 
         {/* Schools Distribution Section */}

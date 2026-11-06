@@ -173,6 +173,8 @@ export default function MemorizationPage() {
 
   // Load lectures
   useEffect(() => {
+    // Wait for the account, otherwise a teacher first calls the managers' endpoint (403 + error toast).
+    if (!user?.role) return;
     (async () => {
       setIsLoadingLectures(true);
       try {
@@ -189,7 +191,7 @@ export default function MemorizationPage() {
         setIsLoadingLectures(false);
       }
     })();
-  }, [isTeacher]);
+  }, [isTeacher, user?.role]);
 
   // Load teachers for supervisors
   useEffect(() => {

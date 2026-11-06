@@ -1290,6 +1290,10 @@ const fr: Record<string, string> = {
   "يمكنك إدارة امتحانات حلقاتك فقط": "Vous ne pouvez gérer que les examens de vos propres halaqas",
   "يمكنك إضافة طلاب حلقاتك فقط": "Vous ne pouvez ajouter que des élèves de vos propres halaqas",
   "عرض التخصصات": "Voir les spécialités",
+  "اسم المستخدم أو كلمة المرور غير صحيحة": "Nom d'utilisateur ou mot de passe incorrect",
+  "محاولات دخول فاشلة كثيرة. يرجى المحاولة لاحقاً.": "Trop de tentatives de connexion échouées. Veuillez réessayer plus tard.",
+  "هذا الإجراء مخصص لإدارة المدرسة": "Cette action est réservée à la direction de l'école",
+  "هذا الإجراء مخصص للمعلمين وإدارة المدرسة": "Cette action est réservée aux enseignants et à la direction de l'école",
 };
 
 export default fr;

@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { describeError } from '@/utils/errorMessages';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, ChevronDown } from 'lucide-react';
@@ -19,6 +20,7 @@ const ROLES = [
   { value: 'CHIEF_SUPERVISOR', label: 'المشرف العام' },
   { value: 'SUPERVISOR', label: 'المشرف' },
   { value: 'TEACHER', label: 'المعلم' },
+  // Guardians: their accounts exist but there is no parent portal yet, so the option stays hidden.
 ];
 
 export default function LoginPage() {
@@ -79,13 +81,13 @@ export default function LoginPage() {
         setUser(loggedUser);
         setAuthCookies(res.access_token, role);
         showToast(t("تم تسجيل الدخول بنجاح"), 'success');
-        setTimeout(() => router.push(role === 'ADMIN' || role === 'PRESIDENT' ? '/dashboard' : '/students'), 500);
+        setTimeout(() => router.push(role === 'ADMIN' || role === 'PRESIDENT' ? '/dashboard' : role === 'GUARDIAN' ? '/guardians' : '/students'), 500);
       } else {
         showToast(res?.message || t("فشل تسجيل الدخول"), 'error');
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.detail || err?.message || t("حدث خطأ في الاتصال بالخادم");
-      showToast(typeof msg === 'string' ? msg : JSON.stringify(msg), 'error');
+      // Translate known API errors (wrong credentials, too many attempts...) instead of showing raw English.
+      showToast(describeError(err, err?.response ? t("فشل تسجيل الدخول") : t("حدث خطأ في الاتصال بالخادم")), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -128,9 +130,10 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Email / Username */}
-            <Field label={(role === 'ADMIN' || role === 'PRESIDENT') ? t("اسم المستخدم / البريد الإلكتروني") : t("البريد الإلكتروني")}>
+            <Field label={(role === 'ADMIN' || role === 'PRESIDENT') ? t("اسم المستخدم / البريد الإلكتروني") : role === 'GUARDIAN' ? t("اسم المستخدم") : t("البريد الإلكتروني")}>
               <FieldIcon><Mail size={15} /></FieldIcon>
-              {(role === 'ADMIN' || role === 'PRESIDENT') ? (
+              {/* Guardians sign in with their Firstname_Lastname username, not an e-mail */}
+              {(role === 'ADMIN' || role === 'PRESIDENT' || role === 'GUARDIAN') ? (
                 <input
                   type="text"
                   placeholder={t("أدخل اسم المستخدم أو البريد")}

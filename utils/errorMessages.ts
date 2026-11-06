@@ -6,6 +6,8 @@ import { t } from '@/i18n';
 export const errorMessages: Record<string, string> = {
   // Auth errors
   'Invalid email or password': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+  'Invalid username or password': 'اسم المستخدم أو كلمة المرور غير صحيحة',
+  'Too many failed login attempts': 'محاولات دخول فاشلة كثيرة. يرجى المحاولة لاحقاً.',
   'Email already registered': 'البريد الإلكتروني مسجل بالفعل',
   'Account is inactive': 'الحساب غير نشط',
   'Account is pending admin approval': 'الحساب بانتظار موافقة المسؤول',
@@ -16,6 +18,8 @@ export const errorMessages: Record<string, string> = {
   'Not authorized': 'غير مصرح',
   'Access denied': 'تم رفض الوصول',
   'You do not have permission': 'ليس لديك إذن للوصول',
+  'This action requires school management privileges': 'هذا الإجراء مخصص لإدارة المدرسة',
+  'This action requires teacher or school management privileges': 'هذا الإجراء مخصص للمعلمين وإدارة المدرسة',
 
   // Validation errors
   'Email is required': 'البريد الإلكتروني مطلوب',
@@ -77,17 +81,11 @@ export const getErrorMessage = (error: string): string => {
 /**
  * Extract error message from axios error response
  */
-export const extractErrorMessage = (error: any): string => {
-  if (error.response?.data?.detail) {
-    return getErrorMessage(error.response.data.detail);
-  }
-
-  if (error.response?.data?.message) {
-    return getErrorMessage(error.response.data.message);
-  }
-
-  if (error.message) {
-    return getErrorMessage(error.message);
+export const extractErrorMessage = (error: unknown): string => {
+  const err = error as { message?: unknown; response?: { data?: { detail?: unknown; message?: unknown } } } | null;
+  const detail = err?.response?.data?.detail ?? err?.response?.data?.message ?? err?.message;
+  if (typeof detail === 'string' && detail) {
+    return getErrorMessage(detail);
   }
 
   return t(errorMessages['Something went wrong']);

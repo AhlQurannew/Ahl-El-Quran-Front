@@ -33,7 +33,7 @@ export default function SpecialitiesPage() {
   const confirm = useConfirm();
   const { lang } = useLang();
   const role = useAuthStore((s) => s.user?.role);
-  const canManage = !role || MANAGER_ROLES.includes(role);
+  const canManage = !!role && MANAGER_ROLES.includes(role);
 
   const [specialities, setSpecialities] = useState<Speciality[]>([]);
   const [lectures, setLectures] = useState<Lecture[]>([]);
@@ -53,8 +53,10 @@ export default function SpecialitiesPage() {
   const load = useCallback(() => setReloadToken((n) => n + 1), []);
 
   useEffect(() => {
+    // Wait for the account; only managers need the circles (for the form), teachers just read.
+    if (!role) return;
     let active = true;
-    Promise.all([specialitiesAPI.listSpecialities(), lecturesAPI.getAllLectures()])
+    Promise.all([specialitiesAPI.listSpecialities(), canManage ? lecturesAPI.getAllLectures() : Promise.resolve([])])
       .then(([specs, circles]) => {
         if (!active) return;
         setSpecialities(specs);
@@ -64,7 +66,7 @@ export default function SpecialitiesPage() {
       .catch((error) => { if (active) setLoadError(describeError(error, t('تعذر تحميل التخصصات'))); })
       .finally(() => { if (active) setLoadedToken(reloadToken); });
     return () => { active = false; };
-  }, [reloadToken]);
+  }, [reloadToken, role, canManage]);
 
   const lectureName = (lecture: { lecture_name_ar: string; lecture_name_en?: string | null }) =>
     lang !== 'ar' && lecture.lecture_name_en ? lecture.lecture_name_en : lecture.lecture_name_ar;
