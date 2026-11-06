@@ -20,4 +20,10 @@ export interface Student {
   enrollmentType?: 'internal' | 'external' | '';
   startYear?: number | '';
   medicalCondition?: string;
+  /** Speciality (تخصص): the student is enrolled in all of its circles. */
+  specialityId?: number;
+  /** Display name of the speciality (filled by the students page). */
+  specialityName?: string;
+  /** Names of every circle the student is enrolled in. */
+  lectureNames?: string[];
 }

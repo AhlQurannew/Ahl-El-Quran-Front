@@ -11,6 +11,7 @@ import { GuardianForm, type GuardianFormData } from '@/components/guardians/Guar
 import type { Student } from '@/types/student';
 import lecturesAPI, { type Lecture } from '@/api/lectures';
 import studentsAPI from '@/app/API/students';
+import specialitiesAPI, { type Speciality } from '@/app/API/specialities';
 import guardianAPI, { type GuardianCreatePayload } from '@/app/API/guardian';
 import { mapGuardianResponse, type Guardian } from '@/types/guardian';
 import { t } from '@/i18n';
@@ -75,6 +76,20 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   const [guardianCreateError, setGuardianCreateError] = React.useState('');
 
   const isEditing = !!editingStudent;
+  const [specialities, setSpecialities] = React.useState<Speciality[]>([]);
+  // Only specialities with circles can receive students.
+  const usableSpecialities = specialities.filter((s) => s.lectures.length > 0);
+  const usesSpecialities = usableSpecialities.length > 0;
+  const selectedSpeciality = specialities.find((s) => s.id === form.specialityId);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    specialitiesAPI.listSpecialities()
+      .then((data) => { if (active) setSpecialities(data); })
+      .catch((error) => console.error('Error fetching specialities:', error));
+    return () => { active = false; };
+  }, [isOpen]);
   const [loadingNumber, setLoadingNumber] = React.useState(false);
 
   const suggestRegistrationNumber = React.useCallback(async () => {
@@ -194,6 +209,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     if (!form.username.trim() || !form.username.includes('@')) {
       newErrors.username = t("بريد إلكتروني صحيح مطلوب");
     }
+    if (usesSpecialities && !form.specialityId) newErrors.specialityId = t("اختر تخصص الطالب");
     const number = form.registrationNumber?.trim() ?? '';
     if (number && !REGISTRATION_NUMBER.test(number)) {
       newErrors.registrationNumber = t("يُسمح فقط بالحروف والأرقام و- و_ و/ (30 حرفاً كحد أقصى)");
@@ -369,17 +385,32 @@ export const StudentForm: React.FC<StudentFormProps> = ({
 
         {/* Halqa & DOB */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Select
-            label={t("الحلقة")}
-            placeholder={loadingLectures ? t("جاري التحميل...") : t("اختر الحلقة...")}
-            value={form.halqaId ? String(form.halqaId) : ''}
-            onChange={(e) => setLecture(Number(e.target.value))}
-            options={lectures.map((lecture) => ({
-              value: String(lecture.lecture_id),
-              label: lecture.lecture_name_ar,
-            }))}
-            disabled={loadingLectures}
-          />
+          {usesSpecialities ? (
+            <Select
+              label={t("التخصص *")}
+              placeholder={t("اختر التخصص...")}
+              value={form.specialityId ? String(form.specialityId) : ''}
+              onChange={(e) => {
+                const id = e.target.value ? Number(e.target.value) : undefined;
+                setForm((f) => ({ ...f, specialityId: id }));
+                setErrors((current) => ({ ...current, specialityId: undefined }));
+              }}
+              options={usableSpecialities.map((speciality) => ({ value: String(speciality.id), label: speciality.name }))}
+              error={errors.specialityId}
+            />
+          ) : (
+            <Select
+              label={t("الحلقة")}
+              placeholder={loadingLectures ? t("جاري التحميل...") : t("اختر الحلقة...")}
+              value={form.halqaId ? String(form.halqaId) : ''}
+              onChange={(e) => setLecture(Number(e.target.value))}
+              options={lectures.map((lecture) => ({
+                value: String(lecture.lecture_id),
+                label: lecture.lecture_name_ar,
+              }))}
+              disabled={loadingLectures}
+            />
+          )}
           <Input
             label={t("تاريخ الميلاد")}
             type="date"
@@ -387,6 +418,25 @@ export const StudentForm: React.FC<StudentFormProps> = ({
             onChange={(e) => set('dob', e.target.value)}
           />
         </div>
+
+        {!usesSpecialities && (
+          <p className="-mt-2 text-xs text-gray-500">{t("يمكنك إنشاء تخصصات من صفحة التخصصات لتسجيل الطلاب حسب التخصص.")}</p>
+        )}
+
+        {usesSpecialities && selectedSpeciality && (
+          <div className="-mt-1 rounded-xl bg-emerald-50/60 px-3 py-2">
+            <p className="mb-1.5 text-xs font-medium text-emerald-800">
+              {t("سيُسجَّل الطالب تلقائياً في حلقات التخصص:")}
+            </p>
+            <ul className="flex flex-wrap gap-1.5">
+              {selectedSpeciality.lectures.map((lecture) => (
+                <li key={lecture.lecture_id} className="rounded-full bg-white px-2.5 py-0.5 text-xs text-gray-700 ring-1 ring-emerald-100">
+                  {lecture.lecture_name_ar} <span className="text-gray-400">×{lecture.coefficient}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="flex items-end gap-2">
           <div className="min-w-0 flex-1">

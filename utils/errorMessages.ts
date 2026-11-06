@@ -43,6 +43,11 @@ export const errorMessages: Record<string, string> = {
   // Registration numbers
   'This ID is already used by another record': 'هذا الرقم مستخدم بالفعل لسجل آخر',
   'The ID may only contain': 'يُسمح فقط بالحروف والأرقام و- و_ و/ (30 حرفاً كحد أقصى)',
+
+  // Specialities
+  'A speciality with this name already exists': 'يوجد تخصص بهذا الاسم بالفعل',
+  'This speciality has no circles yet': 'لا توجد حلقات في هذا التخصص بعد، ولا يمكن تسجيل طلاب فيه.',
+  'Speciality not found in this school': 'التخصص غير موجود في هذه المدرسة',
 };
 
 /**

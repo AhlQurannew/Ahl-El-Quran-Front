@@ -17,6 +17,7 @@ import { getTodayApiDate } from '@/utils/dateHelpers';
 import { t as tr, getDir, getLang, getLocale } from '@/i18n';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 import { getErrorMessage as translateApiError } from '@/utils/errorMessages';
+import specialitiesAPI from '@/app/API/specialities';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -56,11 +57,14 @@ function apiStudentToStudent(api: any): Student {
     enrollmentType: api.schoolInfo?.enrollmentType || '',
     startYear: api.schoolInfo?.startYear ?? '',
     medicalCondition: api.medicalInfo?.medicalCondition || '',
+    specialityId: api.schoolInfo?.specialityId ?? undefined,
+    lectureNames: (api.lectures ?? []).map((l: { lectureNameAr?: string }) => l.lectureNameAr).filter(Boolean),
   };
 }
 
 function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
-  const lectures = data.halqaId ? [{
+  // With a speciality the server enrolls the student in all of its circles.
+  const lectures = !data.specialityId && data.halqaId ? [{
     lectureId: data.halqaId,
     lectureNameAr: data.halqa || '',
     lectureNameEn: ''
@@ -108,6 +112,7 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
       registrationNumber: data.registrationNumber?.trim() || '',
       enrollmentType: data.enrollmentType || null,
       startYear: data.startYear === '' || data.startYear === undefined ? null : Number(data.startYear),
+      specialityId: data.specialityId ?? null,
     },
     medicalInfo: { medicalCondition: data.medicalCondition ?? '' },
   };
@@ -118,6 +123,15 @@ export default function StudentsPage() {
   const user = useAuthStore((state) => state.user);
   const isTeacher = user?.role === 'TEACHER';
   const [students, setStudents] = useState<Student[]>([]);
+  const [specialityNames, setSpecialityNames] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    let active = true;
+    specialitiesAPI.listSpecialities()
+      .then((list) => { if (active) setSpecialityNames(Object.fromEntries(list.map((s) => [s.id, s.name]))); })
+      .catch(() => { /* optional: the list still works without speciality names */ });
+    return () => { active = false; };
+  }, []);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -181,15 +195,16 @@ export default function StudentsPage() {
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
-    return students.filter((s) =>
+    return students.map((s) => ({ ...s, specialityName: s.specialityId ? specialityNames[s.specialityId] : undefined })).filter((s) =>
       s.firstName.toLowerCase().includes(q) ||
       s.lastName.toLowerCase().includes(q) ||
       s.username.toLowerCase().includes(q) ||
       (s.halqa ?? '').toLowerCase().includes(q) ||
       s.pob.toLowerCase().includes(q) ||
-      (s.registrationNumber ?? '').toLowerCase().includes(q)
+      (s.registrationNumber ?? '').toLowerCase().includes(q) ||
+      (s.specialityName ?? '').toLowerCase().includes(q)
     );
-  }, [students, query]);
+  }, [students, query, specialityNames]);
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));

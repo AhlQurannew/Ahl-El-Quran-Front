@@ -106,6 +106,7 @@ export interface CreateStudentPayload {
         registrationNumber?: string;
         enrollmentType?: 'internal' | 'external' | null;
         startYear?: number | null;
+        specialityId?: number | null;
     };
     medicalInfo?: { medicalCondition?: string };
 }

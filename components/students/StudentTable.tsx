@@ -152,7 +152,12 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                     {student.gender === 'male' ? t("ذكر") : t("أنثى")}
                   </td>
                   <td className="px-4 py-3.5 text-sm text-gray-600">
-                    {student.halqa || <span className="text-gray-300">—</span>}
+                    {student.specialityName && (
+                      <span className="block text-xs font-semibold text-emerald-700">{student.specialityName}</span>
+                    )}
+                    {student.lectureNames?.length
+                      ? student.lectureNames.join('، ')
+                      : student.halqa || <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-4 py-3.5 text-sm text-gray-600">
                     {student.username}
