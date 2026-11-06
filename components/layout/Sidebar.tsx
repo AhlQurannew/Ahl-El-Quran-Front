@@ -41,6 +41,7 @@ import {
   ChartNoAxesCombined,
   LogOut,
   Layers,
+  FileCheck2,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAdminView } from '@/contexts/AdminViewContext';
@@ -124,6 +125,7 @@ const presidentNavGroups: NavGroup[] = [
       { label: 'حضور المعلمين', href: '/teacher-attendance', icon: <ClipboardCheck size={18} /> },
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'التخصصات', href: '/specialities', icon: <Layers size={18} /> },
+      { label: 'الامتحانات', href: '/exams', icon: <FileCheck2 size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
       { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
       { label: 'التقارير', href: '/reports', icon: <BookOpen size={18} /> },
@@ -152,6 +154,7 @@ const supervisorNavGroups: NavGroup[] = [
       { label: 'حضور المعلمين', href: '/teacher-attendance', icon: <ClipboardCheck size={18} /> },
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
       { label: 'التخصصات', href: '/specialities', icon: <Layers size={18} /> },
+      { label: 'الامتحانات', href: '/exams', icon: <FileCheck2 size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
       { label: 'الإحصاءات', href: '/statistics', icon: <LayoutDashboard size={18} /> },
       { label: 'التقارير', href: '/reports', icon: <BookOpen size={18} /> },
@@ -172,6 +175,8 @@ const teacherNavGroups: NavGroup[] = [
     items: [
       { label: 'الطلاب', href: '/students', icon: <Users size={18} /> },
       { label: 'الحلقات', href: '/lectures', icon: <BookOpen size={18} /> },
+      { label: 'التخصصات', href: '/specialities', icon: <Layers size={18} /> },
+      { label: 'الامتحانات', href: '/exams', icon: <FileCheck2 size={18} /> },
       { label: 'حضور الطلاب', href: '/attendance', icon: <UserCheck size={18} /> },
       { label: 'الحفظ والمراجعة', href: '/memorization', icon: <GraduationCap size={18} /> },
       { label: 'ملاحظاتي', href: '/notes', icon: <NotebookPen size={18} /> },

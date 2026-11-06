@@ -48,6 +48,15 @@ export const errorMessages: Record<string, string> = {
   'A speciality with this name already exists': 'يوجد تخصص بهذا الاسم بالفعل',
   'This speciality has no circles yet': 'لا توجد حلقات في هذا التخصص بعد، ولا يمكن تسجيل طلاب فيه.',
   'Speciality not found in this school': 'التخصص غير موجود في هذه المدرسة',
+  'Exam not found': 'الامتحان غير موجود',
+  'Circle not found in this school': 'الحلقة غير موجودة في هذه المدرسة',
+  'You can only manage exams of your own circles': 'يمكنك إدارة امتحانات حلقاتك فقط',
+  'You can only add students of your own circles': 'يمكنك إضافة طلاب حلقاتك فقط',
+  'The circle cannot be changed once marks have been entered': 'لا يمكن تغيير الحلقة بعد إدخال النقاط',
+  'Some marks are higher than the new maximum mark': 'بعض النقاط أكبر من النقطة القصوى الجديدة',
+  'A mark cannot be higher than the maximum mark': 'لا يمكن أن تتجاوز النقطة النقطة القصوى',
+  'A student can only appear once in an exam': 'لا يمكن إضافة الطالب أكثر من مرة في الامتحان',
+  'One or more students were not found in this school': 'طالب واحد أو أكثر غير موجود في هذه المدرسة',
 };
 
 /**

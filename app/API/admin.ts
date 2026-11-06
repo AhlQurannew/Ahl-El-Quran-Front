@@ -117,6 +117,30 @@ const getPlatformStatistics = async (): Promise<PlatformStatistics> => {
     return res.data;
 };
 
+export interface AcademicIndicators {
+    specialities: number;
+    students_with_speciality: number;
+    speciality_coverage: number | null;
+    exams: number;
+    exams_90d: number;
+    upcoming_exams: number;
+    graded_results: number;
+    average_pct: number | null;
+    pass_rate: number | null;
+    exam_attendance_rate: number | null;
+}
+
+export interface AcademicStatistics {
+    totals: AcademicIndicators;
+    schools: (AcademicIndicators & { school_id: number; school_name: string; students: number })[];
+}
+
+/** Specialities and exams across the platform, one row per school. */
+const getAcademicStatistics = async (): Promise<AcademicStatistics> => {
+    const res = await axiosGlobal.get<AcademicStatistics>("/statistics/academics");
+    return res.data;
+};
+
 const getSchoolsStatistics = async (limit: number = 3) => {
     const res = await axiosGlobal.get(`/statistics/schools?limit=${limit}`);
     return res.data;
@@ -136,6 +160,7 @@ const adminAPI = {
     getAdminStatistics,
     getSchoolsStatistics,
     getPlatformStatistics,
+    getAcademicStatistics,
 };
 
 export default adminAPI;

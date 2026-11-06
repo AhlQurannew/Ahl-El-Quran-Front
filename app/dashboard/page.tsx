@@ -22,6 +22,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import adminAPI, { PlatformStatistics } from "@/app/API/admin";
 import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
+import { AcademicsOverview } from "@/components/dashboard/AcademicsOverview";
 import { t } from '@/i18n';
 
 interface Statistics {
@@ -266,6 +267,9 @@ export default function AdminDashboard() {
 
         {/* Platform at a glance */}
         <PlatformOverview stats={platformStats} isLoading={isLoadingPlatform} />
+
+        {/* Specialities & exams across schools */}
+        <AcademicsOverview />
 
         {/* Quick Links */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">

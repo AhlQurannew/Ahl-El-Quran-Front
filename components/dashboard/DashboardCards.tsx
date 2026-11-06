@@ -12,8 +12,11 @@ import {
   Calendar,
   UserCheck,
   MessageSquare,
-  Loader2
+  Loader2,
+  FileCheck2,
+  Layers
 } from 'lucide-react';
+import { ExamsPanel } from '@/components/dashboard/ExamsPanel';
 import Link from 'next/link';
 import type { AxiosError } from 'axios';
 import presidentAPI from '@/app/API/president';
@@ -108,19 +111,26 @@ export function DashboardCards() {
     { title: t("حضور الطلاب"), icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
     { title: t("الخطة والمراجعة"), icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
     { title: t("غرفة المحادثة"), icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'action' },
+    { title: t("الامتحانات"), icon: <FileCheck2 className="w-16 h-16" />, href: '/exams', variant: 'action' },
+    { title: t("التخصصات"), icon: <Layers className="w-16 h-16" />, href: '/specialities', variant: 'action' },
   ] : [
     { title: t("حضور الطلاب"), icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
     { title: t("حضور المعلمين"), icon: <ClipboardCheck className="w-16 h-16" />, href: '/teacher-attendance', variant: 'action' },
     { title: t("الخطة والمراجعة"), icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
-    { title: t("أولياء الأمور"), icon: <Users className="w-16 h-16" />, href: '/guardians', variant: 'action' }
+    { title: t("أولياء الأمور"), icon: <Users className="w-16 h-16" />, href: '/guardians', variant: 'action' },
+    { title: t("الامتحانات"), icon: <FileCheck2 className="w-16 h-16" />, href: '/exams', variant: 'action' },
+    { title: t("التخصصات"), icon: <Layers className="w-16 h-16" />, href: '/specialities', variant: 'action' }
   ];
 
-  const actionSmallIcons: React.ReactNode[] = [
-    <UserCheck className="w-4 h-4" key="action-icon-0" />,
-    <ClipboardCheck className="w-4 h-4" key="action-icon-1" />,
-    <Calendar className="w-4 h-4" key="action-icon-2" />,
-    <Users className="w-4 h-4" key="action-icon-3" />
-  ];
+  const actionSmallIcons: Record<string, React.ReactNode> = {
+    '/attendance': <UserCheck className="w-4 h-4" />,
+    '/teacher-attendance': <ClipboardCheck className="w-4 h-4" />,
+    '/memorization': <Calendar className="w-4 h-4" />,
+    '/guardians': <Users className="w-4 h-4" />,
+    '/messages': <MessageSquare className="w-4 h-4" />,
+    '/exams': <FileCheck2 className="w-4 h-4" />,
+    '/specialities': <Layers className="w-4 h-4" />,
+  };
 
   const reportCards: DashboardCard[] = [
     { title: t("التقارير"), icon: <FileText className="w-16 h-16" />, href: '/reports', variant: 'report' },
@@ -195,7 +205,7 @@ export function DashboardCards() {
       {/* Action Cards */}
       <div>
         <h3 className="text-sm font-bold text-gray-500 mb-3 px-1">{t("الإجراءات السريعة")}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {actionCards.map((card, index) => (
             <Link
               key={index}
@@ -204,7 +214,7 @@ export function DashboardCards() {
             >
               <div className="relative z-10 flex items-center justify-between h-full text-white">
                 <div className="flex items-center gap-2">
-                  {actionSmallIcons[index]}
+                  {actionSmallIcons[card.href]}
                   <p className="text-base font-semibold">{card.title}</p>
                 </div>
                 <div className="opacity-25 transition-opacity duration-300">
@@ -215,6 +225,9 @@ export function DashboardCards() {
           ))}
         </div>
       </div>
+
+      {/* Exams & specialities */}
+      {!invalidSchoolContext && <ExamsPanel />}
 
       {/* Report Cards */}
       <div>
