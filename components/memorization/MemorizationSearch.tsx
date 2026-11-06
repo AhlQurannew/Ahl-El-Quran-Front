@@ -1,5 +1,6 @@
 'use client';
 
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
@@ -50,16 +51,14 @@ export const MemorizationSearch: React.FC<MemorizationSearchProps> = ({
         <Filter size={15} className="text-gray-400 shrink-0" />
 
         {/* Halqa select */}
-        <select
+        <SearchableSelect
+          size="sm"
+          className="min-w-44"
+          options={[{ value: '', label: t("كل الحلقات") }, ...halqaOptions.map((h) => ({ value: h, label: h }))]}
           value={halqaFilter}
-          onChange={(e) => onHalqaFilterChange(e.target.value)}
-          className="appearance-none rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500 cursor-pointer transition-all"
-        >
-          <option value="">{t("كل الحلقات")}</option>
-          {halqaOptions.map((h) => (
-            <option key={h} value={h}>{h}</option>
-          ))}
-        </select>
+          onValueChange={onHalqaFilterChange}
+          ariaLabel={t("الحلقة")}
+        />
 
         {/* Status pills */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1">

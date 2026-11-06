@@ -112,7 +112,7 @@ export function ExamFormModal({ isOpen, onClose, lectures, exam, onSubmit }: Pro
             value={form.lecture_id}
             onChange={set('lecture_id')}
             placeholder={t('اختر الحلقة')}
-            options={lectures.map((l) => ({ value: l.lecture_id, label: `${lectureName(l)} (${t('{count} طالب', { count: l.student_count })})` }))}
+            options={lectures.map((l) => ({ value: l.lecture_id, label: `${lectureName(l)} (${t('{count} طالب', { count: l.student_count })})`, keywords: `${l.lecture_name_ar} ${l.lecture_name_en ?? ''}` }))}
           />
           <Select
             label={t('نوع الامتحان')}

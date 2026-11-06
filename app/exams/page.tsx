@@ -1,5 +1,7 @@
 'use client';
 
+import { SearchableSelect, normalizeSearch } from '@/components/ui/SearchableSelect';
+import { Pagination } from '@/components/ui/Pagination';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,14 +10,15 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { ExamFormModal } from '@/components/exams/ExamFormModal';
-import { ExamPhaseBadge, ExamTypeBadge, PctBar, RankPill, examPhase, formatExamDate, formatMark, formatPct, type ExamPhase } from '@/components/exams/examUi';
-import examsAPI, { type Exam, type ExamLecture, type ExamOverview, type SpecialityStanding } from '@/app/API/exams';
+import { ExamPhaseBadge, ExamTypeBadge, PctBar, RankPill, EXAM_TYPE_LABELS, examPhase, formatExamDate, formatMark, formatPct, type ExamPhase } from '@/components/exams/examUi';
+import examsAPI, { type Exam, type ExamLecture, type ExamType, type ExamOverview, type SpecialityStanding } from '@/app/API/exams';
 import { useLang } from '@/i18n/I18nProvider';
 import { t } from '@/i18n';
 import { describeError } from '@/utils/errorMessages';
 import { cn } from '@/utils/cn';
 
 type Tab = 'exams' | 'specialities';
+type SortKey = 'date_desc' | 'date_asc' | 'avg_desc' | 'avg_asc';
 
 export default function ExamsPage() {
   const router = useRouter();
@@ -31,6 +34,14 @@ export default function ExamsPage() {
   const [lectureFilter, setLectureFilter] = useState('');
   const [phaseFilter, setPhaseFilter] = useState<'' | ExamPhase>('');
   const [query, setQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'' | ExamType>('');
+  const [sort, setSort] = useState<SortKey>('date_desc');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // Any filter change goes back to the first page.
+  const filter = <T,>(setter: (value: T) => void) => (value: T) => { setter(value); setPage(1); };
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [toast, setToast] = useState({ visible: false, type: 'success' as 'success' | 'error' | 'info', message: '' });
 
@@ -55,13 +66,32 @@ export default function ExamsPage() {
     lang !== 'ar' && l.lecture_name_en ? l.lecture_name_en : l.lecture_name_ar;
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return exams.filter((exam) =>
+    const q = normalizeSearch(query);
+    const list = exams.filter((exam) =>
       (!lectureFilter || String(exam.lecture_id) === lectureFilter)
       && (!phaseFilter || examPhase(exam) === phaseFilter)
-      && (!q || exam.title.toLowerCase().includes(q) || exam.lecture_name_ar.toLowerCase().includes(q)
-        || (exam.lecture_name_en ?? '').toLowerCase().includes(q)));
-  }, [exams, lectureFilter, phaseFilter, query]);
+      && (!typeFilter || exam.exam_type === typeFilter)
+      && (!dateFrom || exam.exam_date >= dateFrom)
+      && (!dateTo || exam.exam_date <= dateTo)
+      && (!q || normalizeSearch(exam.title).includes(q) || normalizeSearch(exam.lecture_name_ar).includes(q)
+        || normalizeSearch(exam.lecture_name_en ?? '').includes(q)));
+    const avg = (e: Exam) => e.stats.average_pct ?? -1;
+    const byDate = (a: Exam, b: Exam) => a.exam_date.localeCompare(b.exam_date) || a.id - b.id;
+    return [...list].sort({
+      date_desc: (a: Exam, b: Exam) => byDate(b, a),
+      date_asc: byDate,
+      avg_desc: (a: Exam, b: Exam) => avg(b) - avg(a) || byDate(b, a),
+      avg_asc: (a: Exam, b: Exam) => avg(a) - avg(b) || byDate(b, a),
+    }[sort]);
+  }, [exams, lectureFilter, phaseFilter, typeFilter, dateFrom, dateTo, query, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const visible = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const hasFilters = !!(query || lectureFilter || phaseFilter || typeFilter || dateFrom || dateTo);
+  const resetFilters = () => {
+    setQuery(''); setLectureFilter(''); setPhaseFilter(''); setTypeFilter(''); setDateFrom(''); setDateTo(''); setPage(1);
+  };
 
   const create = async (payload: Parameters<typeof examsAPI.createExam>[0], includeStudents: boolean) => {
     const created = await examsAPI.createExam(payload, includeStudents);
@@ -87,7 +117,7 @@ export default function ExamsPage() {
             <div>
               <h1 className="text-lg font-bold text-gray-900">{t('الامتحانات')}</h1>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                {t('أنشئ امتحاناً لحلقة، سجّل حضور الطلاب ونقاطهم وملاحظاتك، واطّلع على الترتيب. تُحسب معدلات التخصصات بمعاملات كل حلقة.')}
+                {t('أنشئ امتحاناً لحلقة، سجّل حضور الطلاب ونقاطهم وملاحظاتك، واطّلع على الترتيب. تُحسب معدلات الأقسام والتخصصات بمعاملات كل حلقة.')}
               </p>
             </div>
           </div>
@@ -121,7 +151,7 @@ export default function ExamsPage() {
         )}
 
         <div role="tablist" aria-label={t('الامتحانات')} className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
-          {([['exams', 'قائمة الامتحانات', ClipboardList], ['specialities', 'ترتيب التخصصات', Layers]] as const).map(([value, label, Icon]) => (
+          {([['exams', 'قائمة الامتحانات', ClipboardList], ['specialities', 'ترتيب الأقسام والتخصصات', Layers]] as const).map(([value, label, Icon]) => (
             <button
               key={value}
               type="button"
@@ -147,23 +177,22 @@ export default function ExamsPage() {
                 <input
                   type="search"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => filter(setQuery)(e.target.value)}
                   placeholder={t('ابحث عن امتحان أو حلقة...')}
                   className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pe-3 ps-9 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
                 />
               </label>
-              <select
+              <SearchableSelect
+                size="sm"
+                className="sm:w-56"
+                options={[{ value: '', label: t('كل الحلقات') }, ...lectures.map((l) => ({ value: l.lecture_id, label: lectureName(l), keywords: `${l.lecture_name_ar} ${l.lecture_name_en ?? ''}` }))]}
                 value={lectureFilter}
-                onChange={(e) => setLectureFilter(e.target.value)}
-                aria-label={t('الحلقة')}
-                className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm sm:w-56"
-              >
-                <option value="">{t('كل الحلقات')}</option>
-                {lectures.map((l) => <option key={l.lecture_id} value={l.lecture_id}>{lectureName(l)}</option>)}
-              </select>
+                onValueChange={filter(setLectureFilter)}
+                ariaLabel={t('الحلقة')}
+              />
               <select
                 value={phaseFilter}
-                onChange={(e) => setPhaseFilter(e.target.value as '' | ExamPhase)}
+                onChange={(e) => filter(setPhaseFilter)(e.target.value as '' | ExamPhase)}
                 aria-label={t('الحالة')}
                 className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm sm:w-48"
               >
@@ -172,6 +201,42 @@ export default function ExamsPage() {
                 <option value="pending">{t('بانتظار النقاط')}</option>
                 <option value="done">{t('مكتمل')}</option>
               </select>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+                {t('من تاريخ')}
+                <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => filter(setDateFrom)(e.target.value)}
+                  className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none" />
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+                {t('إلى تاريخ')}
+                <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => filter(setDateTo)(e.target.value)}
+                  className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none" />
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+                {t('نوع الامتحان')}
+                <select value={typeFilter} onChange={(e) => filter(setTypeFilter)(e.target.value as '' | ExamType)}
+                  className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900">
+                  <option value="">{t('كل الأنواع')}</option>
+                  {(Object.keys(EXAM_TYPE_LABELS) as ExamType[]).map((type) => <option key={type} value={type}>{t(EXAM_TYPE_LABELS[type])}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+                {t('الترتيب حسب')}
+                <select value={sort} onChange={(e) => filter(setSort)(e.target.value as SortKey)}
+                  className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900">
+                  <option value="date_desc">{t('الأحدث أولاً')}</option>
+                  <option value="date_asc">{t('الأقدم أولاً')}</option>
+                  <option value="avg_desc">{t('أعلى معدل')}</option>
+                  <option value="avg_asc">{t('أدنى معدل')}</option>
+                </select>
+              </label>
+              {hasFilters && (
+                <button type="button" onClick={resetFilters} className="ms-auto rounded-lg px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50">
+                  {t('إعادة تعيين الفلاتر')}
+                </button>
+              )}
             </div>
 
             {filtered.length === 0 ? (
@@ -185,8 +250,9 @@ export default function ExamsPage() {
                 )}
               </div>
             ) : (
+              <>
               <ul className="grid gap-3 md:grid-cols-2">
-                {filtered.map((exam) => (
+                {visible.map((exam) => (
                   <li key={exam.id}>
                     <Link href={`/exams/${exam.id}`} className="block h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                       <div className="flex items-start justify-between gap-2">
@@ -225,6 +291,15 @@ export default function ExamsPage() {
                   </li>
                 ))}
               </ul>
+              <Pagination
+                page={currentPage}
+                pageSize={pageSize}
+                total={filtered.length}
+                onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0 }); }}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
+              />
+              </>
             )}
           </>
         ) : (
@@ -259,8 +334,8 @@ function SpecialityStandings({ overview }: { overview: ExamOverview | null }) {
     return (
       <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
         <Layers size={40} className="mx-auto mb-3 text-gray-300" />
-        <p className="font-medium text-gray-700">{t('لا توجد تخصصات بعد')}</p>
-        <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">{t('أضف التخصصات ومعاملات حلقاتها من صفحة التخصصات لعرض معدلات الطلاب وترتيبهم.')}</p>
+        <p className="font-medium text-gray-700">{t('لا توجد أقسام أو تخصصات بعد')}</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">{t('أضف الأقسام والتخصصات ومعاملات حلقاتها من صفحة الأقسام والتخصصات لعرض معدلات الطلاب وترتيبهم.')}</p>
       </div>
     );
   }
@@ -270,7 +345,7 @@ function SpecialityStandings({ overview }: { overview: ExamOverview | null }) {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[18rem_1fr]">
-      <ul className="space-y-2" aria-label={t('التخصصات')}>
+      <ul className="space-y-2" aria-label={t('الأقسام والتخصصات')}>
         {specialities.map((s) => (
           <li key={s.speciality_id}>
             <button
@@ -310,7 +385,7 @@ function SpecialityStandings({ overview }: { overview: ExamOverview | null }) {
               </div>
             </div>
             {standing.rows.length === 0 ? (
-              <p className="p-4 text-sm text-gray-500">{t('لا يوجد طلاب في هذا التخصص بعد.')}</p>
+              <p className="p-4 text-sm text-gray-500">{t('لا يوجد طلاب في هذا القسم/التخصص بعد.')}</p>
             ) : (
               <div className="relative overflow-x-auto">
                 <table className="w-full min-w-[32rem] text-sm">

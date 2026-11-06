@@ -100,7 +100,7 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
         {/* Student Details */}
         <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
           <DetailRow icon={Hash} label={t("رقم التسجيل")} value={student.registrationNumber} />
-          <DetailRow icon={BookOpen} label={t("التخصص")} value={student.specialityName} />
+          <DetailRow icon={BookOpen} label={t("القسم/التخصص")} value={student.specialityName} />
           <DetailRow
             icon={School}
             label={t("نظام الدراسة")}

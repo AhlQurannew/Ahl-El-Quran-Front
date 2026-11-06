@@ -111,14 +111,14 @@ export function DashboardCards() {
     { title: t("الخطة والمراجعة"), icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
     { title: t("غرفة المحادثة"), icon: <MessageSquare className="w-16 h-16" />, href: '/messages', variant: 'action' },
     { title: t("الامتحانات"), icon: <FileCheck2 className="w-16 h-16" />, href: '/exams', variant: 'action' },
-    { title: t("التخصصات"), icon: <Layers className="w-16 h-16" />, href: '/specialities', variant: 'action' },
+    { title: t("الأقسام والتخصصات"), icon: <Layers className="w-16 h-16" />, href: '/specialities', variant: 'action' },
   ] : [
     { title: t("حضور الطلاب"), icon: <UserCheck className="w-16 h-16" />, href: '/attendance', variant: 'action' },
     { title: t("حضور المعلمين"), icon: <ClipboardCheck className="w-16 h-16" />, href: '/teacher-attendance', variant: 'action' },
     { title: t("الخطة والمراجعة"), icon: <Calendar className="w-16 h-16" />, href: '/memorization', variant: 'action' },
     { title: t("أولياء الأمور"), icon: <Users className="w-16 h-16" />, href: '/guardians', variant: 'action' },
     { title: t("الامتحانات"), icon: <FileCheck2 className="w-16 h-16" />, href: '/exams', variant: 'action' },
-    { title: t("التخصصات"), icon: <Layers className="w-16 h-16" />, href: '/specialities', variant: 'action' }
+    { title: t("الأقسام والتخصصات"), icon: <Layers className="w-16 h-16" />, href: '/specialities', variant: 'action' }
   ];
 
   const actionSmallIcons: Record<string, React.ReactNode> = {

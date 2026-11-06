@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { Modal } from '@/components/ui/Modal';
 import studentsAPI, { AchievementPayload } from '@/app/API/students';
 import { quranSurahs } from '@/data/quran_data';
@@ -236,18 +237,12 @@ export function AchievementDialog({
             {/* From Surah */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t("السورة")}</label>
-              <select
+              <SearchableSelect
+                options={quranSurahs.map((surah) => ({ value: surah.number, label: `${surah.number}. ${surah.name}` }))}
                 value={fromSurah}
-                onChange={(e) => setFromSurah(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                required
-              >
-                {quranSurahs.map((surah) => (
-                  <option key={surah.number} value={surah.number}>
-                    {surah.number}. {surah.name}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(value) => setFromSurah(Number(value))}
+                ariaLabel={t("السورة")}
+              />
             </div>
 
             {/* From Verse */}
@@ -275,18 +270,12 @@ export function AchievementDialog({
             {/* To Surah */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t("السورة")}</label>
-              <select
+              <SearchableSelect
+                options={quranSurahs.map((surah) => ({ value: surah.number, label: `${surah.number}. ${surah.name}` }))}
                 value={toSurah}
-                onChange={(e) => setToSurah(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                required
-              >
-                {quranSurahs.map((surah) => (
-                  <option key={surah.number} value={surah.number}>
-                    {surah.number}. {surah.name}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(value) => setToSurah(Number(value))}
+                ariaLabel={t("السورة")}
+              />
             </div>
 
             {/* To Verse */}

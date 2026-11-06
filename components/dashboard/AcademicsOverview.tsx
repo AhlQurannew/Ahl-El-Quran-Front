@@ -26,8 +26,8 @@ export function AcademicsOverview() {
   const totals = data?.totals;
 
   const tiles = totals ? [
-    { label: 'التخصصات', value: number(totals.specialities), hint: t('{count} طالب مسجل في تخصص', { count: number(totals.students_with_speciality) }), icon: <Layers size={18} />, tone: 'bg-emerald-50 text-emerald-700' },
-    { label: 'تغطية التخصصات', value: formatPct(totals.speciality_coverage), hint: t('من مجموع الطلاب'), icon: <Percent size={18} />, tone: 'bg-teal-50 text-teal-700' },
+    { label: 'الأقسام والتخصصات', value: number(totals.specialities), hint: t('{count} طالب مسجل في قسم/تخصص', { count: number(totals.students_with_speciality) }), icon: <Layers size={18} />, tone: 'bg-emerald-50 text-emerald-700' },
+    { label: 'تغطية الأقسام والتخصصات', value: formatPct(totals.speciality_coverage), hint: t('من مجموع الطلاب'), icon: <Percent size={18} />, tone: 'bg-teal-50 text-teal-700' },
     { label: 'الامتحانات', value: number(totals.exams), hint: t('{count} خلال 90 يوماً', { count: number(totals.exams_90d) }), icon: <ClipboardList size={18} />, tone: 'bg-sky-50 text-sky-700' },
     { label: 'امتحانات قادمة', value: number(totals.upcoming_exams), icon: <CalendarClock size={18} />, tone: 'bg-violet-50 text-violet-700' },
     { label: 'متوسط النقاط', value: formatPct(totals.average_pct), hint: t('{count} نتيجة', { count: number(totals.graded_results) }), icon: <Trophy size={18} />, tone: 'bg-amber-50 text-amber-700' },
@@ -38,8 +38,8 @@ export function AcademicsOverview() {
   return (
     <section aria-labelledby="academics-heading" className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="mb-4">
-        <h3 id="academics-heading" className="text-lg font-bold text-gray-900">{t('التخصصات والامتحانات')}</h3>
-        <p className="text-sm text-gray-500">{t('النتائج الأكاديمية لكل المدارس: التخصصات، الامتحانات، المعدلات ونسب النجاح')}</p>
+        <h3 id="academics-heading" className="text-lg font-bold text-gray-900">{t('الأقسام والتخصصات والامتحانات')}</h3>
+        <p className="text-sm text-gray-500">{t('النتائج الأكاديمية لكل المدارس: الأقسام والتخصصات، الامتحانات، المعدلات ونسب النجاح')}</p>
       </div>
 
       {failed ? (
@@ -64,12 +64,12 @@ export function AcademicsOverview() {
           {data.schools.length > 0 && (
             <div className="relative overflow-x-auto rounded-xl border border-gray-100">
               <table className="w-full min-w-[46rem] text-sm">
-                <caption className="sr-only">{t('التخصصات والامتحانات حسب المدرسة')}</caption>
+                <caption className="sr-only">{t('الأقسام والتخصصات والامتحانات حسب المدرسة')}</caption>
                 <thead className="bg-gray-50 text-xs text-gray-500">
                   <tr>
                     <th scope="col" className="px-3 py-2 text-start font-medium">{t('المدرسة')}</th>
-                    <th scope="col" className="px-3 py-2 text-end font-medium">{t('التخصصات')}</th>
-                    <th scope="col" className="w-36 px-3 py-2 text-start font-medium">{t('تغطية التخصصات')}</th>
+                    <th scope="col" className="px-3 py-2 text-end font-medium">{t('الأقسام والتخصصات')}</th>
+                    <th scope="col" className="w-36 px-3 py-2 text-start font-medium">{t('تغطية الأقسام والتخصصات')}</th>
                     <th scope="col" className="px-3 py-2 text-end font-medium">{t('الامتحانات')}</th>
                     <th scope="col" className="w-36 px-3 py-2 text-start font-medium">{t('متوسط النقاط')}</th>
                     <th scope="col" className="w-36 px-3 py-2 text-start font-medium">{t('نسبة النجاح')}</th>
@@ -81,7 +81,7 @@ export function AcademicsOverview() {
                     <tr key={row.school_id} className="border-t border-gray-100">
                       <th scope="row" className="px-3 py-2.5 text-start font-medium text-gray-900">{row.school_name}</th>
                       <td className="px-3 py-2.5 text-end tabular-nums">{number(row.specialities)}</td>
-                      <td className="px-3 py-2.5"><PctBar value={row.speciality_coverage} label={t('تغطية التخصصات')} /></td>
+                      <td className="px-3 py-2.5"><PctBar value={row.speciality_coverage} label={t('تغطية الأقسام والتخصصات')} /></td>
                       <td className="px-3 py-2.5 text-end tabular-nums">
                         {number(row.exams)}
                         {row.upcoming_exams > 0 && <span className="ms-1 text-xs text-gray-400">(+{number(row.upcoming_exams)} {t('قادم')})</span>}

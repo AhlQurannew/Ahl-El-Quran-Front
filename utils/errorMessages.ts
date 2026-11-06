@@ -49,9 +49,9 @@ export const errorMessages: Record<string, string> = {
   'The ID may only contain': 'يُسمح فقط بالحروف والأرقام و- و_ و/ (30 حرفاً كحد أقصى)',
 
   // Specialities
-  'A speciality with this name already exists': 'يوجد تخصص بهذا الاسم بالفعل',
-  'This speciality has no circles yet': 'لا توجد حلقات في هذا التخصص بعد، ولا يمكن تسجيل طلاب فيه.',
-  'Speciality not found in this school': 'التخصص غير موجود في هذه المدرسة',
+  'A speciality with this name already exists': 'يوجد قسم/تخصص بهذا الاسم بالفعل',
+  'This speciality has no circles yet': 'لا توجد حلقات في هذا القسم/التخصص بعد، ولا يمكن تسجيل طلاب فيه.',
+  'Speciality not found in this school': 'القسم/التخصص غير موجود في هذه المدرسة',
   'Exam not found': 'الامتحان غير موجود',
   'Circle not found in this school': 'الحلقة غير موجودة في هذه المدرسة',
   'You can only manage exams of your own circles': 'يمكنك إدارة امتحانات حلقاتك فقط',

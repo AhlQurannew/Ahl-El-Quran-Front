@@ -1,5 +1,6 @@
 'use client';
 
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MemorizationForm, type AchievementFormValues } from '@/components/memorization/MemorizationForm';
@@ -415,25 +416,14 @@ export default function MemorizationPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {tr("الحلقة")}{' '}<span className="text-red-500">*</span>
               </label>
-              <select
-                value={selectedLecture?.lecture_id || ''}
-                onChange={(e) => {
-                  const lecture = lectures.find((l) => l.lecture_id === Number(e.target.value));
-                  setSelectedLecture(lecture || null);
-                }}
+              <SearchableSelect
+                options={lectures.map((lecture) => ({ value: lecture.lecture_id, label: lecture.lecture_name_ar }))}
+                value={selectedLecture?.lecture_id ?? ''}
+                onValueChange={(value) => setSelectedLecture(lectures.find((l) => l.lecture_id === Number(value)) || null)}
                 disabled={isLoadingLectures || lectures.length === 0}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
-              >
-                {lectures.length === 0 ? (
-                  <option value="">{tr("لا توجد حلقات متاحة")}</option>
-                ) : (
-                  lectures.map((lecture) => (
-                    <option key={lecture.lecture_id} value={lecture.lecture_id}>
-                      {lecture.lecture_name_ar}
-                    </option>
-                  ))
-                )}
-              </select>
+                placeholder={tr("لا توجد حلقات متاحة")}
+                ariaLabel={tr("الحلقة")}
+              />
             </div>
 
             {/* Date Selection */}

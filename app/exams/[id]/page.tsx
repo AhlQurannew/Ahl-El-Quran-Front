@@ -1,5 +1,6 @@
 'use client';
 
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -316,17 +317,17 @@ export default function ExamDetailPage() {
               </button>
               {exam.candidates.length > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <select
+                  <SearchableSelect
+                    size="sm"
+                    className="w-56"
+                    options={exam.candidates.filter((c) => !rows.some((r) => r.student_id === c.student_id)).map((c) => ({
+                      value: c.student_id, label: `${c.name}${c.in_lecture ? '' : ` (${t('من حلقة أخرى')})`}`,
+                    }))}
                     value={candidate}
-                    onChange={(e) => setCandidate(e.target.value)}
-                    aria-label={t('إضافة طالب')}
-                    className="max-w-56 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs"
-                  >
-                    <option value="">{t('إضافة طالب...')}</option>
-                    {exam.candidates.filter((c) => !rows.some((r) => r.student_id === c.student_id)).map((c) => (
-                      <option key={c.student_id} value={c.student_id}>{c.name}{c.in_lecture ? '' : ` (${t('من حلقة أخرى')})`}</option>
-                    ))}
-                  </select>
+                    onValueChange={setCandidate}
+                    placeholder={t('إضافة طالب...')}
+                    ariaLabel={t('إضافة طالب')}
+                  />
                   <button type="button" onClick={() => void addCandidate()} disabled={!candidate} className="rounded-lg bg-emerald-50 p-1.5 text-emerald-700 hover:bg-emerald-100 disabled:opacity-40" aria-label={t('إضافة')}>
                     <UserPlus size={16} />
                   </button>

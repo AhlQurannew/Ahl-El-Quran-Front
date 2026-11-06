@@ -63,7 +63,7 @@ export default function SpecialitiesPage() {
         setLectures(circles);
         setLoadError('');
       })
-      .catch((error) => { if (active) setLoadError(describeError(error, t('تعذر تحميل التخصصات'))); })
+      .catch((error) => { if (active) setLoadError(describeError(error, t('تعذر تحميل الأقسام والتخصصات'))); })
       .finally(() => { if (active) setLoadedToken(reloadToken); });
     return () => { active = false; };
   }, [reloadToken, role, canManage]);
@@ -104,7 +104,7 @@ export default function SpecialitiesPage() {
   const save = async () => {
     setFormError('');
     if (!form.name.trim()) {
-      setFormError(t('اسم التخصص مطلوب'));
+      setFormError(t('اسم القسم/التخصص مطلوب'));
       return;
     }
     const entries = Object.entries(form.lectures).map(([id, value]) => ({ lecture_id: Number(id), coefficient: Number(value) }));
@@ -122,11 +122,11 @@ export default function SpecialitiesPage() {
       ? {
           title: t('تأكيد الحفظ'),
           message: editing.student_count > 0
-            ? t('هل أنت متأكد من حفظ تعديلات التخصص {name}؟ سيتم تحديث حلقات {count} طالب تلقائياً.', { name: payload.name, count: editing.student_count })
-            : t('هل أنت متأكد من حفظ تعديلات التخصص {name}؟', { name: payload.name }),
+            ? t('هل أنت متأكد من حفظ تعديلات القسم/التخصص {name}؟ سيتم تحديث حلقات {count} طالب تلقائياً.', { name: payload.name, count: editing.student_count })
+            : t('هل أنت متأكد من حفظ تعديلات القسم/التخصص {name}؟', { name: payload.name }),
           confirmText: t('نعم، احفظ'),
         }
-      : { title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة التخصص {name}؟', { name: payload.name }), confirmText: t('نعم، أضف') });
+      : { title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة القسم/التخصص {name}؟', { name: payload.name }), confirmText: t('نعم، أضف') });
     if (!confirmed) return;
 
     setSaving(true);
@@ -134,10 +134,10 @@ export default function SpecialitiesPage() {
       if (editing) await specialitiesAPI.updateSpeciality(editing.id, payload);
       else await specialitiesAPI.createSpeciality(payload);
       setIsFormOpen(false);
-      showToast('success', editing ? t('تم حفظ التخصص {name}', { name: payload.name }) : t('تمت إضافة التخصص {name}', { name: payload.name }));
+      showToast('success', editing ? t('تم حفظ القسم/التخصص {name}', { name: payload.name }) : t('تمت إضافة القسم/التخصص {name}', { name: payload.name }));
       load();
     } catch (error) {
-      setFormError(describeError(error, t('تعذر حفظ التخصص')));
+      setFormError(describeError(error, t('تعذر حفظ القسم/التخصص')));
     } finally {
       setSaving(false);
     }
@@ -147,18 +147,18 @@ export default function SpecialitiesPage() {
     const confirmed = await confirm({
       title: t('تأكيد الحذف'),
       message: speciality.student_count > 0
-        ? t('هل أنت متأكد من حذف التخصص {name}؟ سيحتفظ {count} طالب بحلقاتهم الحالية دون تخصص.', { name: speciality.name, count: speciality.student_count })
-        : t('هل أنت متأكد من حذف التخصص {name}؟', { name: speciality.name }),
+        ? t('هل أنت متأكد من حذف القسم/التخصص {name}؟ سيحتفظ {count} طالب بحلقاتهم الحالية دون قسم أو تخصص.', { name: speciality.name, count: speciality.student_count })
+        : t('هل أنت متأكد من حذف القسم/التخصص {name}؟', { name: speciality.name }),
       confirmText: t('نعم، احذف'),
       variant: 'danger',
     });
     if (!confirmed) return;
     try {
       await specialitiesAPI.deleteSpeciality(speciality.id);
-      showToast('success', t('تم حذف التخصص {name}', { name: speciality.name }));
+      showToast('success', t('تم حذف القسم/التخصص {name}', { name: speciality.name }));
       load();
     } catch (error) {
-      showToast('error', describeError(error, t('تعذر حذف التخصص')));
+      showToast('error', describeError(error, t('تعذر حذف القسم/التخصص')));
     }
   };
 
@@ -168,22 +168,22 @@ export default function SpecialitiesPage() {
   );
 
   return (
-    <AppLayout title="التخصصات" breadcrumb="الشؤون الإدارية / التخصصات">
+    <AppLayout title="الأقسام والتخصصات" breadcrumb="الشؤون الإدارية / الأقسام والتخصصات">
       <Toast type={toast.type} message={toast.message} isVisible={toast.visible} onClose={() => setToast((p) => ({ ...p, visible: false }))} />
       <div className="mx-auto max-w-6xl space-y-5 pb-8">
         <header className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700"><Layers size={22} /></div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">{t('التخصصات')}</h1>
+              <h1 className="text-lg font-bold text-gray-900">{t('الأقسام والتخصصات')}</h1>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                {t('حدد لكل تخصص حلقاته ومعامل كل حلقة. يُسجَّل الطالب تلقائياً في جميع حلقات تخصصه، ويمكن أن تكون الحلقة مشتركة بين عدة تخصصات.')}
+                {t('حدد لكل قسم/تخصص حلقاته ومعامل كل حلقة. يُسجَّل الطالب تلقائياً في جميع حلقات قسمه/تخصصه، ويمكن أن تكون الحلقة مشتركة بين عدة أقسام وتخصصات.')}
               </p>
             </div>
           </div>
           {canManage && (
             <Button size="sm" onClick={openCreate} className="shrink-0">
-              <Plus size={16} /> {t('إضافة تخصص')}
+              <Plus size={16} /> {t('إضافة قسم/تخصص')}
             </Button>
           )}
         </header>
@@ -200,8 +200,8 @@ export default function SpecialitiesPage() {
         ) : specialities.length === 0 ? (
           <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
             <GraduationCap size={40} className="mx-auto mb-3 text-gray-300" />
-            <p className="font-medium text-gray-700">{t('لا توجد تخصصات بعد')}</p>
-            <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">{t('ابدأ مثلاً بإضافة «الجذع المشترك» ثم تخصصات مثل الفقه أو التلاوة.')}</p>
+            <p className="font-medium text-gray-700">{t('لا توجد أقسام أو تخصصات بعد')}</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">{t('ابدأ مثلاً بإضافة «الجذع المشترك» ثم أقسام وتخصصات مثل الفقه أو التلاوة.')}</p>
           </div>
         ) : (
           <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -232,7 +232,7 @@ export default function SpecialitiesPage() {
                   </div>
                   <div className="flex-1 p-4">
                     {speciality.lectures.length === 0 ? (
-                      <p className="text-sm text-amber-700">{t('لا توجد حلقات في هذا التخصص بعد، ولا يمكن تسجيل طلاب فيه.')}</p>
+                      <p className="text-sm text-amber-700">{t('لا توجد حلقات في هذا القسم/التخصص بعد، ولا يمكن تسجيل طلاب فيه.')}</p>
                     ) : (
                       <table className="w-full text-sm">
                         <thead>
@@ -270,7 +270,7 @@ export default function SpecialitiesPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={() => !saving && setIsFormOpen(false)}
-        title={editing ? t('تعديل التخصص') : t('إضافة تخصص')}
+        title={editing ? t('تعديل القسم/التخصص') : t('إضافة قسم/تخصص')}
         size="lg"
         footer={
           <>
@@ -282,7 +282,7 @@ export default function SpecialitiesPage() {
         <div className="space-y-4">
           {formError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{formError}</p>}
           <Input
-            label={t('اسم التخصص *')}
+            label={t('اسم القسم/التخصص *')}
             value={form.name}
             maxLength={150}
             placeholder={t('مثال: الفقه، التلاوة، الجذع المشترك')}
@@ -302,7 +302,7 @@ export default function SpecialitiesPage() {
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={form.is_common} onChange={(e) => setForm((f) => ({ ...f, is_common: e.target.checked }))} className="h-4 w-4 rounded border-gray-300 text-emerald-600" />
             {t('جذع مشترك')}
-            <span className="text-xs text-gray-400">{t('(تخصص عام يجمع الحلقات الأساسية)')}</span>
+            <span className="text-xs text-gray-400">{t('(قسم عام يجمع الحلقات الأساسية)')}</span>
           </label>
 
           <fieldset>

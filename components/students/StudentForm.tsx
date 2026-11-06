@@ -209,7 +209,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     if (!form.username.trim() || !form.username.includes('@')) {
       newErrors.username = t("بريد إلكتروني صحيح مطلوب");
     }
-    if (usesSpecialities && !form.specialityId) newErrors.specialityId = t("اختر تخصص الطالب");
+    if (usesSpecialities && !form.specialityId) newErrors.specialityId = t("اختر قسم/تخصص الطالب");
     const number = form.registrationNumber?.trim() ?? '';
     if (number && !REGISTRATION_NUMBER.test(number)) {
       newErrors.registrationNumber = t("يُسمح فقط بالحروف والأرقام و- و_ و/ (30 حرفاً كحد أقصى)");
@@ -387,8 +387,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {usesSpecialities ? (
             <Select
-              label={t("التخصص *")}
-              placeholder={t("اختر التخصص...")}
+              label={t("القسم/التخصص *")}
+              placeholder={t("اختر القسم/التخصص...")}
               value={form.specialityId ? String(form.specialityId) : ''}
               onChange={(e) => {
                 const id = e.target.value ? Number(e.target.value) : undefined;
@@ -420,13 +420,13 @@ export const StudentForm: React.FC<StudentFormProps> = ({
         </div>
 
         {!usesSpecialities && (
-          <p className="-mt-2 text-xs text-gray-500">{t("يمكنك إنشاء تخصصات من صفحة التخصصات لتسجيل الطلاب حسب التخصص.")}</p>
+          <p className="-mt-2 text-xs text-gray-500">{t("يمكنك إنشاء أقسام وتخصصات من صفحة الأقسام والتخصصات لتسجيل الطلاب حسب القسم/التخصص.")}</p>
         )}
 
         {usesSpecialities && selectedSpeciality && (
           <div className="-mt-1 rounded-xl bg-emerald-50/60 px-3 py-2">
             <p className="mb-1.5 text-xs font-medium text-emerald-800">
-              {t("سيُسجَّل الطالب تلقائياً في حلقات التخصص:")}
+              {t("سيُسجَّل الطالب تلقائياً في حلقات القسم/التخصص:")}
             </p>
             <ul className="flex flex-wrap gap-1.5">
               {selectedSpeciality.lectures.map((lecture) => (

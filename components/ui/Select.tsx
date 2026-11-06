@@ -1,17 +1,24 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
 import { t } from '@/i18n';
+import { SearchableSelect } from './SearchableSelect';
+
+/** Lists longer than this get a search box (names of students, circles, teachers, surahs...). */
+const SEARCH_THRESHOLD = 7;
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: Array<{ value: string | number; label: string }>;
+  options: Array<{ value: string | number; label: string; keywords?: string }>;
   placeholder?: string;
+  /** Force (true) or disable (false) the search box; by default it appears for long lists. */
+  searchable?: boolean;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, options, id, placeholder, ...props }, ref) => {
+  ({ className, label, error, options, id, placeholder, searchable, ...props }, ref) => {
     const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const withSearch = searchable ?? options.length > SEARCH_THRESHOLD;
 
     return (
       <div className="w-full group">
@@ -23,6 +30,23 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             {t(label)}
           </label>
         )}
+        {withSearch ? (
+          <SearchableSelect
+            id={selectId}
+            options={options}
+            value={props.value as string | number | undefined}
+            disabled={props.disabled}
+            placeholder={placeholder}
+            invalid={!!error}
+            ariaLabel={props['aria-label']}
+            className={className}
+            // Callers read e.target.value / e.target.name, like with the native select.
+            onValueChange={(value) => props.onChange?.({
+              target: { value, name: props.name ?? '' },
+              currentTarget: { value, name: props.name ?? '' },
+            } as unknown as React.ChangeEvent<HTMLSelectElement>)}
+          />
+        ) : (
         <div className="relative">
           <select
             id={selectId}
@@ -55,6 +79,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </svg>
           </div>
         </div>
+        )}
         {error && (
           <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
             <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
