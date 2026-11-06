@@ -111,6 +111,14 @@ const getGuardian = async (guardianId: number): Promise<Guardian> => {
   return mapGuardianResponse(response.data);
 };
 
+/** Free login username built from the name (firstname_lastname, numbered when taken). */
+const getUsernameSuggestion = async (firstName: string, lastName: string): Promise<string> => {
+  const res = await axiosGlobal.get<{ username: string }>('/username-suggestion', {
+    params: { first_name: firstName, last_name: lastName },
+  });
+  return res.data.username;
+};
+
 const createGuardian = async (data: GuardianCreatePayload): Promise<GuardianApiResponse> => {
   const response = await axiosGlobal.post<GuardianApiResponse>('/', data);
   return response.data;
@@ -184,6 +192,7 @@ const guardianAPI = {
   getAllGuardians,
   getGuardian,
   createGuardian,
+  getUsernameSuggestion,
   updateGuardian,
   deleteGuardian,
   getAvailableStudents,

@@ -14,4 +14,10 @@ export interface Student {
   nationality: string; // الجنسية
   idType?: string; // نوع الهوية
   photo?: string;
+  /** Unique school ID, e.g. S2026-0001 (generated, editable). */
+  registrationNumber?: string;
+  /** internal = داخلي, external = خارجي (part-time) */
+  enrollmentType?: 'internal' | 'external' | '';
+  startYear?: number | '';
+  medicalCondition?: string;
 }

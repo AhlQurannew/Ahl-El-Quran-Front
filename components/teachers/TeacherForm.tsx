@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
+import teacherAPI from '@/app/API/teacher';
 import { t } from '@/i18n';
 
 interface TeacherFormProps {
@@ -15,6 +16,18 @@ interface TeacherFormProps {
   editingTeacher?: Teacher | null;
   isSubmitting?: boolean;
 }
+
+const EMPTY_PROFILE = {
+  registration_number: '',
+  speciality: '',
+  date_of_birth: '',
+  place_of_birth: '',
+  phone_number: '',
+  address: '',
+  medical_condition: '',
+};
+
+const REGISTRATION_NUMBER = /^[A-Za-z0-9][A-Za-z0-9_/-]{0,29}$/;
 
 export const TeacherForm: React.FC<TeacherFormProps> = ({
   isOpen,
@@ -29,7 +42,22 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
     email: '',
     riwaya: 'حفص عن عاصم',
     password: '',
+    ...EMPTY_PROFILE,
   });
+
+  const [loadingNumber, setLoadingNumber] = useState(false);
+  const suggestRegistrationNumber = async () => {
+    setLoadingNumber(true);
+    try {
+      const value = await teacherAPI.getNextRegistrationNumber();
+      setFormData((prev) => ({ ...prev, registration_number: value }));
+    } catch (error) {
+      // Not fatal: the server generates one when the field is left empty.
+      console.error('Unable to suggest a registration number:', error);
+    } finally {
+      setLoadingNumber(false);
+    }
+  };
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPasswordReset, setShowPasswordReset] = useState(false);
@@ -53,6 +81,13 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         email: editingTeacher.email,
         riwaya: editingTeacher.riwaya,
         password: '',
+        registration_number: editingTeacher.registration_number ?? '',
+        speciality: editingTeacher.speciality ?? '',
+        date_of_birth: editingTeacher.date_of_birth ?? '',
+        place_of_birth: editingTeacher.place_of_birth ?? '',
+        phone_number: editingTeacher.phone_number ?? '',
+        address: editingTeacher.address ?? '',
+        medical_condition: editingTeacher.medical_condition ?? '',
       });
       setShowPasswordReset(false); // Hide password reset by default
     } else {
@@ -63,8 +98,10 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
         email: '',
         riwaya: 'حفص عن عاصم',
         password: generatePassword(),
+        ...EMPTY_PROFILE,
       });
       setShowPasswordReset(false);
+      if (isOpen) void suggestRegistrationNumber();
     }
     setErrors({});
   }, [editingTeacher, isOpen]);
@@ -85,6 +122,12 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
     }
     if (!formData.riwaya?.trim()) {
       newErrors.riwaya = t("الرواية مطلوبة");
+    }
+    if (formData.registration_number?.trim() && !REGISTRATION_NUMBER.test(formData.registration_number.trim())) {
+      newErrors.registration_number = t("يُسمح فقط بالحروف والأرقام و- و_ و/ (30 حرفاً كحد أقصى)");
+    }
+    if (formData.phone_number?.trim() && !/^[0-9+\s-]{6,20}$/.test(formData.phone_number.trim())) {
+      newErrors.phone_number = t("رقم الهاتف غير صالح");
     }
     
     // Password is only required in create mode OR if password reset is enabled in edit mode
@@ -199,6 +242,90 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
             <p className="mt-1 text-sm text-red-600">{errors.riwaya}</p>
           )}
         </div>
+
+        {/* Professional profile */}
+        <fieldset className="space-y-4 rounded-xl border border-gray-200 p-4">
+          <legend className="px-1 text-xs font-semibold text-gray-500">{t("الملف المهني")}</legend>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label={t("رقم التسجيل")}
+              value={formData.registration_number || ''}
+              onChange={(e) => handleChange('registration_number', e.target.value)}
+              placeholder="T2026-0001"
+              maxLength={30}
+              error={errors.registration_number}
+              helperText={editingTeacher ? undefined : t("يُنشأ تلقائياً ويمكن تعديله")}
+              disabled={isSubmitting}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => void suggestRegistrationNumber()}
+                  disabled={loadingNumber || isSubmitting}
+                  className="pointer-events-auto text-gray-400 hover:text-emerald-600 disabled:opacity-50"
+                  aria-label={t("توليد رقم جديد")}
+                  title={t("توليد رقم جديد")}
+                >
+                  <RefreshCw size={15} className={loadingNumber ? 'animate-spin' : ''} />
+                </button>
+              }
+            />
+            <Input
+              label={t("التخصص / المجال")}
+              value={formData.speciality || ''}
+              onChange={(e) => handleChange('speciality', e.target.value)}
+              placeholder={t("مثال: التجويد، القراءات، الفقه")}
+              maxLength={150}
+              disabled={isSubmitting}
+            />
+            <Input
+              label={t("تاريخ الميلاد")}
+              type="date"
+              value={formData.date_of_birth || ''}
+              onChange={(e) => handleChange('date_of_birth', e.target.value)}
+              disabled={isSubmitting}
+            />
+            <Input
+              label={t("مكان الميلاد")}
+              value={formData.place_of_birth || ''}
+              onChange={(e) => handleChange('place_of_birth', e.target.value)}
+              maxLength={100}
+              disabled={isSubmitting}
+            />
+            <Input
+              label={t("رقم الهاتف")}
+              type="tel"
+              dir="ltr"
+              value={formData.phone_number || ''}
+              onChange={(e) => handleChange('phone_number', e.target.value)}
+              placeholder="0555 123 456"
+              error={errors.phone_number}
+              maxLength={20}
+              disabled={isSubmitting}
+            />
+            <Input
+              label={t("العنوان")}
+              value={formData.address || ''}
+              onChange={(e) => handleChange('address', e.target.value)}
+              maxLength={255}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div>
+            <label htmlFor="teacher-medical" className="mb-1.5 block text-sm font-semibold text-gray-700">
+              {t("الحالة الصحية / ملاحظات طبية")}
+            </label>
+            <textarea
+              id="teacher-medical"
+              value={formData.medical_condition || ''}
+              onChange={(e) => handleChange('medical_condition', e.target.value)}
+              maxLength={2000}
+              rows={2}
+              disabled={isSubmitting}
+              placeholder={t("مثال: ربو، حساسية... (اتركه فارغاً إن لم توجد)")}
+              className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 hover:border-gray-300 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+            />
+          </div>
+        </fieldset>
 
         {/* Password - Show in create mode OR when reset password is enabled in edit mode */}
         {!editingTeacher ? (

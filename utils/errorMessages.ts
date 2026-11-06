@@ -39,6 +39,10 @@ export const errorMessages: Record<string, string> = {
   'Image must be 5 MB or smaller': 'يجب ألا يتجاوز حجم الصورة 5 ميغابايت',
   'slides is allowed': 'تم بلوغ الحد الأقصى لعدد الصور',
   'Note limit reached': 'تم بلوغ الحد الأقصى لعدد الملاحظات',
+
+  // Registration numbers
+  'This ID is already used by another record': 'هذا الرقم مستخدم بالفعل لسجل آخر',
+  'The ID may only contain': 'يُسمح فقط بالحروف والأرقام و- و_ و/ (30 حرفاً كحد أقصى)',
 };
 
 /**

@@ -16,6 +16,7 @@ import { useAuthStore } from '@/store/authStore';
 import { getTodayApiDate } from '@/utils/dateHelpers';
 import { t as tr, getDir, getLang, getLocale } from '@/i18n';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
+import { getErrorMessage as translateApiError } from '@/utils/errorMessages';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
@@ -38,7 +39,8 @@ function apiStudentToStudent(api: any): Student {
     id: String(api.id ?? api.user_id ?? Date.now()),
     firstName: (api.personalInfo?.firstNameAr || api.firstname || '').trim(),
     lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
-    gender: api.personalInfo?.sex === 'female' ? 'female' : 'male',
+    // Created as 'Masculin'/'Féminin'; older rows may hold 'male'/'female'.
+    gender: ['female', 'féminin', 'feminin'].includes(String(api.personalInfo?.sex ?? '').toLowerCase()) ? 'female' : 'male',
     halqa: api.lectures?.[0]?.lectureNameAr || '',
     halqaId: api.lectures?.[0]?.lectureId || undefined,
     username: api.accountInfo?.username || api.email || '',
@@ -50,6 +52,10 @@ function apiStudentToStudent(api: any): Student {
     guardianId: api.guardian?.guardianId ?? api.guardian?.guardian_id ?? api.guardian_id ?? undefined,
     guardianName: api.guardian?.firstName || api.parent_name || '',
     guardianEmail: api.guardian?.email || api.guardian_email || '',
+    registrationNumber: api.schoolInfo?.registrationNumber || '',
+    enrollmentType: api.schoolInfo?.enrollmentType || '',
+    startYear: api.schoolInfo?.startYear ?? '',
+    medicalCondition: api.medicalInfo?.medicalCondition || '',
   };
 }
 
@@ -98,6 +104,12 @@ function studentToFullPayload(data: Omit<Student, 'id'>): CreateStudentPayload {
       grade: '',
       schoolName: data.halqa ?? '',
     },
+    schoolInfo: {
+      registrationNumber: data.registrationNumber?.trim() || '',
+      enrollmentType: data.enrollmentType || null,
+      startYear: data.startYear === '' || data.startYear === undefined ? null : Number(data.startYear),
+    },
+    medicalInfo: { medicalCondition: data.medicalCondition ?? '' },
   };
 }
 
@@ -127,7 +139,7 @@ export default function StudentsPage() {
   const errMsg = (err: unknown, fallback: string) =>
     (err as any)?.response?.data?.detail
       ? typeof (err as any).response.data.detail === 'string'
-        ? (err as any).response.data.detail
+        ? translateApiError((err as any).response.data.detail)
         : JSON.stringify((err as any).response.data.detail)
       : err instanceof Error
         ? err.message
@@ -174,7 +186,8 @@ export default function StudentsPage() {
       s.lastName.toLowerCase().includes(q) ||
       s.username.toLowerCase().includes(q) ||
       (s.halqa ?? '').toLowerCase().includes(q) ||
-      s.pob.toLowerCase().includes(q)
+      s.pob.toLowerCase().includes(q) ||
+      (s.registrationNumber ?? '').toLowerCase().includes(q)
     );
   }, [students, query]);
 

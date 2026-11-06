@@ -16,12 +16,14 @@ import type { Teacher, TeacherCreatePayload } from '@/types/teacher';
 import teacherAPI from '@/api/teacher';
 import { t as tr, getDir, getLang, getLocale } from '@/i18n';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
+import { getErrorMessage as translateApiError } from '@/utils/errorMessages';
 
 type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; message: string };
 
 const getErrorMessage = (err: unknown, fallback: string) => {
   if (axios.isAxiosError<{ detail?: string }>(err)) {
-    return err.response?.data?.detail || err.message || fallback;
+    const detail = err.response?.data?.detail;
+    return detail ? translateApiError(detail) : err.message || fallback;
   }
   return err instanceof Error ? err.message : fallback;
 };
@@ -137,11 +139,19 @@ export default function TeachersPage() {
     try {
       if (editingTeacher) {
         // Update existing teacher via API
+        const profile = data as TeacherCreatePayload;
         const updateData: Record<string, string | undefined> = {
           firstname: data.firstname,
           lastname: data.lastname,
           email: data.email,
           riwaya: data.riwaya,
+          registration_number: profile.registration_number,
+          speciality: profile.speciality,
+          date_of_birth: profile.date_of_birth,
+          place_of_birth: profile.place_of_birth,
+          phone_number: profile.phone_number,
+          address: profile.address,
+          medical_condition: profile.medical_condition,
         };
 
         // Include password only if the supervisor set a new one (via "reset password" section)
@@ -345,6 +355,20 @@ export default function TeachersPage() {
                 {viewingTeacher.email || '—'}
               </dd>
             </div>
+            {([
+              ['رقم التسجيل', viewingTeacher.registration_number],
+              ['التخصص / المجال', viewingTeacher.speciality],
+              ['تاريخ الميلاد', viewingTeacher.date_of_birth],
+              ['مكان الميلاد', viewingTeacher.place_of_birth],
+              ['رقم الهاتف', viewingTeacher.phone_number],
+              ['العنوان', viewingTeacher.address],
+              ['الحالة الصحية / ملاحظات طبية', viewingTeacher.medical_condition],
+            ] as const).map(([label, value]) => (
+              <div key={label} className="rounded-xl bg-gray-50 p-4">
+                <dt className="text-xs font-semibold text-gray-500">{tr(label)}</dt>
+                <dd className="mt-1 break-words font-medium text-gray-900">{value || '—'}</dd>
+              </div>
+            ))}
             <div className="rounded-xl bg-gray-50 p-4">
               <dt className="text-xs font-semibold text-gray-500">{tr("الرواية")}</dt>
               <dd className="mt-1 font-medium text-gray-900">{(viewingTeacher.riwaya && tr(viewingTeacher.riwaya)) || '—'}</dd>

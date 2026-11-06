@@ -50,6 +50,9 @@ export const StudentTable: React.FC<StudentTableProps> = ({
               <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider w-16">
                 {t("الصورة")}
               </th>
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider whitespace-nowrap">
+                {t("رقم التسجيل")}
+              </th>
               <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
                 {t("الاسم")}
               </th>
@@ -82,13 +85,13 @@ export const StudentTable: React.FC<StudentTableProps> = ({
           <tbody className="divide-y divide-gray-100">
             {isLoading ? (
               <tr>
-                <td colSpan={12} className="py-16 text-center">
+                <td colSpan={13} className="py-16 text-center">
                   <Spinner size="md" label={t("جاري التحميل...")} />
                 </td>
               </tr>
             ) : students.length === 0 ? (
               <tr>
-                <td colSpan={12} className="py-16 text-center">
+                <td colSpan={13} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <p className="text-sm text-gray-400 font-medium">{t("لا يوجد طلاب")}</p>
                     <p className="text-xs text-gray-300">{t("انقر على إضافة لإضافة طالب جديد")}</p>
@@ -136,6 +139,9 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                     </div>
                   </td>
 
+                  <td className="px-4 py-3.5 text-xs font-mono text-gray-600 whitespace-nowrap" dir="ltr">
+                    {student.registrationNumber || '—'}
+                  </td>
                   <td className="px-4 py-3.5 text-sm font-semibold text-gray-800">
                     {student.firstName}
                   </td>

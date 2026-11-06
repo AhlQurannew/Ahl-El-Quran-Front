@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -9,6 +10,7 @@ import { StudentPhoto } from '@/components/students/StudentPhoto';
 import { GuardianForm, type GuardianFormData } from '@/components/guardians/GuardianForm';
 import type { Student } from '@/types/student';
 import lecturesAPI, { type Lecture } from '@/api/lectures';
+import studentsAPI from '@/app/API/students';
 import guardianAPI, { type GuardianCreatePayload } from '@/app/API/guardian';
 import { mapGuardianResponse, type Guardian } from '@/types/guardian';
 import { t } from '@/i18n';
@@ -39,7 +41,13 @@ const EMPTY_FORM: StudentFormData = {
   photo: '',
   guardianId: undefined,
   photoFile: undefined,
+  registrationNumber: '',
+  enrollmentType: 'internal',
+  startYear: new Date().getFullYear(),
+  medicalCondition: '',
 };
+
+const REGISTRATION_NUMBER = /^[A-Za-z0-9][A-Za-z0-9_/-]{0,29}$/;
 
 export const StudentForm: React.FC<StudentFormProps> = ({
   isOpen,
@@ -67,6 +75,34 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   const [guardianCreateError, setGuardianCreateError] = React.useState('');
 
   const isEditing = !!editingStudent;
+  const [loadingNumber, setLoadingNumber] = React.useState(false);
+
+  const suggestRegistrationNumber = React.useCallback(async () => {
+    setLoadingNumber(true);
+    try {
+      const value = await studentsAPI.getNextRegistrationNumber();
+      setForm((current) => ({ ...current, registrationNumber: value }));
+      setErrors((current) => ({ ...current, registrationNumber: undefined }));
+    } catch (error) {
+      // Not fatal: the server generates one when the field is left empty.
+      console.error('Unable to suggest a registration number:', error);
+    } finally {
+      setLoadingNumber(false);
+    }
+  }, []);
+
+  // New students get the next free ID pre-filled; it stays editable.
+  useEffect(() => {
+    if (!isOpen || editingStudent) return;
+    let active = true;
+    studentsAPI.getNextRegistrationNumber()
+      .then((value) => {
+        // Never overwrite an ID the user already typed.
+        if (active) setForm((current) => (current.registrationNumber ? current : { ...current, registrationNumber: value }));
+      })
+      .catch((error) => console.error('Unable to suggest a registration number:', error));
+    return () => { active = false; };
+  }, [isOpen, editingStudent]);
 
   // Fetch lectures when form opens
   useEffect(() => {
@@ -158,6 +194,16 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     if (!form.username.trim() || !form.username.includes('@')) {
       newErrors.username = t("بريد إلكتروني صحيح مطلوب");
     }
+    const number = form.registrationNumber?.trim() ?? '';
+    if (number && !REGISTRATION_NUMBER.test(number)) {
+      newErrors.registrationNumber = t("يُسمح فقط بالحروف والأرقام و- و_ و/ (30 حرفاً كحد أقصى)");
+    }
+    if (form.startYear !== '' && form.startYear !== undefined) {
+      const year = Number(form.startYear);
+      if (!Number.isInteger(year) || year < 1950 || year > new Date().getFullYear() + 1) {
+        newErrors.startYear = t("سنة غير صالحة");
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -175,7 +221,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   };
 
   const handleCreateGuardian = async (data: GuardianFormData) => {
-    setIsCreatingGuardian(true);
     setGuardianCreateError('');
     const payload: GuardianCreatePayload = {
       guardian_info: {
@@ -194,6 +239,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
 
     if (!(await confirm({ title: t('تأكيد الإضافة'), message: t('هل أنت متأكد من إضافة ولي الأمر {name}؟', { name: `${data.firstName} ${data.lastName}` }), confirmText: t('نعم، أضف') }))) return;
 
+    setIsCreatingGuardian(true);
     try {
       const response = await guardianAPI.createGuardian(payload);
       const guardian = mapGuardianResponse(response);
@@ -250,6 +296,55 @@ export const StudentForm: React.FC<StudentFormProps> = ({
             error={errors.lastName}
           />
         </div>
+
+        {/* School record */}
+        <fieldset className="rounded-xl border border-gray-200 p-3">
+          <legend className="px-1 text-xs font-semibold text-gray-500">{t("الملف المدرسي")}</legend>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <Input
+                label={t("رقم التسجيل")}
+                value={form.registrationNumber ?? ''}
+                onChange={(e) => set('registrationNumber', e.target.value)}
+                placeholder="S2026-0001"
+                maxLength={30}
+                error={errors.registrationNumber}
+                helperText={isEditing ? undefined : t("يُنشأ تلقائياً ويمكن تعديله")}
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => void suggestRegistrationNumber()}
+                    disabled={loadingNumber}
+                    className="pointer-events-auto text-gray-400 hover:text-emerald-600 disabled:opacity-50"
+                    aria-label={t("توليد رقم جديد")}
+                    title={t("توليد رقم جديد")}
+                  >
+                    <RefreshCw size={15} className={loadingNumber ? 'animate-spin' : ''} />
+                  </button>
+                }
+              />
+            </div>
+            <Select
+              label={t("نظام الدراسة")}
+              value={form.enrollmentType || ''}
+              onChange={(e) => set('enrollmentType', e.target.value)}
+              options={[
+                { value: 'internal', label: t("داخلي") },
+                { value: 'external', label: t("خارجي (جزئي)") },
+              ]}
+            />
+            <Input
+              label={t("سنة بداية الدراسة")}
+              type="number"
+              inputMode="numeric"
+              min={1950}
+              max={new Date().getFullYear() + 1}
+              value={form.startYear ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, startYear: e.target.value === '' ? '' : Number(e.target.value) }))}
+              error={errors.startYear}
+            />
+          </div>
+        </fieldset>
 
         {/* Username/Email & Gender */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -342,6 +437,22 @@ export const StudentForm: React.FC<StudentFormProps> = ({
             placeholder="Algerian"
             value={form.nationality}
             onChange={(e) => set('nationality', e.target.value)}
+          />
+        </div>
+
+        {/* Medical */}
+        <div>
+          <label htmlFor="student-medical" className="block text-sm font-semibold text-gray-700 mb-1.5">
+            {t("الحالة الصحية / ملاحظات طبية")}
+          </label>
+          <textarea
+            id="student-medical"
+            value={form.medicalCondition ?? ''}
+            onChange={(e) => set('medicalCondition', e.target.value)}
+            maxLength={2000}
+            rows={2}
+            placeholder={t("مثال: ربو، حساسية... (اتركه فارغاً إن لم توجد)")}
+            className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 hover:border-gray-300 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
           />
         </div>
 

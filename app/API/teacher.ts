@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 import type { AttendanceRecord, LectureDistribution, MemorizationRecord, StatsSummary } from '@/app/API/reports';
 
 import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
+import type { TeacherCreatePayload } from '@/types/teacher';
 
 const axiosGlobal = axios.create({
     baseURL: `${API_URL}/teacher`,
@@ -101,15 +102,15 @@ export interface TeacherAttendancePayload {
 
 
 
-const createTeacher = async (data: {
-    firstname: string;
-    lastname: string;
-    email: string;
-    riwaya: string;
-    password: string;
-}) => {
+const createTeacher = async (data: TeacherCreatePayload) => {
     const res = await axiosGlobal.post("/", data);
     return res.data;
+};
+
+/** Next free teacher ID (T<year>-NNNN) to pre-fill the form. */
+const getNextRegistrationNumber = async (): Promise<string> => {
+    const res = await axiosGlobal.get<{ registration_number: string }>("/next-registration-number");
+    return res.data.registration_number;
 };
 
 const getTeachers = async (skip = 0, limit = 100): Promise<TeacherListResponse> => {
@@ -362,6 +363,7 @@ const getTeacherProgressTimeline = async (params: {
 const teacherAPI = {
     // CRUD
     createTeacher,
+    getNextRegistrationNumber,
     getTeachers,
     getTeacherById,
     updateTeacher,

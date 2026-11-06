@@ -5,7 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
-import { Mail, Calendar, MapPin, Flag, IdCard, BookOpen, type LucideIcon } from 'lucide-react';
+import { Mail, Calendar, MapPin, Flag, IdCard, BookOpen, Hash, School, HeartPulse, type LucideIcon } from 'lucide-react';
 import guardianAPI from '@/app/API/guardian';
 import type { Guardian } from '@/types/guardian';
 import { t } from '@/i18n';
@@ -99,6 +99,14 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
 
         {/* Student Details */}
         <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+          <DetailRow icon={Hash} label={t("رقم التسجيل")} value={student.registrationNumber} />
+          <DetailRow
+            icon={School}
+            label={t("نظام الدراسة")}
+            value={student.enrollmentType === 'external' ? t("خارجي (جزئي)") : student.enrollmentType === 'internal' ? t("داخلي") : undefined}
+          />
+          <DetailRow icon={Calendar} label={t("سنة بداية الدراسة")} value={student.startYear ? String(student.startYear) : undefined} />
+          <DetailRow icon={HeartPulse} label={t("الحالة الصحية / ملاحظات طبية")} value={student.medicalCondition} />
           <DetailRow 
             icon={Mail} 
             label={t("البريد الإلكتروني / اسم المستخدم")} 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { Check, Copy, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -51,6 +52,14 @@ function studentLabel(student: GuardianStudentOption): string {
   return student.username ? `${fullName} (${student.username})` : fullName;
 }
 
+/** 10-character password without look-alike characters (0/O, 1/l/I). */
+function generatePassword(length = 10): string {
+  const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const values = new Uint32Array(length);
+  crypto.getRandomValues(values);
+  return Array.from(values, (v) => alphabet[v % alphabet.length]).join('');
+}
+
 export const GuardianForm: React.FC<GuardianFormProps> = ({
   isOpen,
   onClose,
@@ -72,7 +81,11 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
     address: editingGuardian.address ?? '',
     username: editingGuardian.username,
     studentIds: editingGuardian.studentIds,
-  } : EMPTY_FORM);
+  } : { ...EMPTY_FORM, password: generatePassword() });
+  // New accounts: the username follows the name (firstname_lastname) until edited by hand.
+  const [usernameTouched, setUsernameTouched] = useState(Boolean(editingGuardian));
+  const [suggesting, setSuggesting] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [students, setStudents] = useState<GuardianStudentOption[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
   const [studentLoadError, setStudentLoadError] = useState('');
@@ -100,6 +113,37 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
     void loadStudents();
     return () => { active = false; };
   }, [createOnly, editingGuardian, isOpen]);
+
+  useEffect(() => {
+    if (usernameTouched || (!form.firstName.trim() && !form.lastName.trim())) return;
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const username = await guardianAPI.getUsernameSuggestion(form.firstName, form.lastName);
+        if (active) {
+          setForm((current) => ({ ...current, username }));
+          setErrors((current) => ({ ...current, username: undefined }));
+        }
+      } catch (error) {
+        console.error('Unable to suggest a username:', error);
+      } finally {
+        if (active) setSuggesting(false);
+      }
+    }, 400);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [form.firstName, form.lastName, usernameTouched]);
+
+  const copyCredentials = async () => {
+    try {
+      await navigator.clipboard.writeText(`${t('اسم المستخدم')}: ${form.username}
+${t('كلمة المرور')}: ${form.password}`);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable (e.g. non-secure context): the values stay visible to copy by hand.
+    }
+  };
 
   const selectedStudents = useMemo(
     () => new Set(form.studentIds),
@@ -129,6 +173,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
     if (!form.relationship.trim()) nextErrors.relationship = t("صلة القرابة مطلوبة");
     if (!createOnly && form.studentIds.length === 0) nextErrors.studentIds = t("اختر طالباً واحداً على الأقل");
     if (!form.username.trim()) nextErrors.username = t("اسم مستخدم الحساب مطلوب");
+    else if (/\s/.test(form.username.trim())) nextErrors.username = t("لا يمكن أن يحتوي اسم المستخدم على مسافات");
     if (!isEditing && !form.password.trim()) nextErrors.password = t("كلمة المرور مطلوبة لإنشاء الحساب");
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       nextErrors.email = t("البريد الإلكتروني غير صحيح");
@@ -177,20 +222,59 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
           <Input
             label={t("اسم مستخدم الحساب *")}
             value={form.username}
-            onChange={(event) => setField('username', event.target.value)}
+            autoComplete="off"
+            onChange={(event) => { setUsernameTouched(true); setField('username', event.target.value); }}
             error={errors.username}
+            helperText={isEditing ? undefined : t("يُنشأ تلقائياً من الاسم واللقب ويمكن تعديله")}
+            rightIcon={!isEditing ? (
+              <button
+                type="button"
+                onClick={() => setUsernameTouched(false)}
+                disabled={suggesting || (!form.firstName.trim() && !form.lastName.trim())}
+                className="pointer-events-auto text-gray-400 hover:text-emerald-600 disabled:opacity-40"
+                aria-label={t("إنشاء اسم المستخدم من الاسم")}
+                title={t("إنشاء اسم المستخدم من الاسم")}
+              >
+                <RefreshCw size={15} className={suggesting ? 'animate-spin' : ''} />
+              </button>
+            ) : undefined}
           />
           <Input
             label={isEditing ? t("كلمة المرور الجديدة (اختياري)") : t("كلمة مرور الحساب *")}
-            type="password"
+            // Visible when creating so it can be handed to the parent; masked when editing.
+            type={isEditing ? 'password' : 'text'}
             autoComplete="new-password"
             value={form.password}
             onChange={(event) => setField('password', event.target.value)}
             error={errors.password}
             helperText={isEditing ? t("اترك الحقل فارغاً للإبقاء على كلمة المرور الحالية.") : undefined}
+            rightIcon={!isEditing ? (
+              <button
+                type="button"
+                onClick={() => setField('password', generatePassword())}
+                className="pointer-events-auto text-gray-400 hover:text-emerald-600"
+                aria-label={t("توليد كلمة مرور")}
+                title={t("توليد كلمة مرور")}
+              >
+                <RefreshCw size={15} />
+              </button>
+            ) : undefined}
           />
         </div>
-        {!isEditing && <p className="-mt-3 text-xs text-gray-500">{t("اسم المستخدم وكلمة المرور بيانات الحساب، وهي منفصلة عن بريد التواصل.")}</p>}
+        {!isEditing && (
+          <div className="-mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-gray-500">{t("اسم المستخدم وكلمة المرور بيانات الحساب، وهي منفصلة عن بريد التواصل.")}</p>
+            <button
+              type="button"
+              onClick={() => void copyCredentials()}
+              disabled={!form.username || !form.password}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"
+            >
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? t("تم النسخ") : t("نسخ بيانات الدخول")}
+            </button>
+          </div>
+        )}
 
         {!createOnly && <section className="space-y-2 border-t border-gray-100 pt-4">
           <div className="flex items-center justify-between gap-2">

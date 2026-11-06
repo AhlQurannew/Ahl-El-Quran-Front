@@ -39,11 +39,13 @@ import {
   Images,
   NotebookPen,
   ChartNoAxesCombined,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAdminView } from '@/contexts/AdminViewContext';
 import { useAuthStore } from '@/store/authStore';
 import { AccountAvatar } from '@/components/ui/AccountAvatar';
+import { logout } from '@/utils/auth';
 import { t } from '@/i18n';
 
 /**
@@ -305,6 +307,45 @@ export const Sidebar: React.FC = () => {
     </nav>
   );
 
+  const renderAccountFooter = (isCollapsed = false) => (
+    <div className={cn('space-y-1 border-t border-white/10 px-3 py-3', isCollapsed && 'px-2')}>
+      <Link
+        href={profileHref}
+        onClick={() => setMobileOpen(false)}
+        title={t('الملف الشخصي')}
+        className={cn('flex items-center gap-3 rounded-xl px-1 py-1 transition-colors hover:bg-white/10', isCollapsed && 'justify-center gap-0 px-0')}
+      >
+        <AccountAvatar name={userName} className="h-9 w-9 text-sm ring-2 ring-white/30" />
+        <div className={cn(
+          'min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+          isCollapsed ? 'max-w-0 opacity-0' : 'max-w-45 opacity-100'
+        )} aria-hidden={isCollapsed}>
+          <p className="truncate text-sm font-semibold text-white">{userName}</p>
+          <p className="truncate text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{userRole}</p>
+        </div>
+      </Link>
+      <button
+        type="button"
+        onClick={() => logout()}
+        // While an admin views a school, leaving goes through "back to admin" instead.
+        disabled={isAdminViewing}
+        title={isAdminViewing ? t('استخدم زر "العودة للوحة التحكم" للخروج من عرض المدرسة') : t('تسجيل الخروج')}
+        aria-label={t('تسجيل الخروج')}
+        className={cn(
+          'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80',
+          isAdminViewing ? 'cursor-not-allowed opacity-40' : 'hover:bg-white/10',
+          isCollapsed && 'justify-center gap-0 px-2'
+        )}
+        style={{ color: 'rgba(255, 255, 255, 0.9)' }}
+      >
+        <LogOut size={18} className="shrink-0" aria-hidden="true" />
+        <span className={cn('overflow-hidden whitespace-nowrap transition-all duration-300', isCollapsed ? 'max-w-0 opacity-0' : 'max-w-45 opacity-100')}>
+          {t('تسجيل الخروج')}
+        </span>
+      </button>
+    </div>
+  );
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -368,23 +409,8 @@ export const Sidebar: React.FC = () => {
 
         {renderNavContent(collapsed)}
 
-        {/* User profile at bottom */}
-        <div className={cn('border-t border-white/10 px-4 py-4', collapsed && 'px-2')}>
-          <Link
-            href={profileHref}
-            title={t('الملف الشخصي')}
-            className={cn('flex items-center gap-3 rounded-xl transition-colors hover:bg-white/10', collapsed && 'justify-center gap-0')}
-          >
-            <AccountAvatar name={userName} className="h-9 w-9 text-sm ring-2 ring-white/30" />
-            <div className={cn(
-              'min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
-              collapsed ? 'max-w-0 opacity-0' : 'max-w-45 opacity-100'
-            )} aria-hidden={collapsed}>
-              <p className="truncate text-sm font-semibold text-white">{userName}</p>
-              <p className="truncate text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{userRole}</p>
-            </div>
-          </Link>
-        </div>
+        {/* Account: profile + sign out, at the bottom for every role */}
+        {renderAccountFooter(collapsed)}
       </aside>
 
       {/* Mobile: hamburger button */}
@@ -420,6 +446,7 @@ export const Sidebar: React.FC = () => {
               </button>
             </div>
             {renderNavContent()}
+            {renderAccountFooter()}
           </aside>
         </>
       )}

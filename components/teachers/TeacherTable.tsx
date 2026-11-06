@@ -56,6 +56,9 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
               </th>
               {/* Spacer/Plus Header */}
               <th className="px-2 py-3.5 w-10" />
+              <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider whitespace-nowrap">
+                {t("رقم التسجيل")}
+              </th>
               <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
                 {t("الاسم")}
               </th>
@@ -79,13 +82,13 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
           <tbody className="divide-y divide-gray-100">
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="py-16 text-center">
+                <td colSpan={9} className="py-16 text-center">
                   <Spinner size="md" label={t("جاري التحميل...")} />
                 </td>
               </tr>
             ) : teachers.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-16 text-center">
+                <td colSpan={9} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <p className="text-sm text-gray-400 font-medium">{t("لا يوجد معلمين")}</p>
                     <p className="text-xs text-gray-300">{t("انقر على إضافة لإضافة معلم جديد")}</p>
@@ -125,6 +128,9 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                       </button>
                     </td>
 
+                    <td className="px-4 py-3.5 text-xs font-mono text-gray-600 whitespace-nowrap" dir="ltr">
+                      {teacher.registration_number || '—'}
+                    </td>
                     <td className="px-4 py-3.5 text-sm font-semibold text-gray-800">
                       {teacher.firstname}
                     </td>

@@ -102,6 +102,12 @@ export interface CreateStudentPayload {
     guardian: Guardian;
     lectures: any[];
     formalEducationInfo: FormalEducationInfo;
+    schoolInfo?: {
+        registrationNumber?: string;
+        enrollmentType?: 'internal' | 'external' | null;
+        startYear?: number | null;
+    };
+    medicalInfo?: { medicalCondition?: string };
 }
 
 export interface UpdateStudentPayload {
@@ -151,6 +157,12 @@ const getStudentPhoto = async (student_id: number): Promise<Blob> => {
         responseType: "blob",
     });
     return res.data;
+};
+
+/** Next free student ID (S<year>-NNNN) to pre-fill the form. */
+const getNextRegistrationNumber = async (): Promise<string> => {
+    const res = await axiosGlobal.get<{ registration_number: string }>("/next-registration-number");
+    return res.data.registration_number;
 };
 
 const getStudents = async () => {
@@ -280,6 +292,7 @@ const studentsAPI = {
     uploadStudentPhoto,
     getStudentPhoto,
     getStudents,
+    getNextRegistrationNumber,
     getStudent,
     updateStudent,
     updateStudentFull,
