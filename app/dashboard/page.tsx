@@ -16,6 +16,7 @@ import {
   Eye,
   Images,
   Settings,
+  ChartNoAxesCombined,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -89,6 +90,12 @@ export default function AdminDashboard() {
   }, []);
 
   const quickLinks: { href: string; label: string; hint: string; icon: React.ReactNode }[] = [
+    {
+      href: "/dashboard/analytics",
+      label: t("لوحة التحليلات"),
+      hint: t("مؤشرات تفاعلية وتقرير PDF احترافي"),
+      icon: <ChartNoAxesCombined size={18} />,
+    },
     {
       href: "/dashboard/schools?new=1",
       label: t("إضافة مدرسة جديدة"),

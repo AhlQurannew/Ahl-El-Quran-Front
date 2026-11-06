@@ -38,6 +38,7 @@ import {
   UserRound,
   Images,
   NotebookPen,
+  ChartNoAxesCombined,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAdminView } from '@/contexts/AdminViewContext';
@@ -76,6 +77,7 @@ const adminNavGroups: NavGroup[] = [
   {
     items: [
       { label: 'لوحة التحكم', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
+      { label: 'التحليلات', href: '/dashboard/analytics', icon: <ChartNoAxesCombined size={18} /> },
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
       { label: 'صور صفحة الدخول', href: '/dashboard/login-slides', icon: <Images size={18} /> },
@@ -272,7 +274,7 @@ export const Sidebar: React.FC = () => {
                       isCollapsed && 'justify-center gap-0 px-2'
                     )}
                     style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.85)' }}
-                    title={isCollapsed ? t(item.label) : undefined}
+                    title={t(item.label)}
                   >
                     <span className="flex shrink-0 items-center" style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.7)' }}>
                       {item.icon}
@@ -280,7 +282,7 @@ export const Sidebar: React.FC = () => {
                     <span
                       aria-hidden={isCollapsed}
                       className={cn(
-                        'min-w-0 flex-1 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+                        'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap transition-all duration-300 ease-in-out',
                         isCollapsed ? 'max-w-0 opacity-0' : 'max-w-50 opacity-100'
                       )}
                     >

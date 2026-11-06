@@ -38,3 +38,46 @@ body {
   color: var(--foreground);
   font-family: 'Cairo', Arial, Helvetica, sans-serif;
 }
+
+/* ---------- Analytics PDF report (app/dashboard/analytics/report) ---------- */
+@page {
+  size: A4;
+  margin: 14mm 14mm 16mm;
+  @bottom-center {
+    content: counter(page) " / " counter(pages);
+    font-family: 'Cairo', sans-serif;
+    font-size: 9px;
+    color: #898781;
+  }
+}
+
+.report-root {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.report-cover {
+  min-height: calc(297mm - 28mm);
+}
+
+.report-break-before {
+  break-before: page;
+}
+
+.report-avoid-break {
+  break-inside: avoid;
+}
+
+@media print {
+  .report-no-print {
+    display: none !important;
+  }
+
+  .report-cover {
+    min-height: calc(297mm - 30mm);
+  }
+
+  .report-root thead {
+    display: table-header-group; /* repeat table headers on every page */
+  }
+}

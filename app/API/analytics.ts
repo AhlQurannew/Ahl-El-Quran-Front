@@ -1,0 +1,119 @@
+import axios from 'axios';
+import { setupInterceptors } from '@/app/API/interceptors';
+import { API_BASE_URL } from '@/utils/apiConfig';
+
+export type Granularity = 'day' | 'week' | 'month';
+export type AnalyticsLevel = 'platform' | 'school' | 'lecture' | 'student';
+export type Health = 'good' | 'warning' | 'critical' | 'insufficient';
+export type AttendanceStatusKey = 'present' | 'late' | 'excused' | 'absent';
+export type AchievementTypeKey = 'normal' | 'small' | 'big';
+
+export interface AnalyticsQuery {
+  date_from?: string;
+  date_to?: string;
+  granularity?: Granularity;
+  school_id?: number;
+  lecture_id?: number;
+  student_id?: number;
+}
+
+export interface PeriodSummary {
+  attendance_records: number;
+  attendance_rate: number | null;
+  status_breakdown: Record<AttendanceStatusKey, number>;
+  achievements: number;
+  pages: number;
+  pages_by_type: Record<AchievementTypeKey, number>;
+}
+
+export interface AnalyticsKpis extends PeriodSummary {
+  students: number;
+  active_students: number;
+  schools: number;
+  lectures: number;
+  teachers: number | null;
+  previous: PeriodSummary;
+}
+
+export interface SeriesPoint extends Record<AttendanceStatusKey, number> {
+  bucket: string;
+  attendance_rate: number | null;
+  attendance_records: number;
+  achievements: number;
+  pages: number;
+  pages_normal: number;
+  pages_small: number;
+  pages_big: number;
+}
+
+export interface BreakdownRow {
+  id: number;
+  name: string;
+  name_en?: string | null;
+  students: number;
+  active_students: number;
+  teachers?: number;
+  lectures?: number;
+  attendance_rate: number | null;
+  attendance_records: number;
+  status_breakdown: Record<AttendanceStatusKey, number>;
+  achievements: number;
+  pages: number;
+  last_activity: string | null;
+  health: Health;
+}
+
+export interface StudentAlert {
+  id: number;
+  name: string;
+  name_en?: string | null;
+  school?: string | null;
+  reason: 'low_attendance' | 'no_activity';
+  attendance_rate: number | null;
+  attendance_records: number;
+  pages: number;
+}
+
+export interface ScopeRef {
+  id: number;
+  name: string;
+  name_en?: string | null;
+}
+
+export interface StudentDetail {
+  enrollment_date: string | null;
+  sex: string | null;
+  lectures: ScopeRef[];
+  attendance: { day: string; status: AttendanceStatusKey; lecture: string | null }[];
+  achievements: { day: string; type: AchievementTypeKey; pages: number }[];
+  cumulative_pages: { day: string; pages: number }[];
+}
+
+export interface AnalyticsData {
+  level: AnalyticsLevel;
+  scope: { school: ScopeRef | null; lecture: ScopeRef | null; student: ScopeRef | null };
+  period: { from: string; to: string; granularity: Granularity; previous_from: string; previous_to: string };
+  kpis: AnalyticsKpis;
+  series: SeriesPoint[];
+  breakdown: { level: 'school' | 'lecture' | 'student' | null; rows: BreakdownRow[] };
+  alerts: StudentAlert[];
+  student: StudentDetail | null;
+  generated_at: string;
+}
+
+const analyticsClient = axios.create({
+  baseURL: `${API_BASE_URL}/admin/analytics`,
+  headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+});
+// Platform-wide admin data: never scope it to the school the admin may be "viewing".
+setupInterceptors(analyticsClient, false);
+
+const getAnalytics = async (query: AnalyticsQuery): Promise<AnalyticsData> => {
+  const params = Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''));
+  const res = await analyticsClient.get<AnalyticsData>('/', { params });
+  return res.data;
+};
+
+const analyticsAPI = { getAnalytics };
+
+export default analyticsAPI;
