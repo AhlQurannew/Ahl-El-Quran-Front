@@ -76,7 +76,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     const wsHost = baseUrl.replace(/^https?:\/\//, '');
 
     const chatSchool = getChatSchool();
-    const schoolIdParam = chatSchool ? `&school_id=${chatSchool}` : '';
+    const schoolIdParam = chatSchool !== null ? `&school_id=${chatSchool}` : '';
 
     // Pass ngrok-skip-browser-warning to bypass ngrok interstitial warning on WebSocket upgrade
     const ngrokParam = wsHost.includes('ngrok') ? '&ngrok-skip-browser-warning=true' : '';

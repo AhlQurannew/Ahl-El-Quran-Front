@@ -1,3 +1,6 @@
+/** Room 0: the staff room of the administrator and the inspectors (no school). */
+export const STAFF_ROOM = 0;
+
 /**
  * School whose chat room is open. The admin chat page (/dashboard/messages) sets it explicitly;
  * otherwise it is the school an admin is viewing (sessionStorage), and null for school accounts.
@@ -9,7 +12,7 @@ export const setChatSchool = (schoolId: number | null) => {
 };
 
 export const getChatSchool = (): number | null => {
-  if (explicitChatSchool) return explicitChatSchool;
+  if (explicitChatSchool !== null) return explicitChatSchool;
   if (typeof window === 'undefined') return null;
   try {
     const stored = sessionStorage.getItem('admin_viewing_school');

@@ -1460,6 +1460,10 @@ const en: Record<string, string> = {
   "الحساب غير موجود": "Account not found",
   "لا يمكنك تغيير حالة حسابك الخاص": "You cannot change the status of your own account",
   "لا يمكنك تغيير حالة هذا الحساب": "You cannot change the status of this account",
+  "المسؤول والمفتشون": "Administrator & inspectors",
+  "غرفة المسؤول والمفتشين": "Administrator & inspectors room",
+  "غرفة خاصة لا تراها المدارس": "Private room, not visible to schools",
+  "هذه الغرفة مخصصة للمسؤول والمفتشين": "This room is reserved for the administrator and inspectors",
 };
 
 export default en;

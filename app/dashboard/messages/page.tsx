@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Loader2, MessageSquare, School, Search } from 'lucide-react';
+import { ArrowRight, Loader2, MessageSquare, School, Search, ShieldCheck } from 'lucide-react';
+import { STAFF_ROOM } from '@/utils/chatSchool';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MessagesPage } from '@/components/messages/MessagesPage';
 import adminAPI, { schoolImageSrc } from '@/app/API/admin';
@@ -27,6 +28,7 @@ export default function AdminMessagesPage() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<SchoolRow | null>(null);
+  const staffRoom: SchoolRow = { id: STAFF_ROOM, school_name: t('المسؤول والمفتشون'), president_name: '', student_count: 0 };
 
   useEffect(() => {
     let active = true;
@@ -59,6 +61,23 @@ export default function AdminMessagesPage() {
             </label>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-2">
+            {/* Staff room: the administrator and the inspectors only */}
+            <button
+              type="button"
+              onClick={() => setSelected(staffRoom)}
+              aria-current={selected?.id === STAFF_ROOM ? 'true' : undefined}
+              className={cn('mb-2 flex w-full items-center gap-3 rounded-xl border p-2 text-start transition-colors',
+                selected?.id === STAFF_ROOM ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-indigo-100 bg-indigo-50/60 hover:bg-indigo-50')}
+            >
+              <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', selected?.id === STAFF_ROOM ? 'bg-white/20' : 'bg-indigo-600 text-white')}>
+                <ShieldCheck size={18} aria-hidden="true" />
+              </span>
+              <span className="min-w-0">
+                <span className={cn('block truncate text-sm font-semibold', selected?.id === STAFF_ROOM ? 'text-white' : 'text-indigo-900')}>{t('المسؤول والمفتشون')}</span>
+                <span className={cn('block truncate text-xs', selected?.id === STAFF_ROOM ? 'text-white/80' : 'text-indigo-700/80')}>{t('غرفة خاصة لا تراها المدارس')}</span>
+              </span>
+            </button>
+            <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{t('المدارس')}</p>
             {loading ? (
               <div className="flex justify-center py-10"><Loader2 className="animate-spin text-gray-400" size={22} /></div>
             ) : error ? (
@@ -107,7 +126,9 @@ export default function AdminMessagesPage() {
                 <button type="button" onClick={() => setSelected(null)} className="rounded-lg p-1.5 text-gray-600 hover:bg-gray-100 lg:hidden" aria-label={t('رجوع')}>
                   <ArrowRight size={18} className="ltr:rotate-180" />
                 </button>
-                <p className="truncate text-sm font-semibold text-gray-800">{t('غرفة المحادثة')} · {selected.school_name}</p>
+                <p className="truncate text-sm font-semibold text-gray-800">
+                  {selected.id === STAFF_ROOM ? t('غرفة المسؤول والمفتشين') : `${t('غرفة المحادثة')} · ${selected.school_name}`}
+                </p>
               </div>
               <div className="min-h-0 flex-1">
                 {/* key: a fresh room (history + socket) per school */}

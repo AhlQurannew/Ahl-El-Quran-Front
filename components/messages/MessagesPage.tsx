@@ -27,7 +27,7 @@ interface TypingUser {
 export const MessagesPage: React.FC<{ schoolId?: number }> = ({ schoolId }) => {
   // Layout effect: set before the history load and the WebSocket connect (passive effects) run.
   useLayoutEffect(() => {
-    if (!schoolId) return;
+    if (schoolId === undefined) return;
     setChatSchool(schoolId);
     return () => setChatSchool(null);
   }, [schoolId]);

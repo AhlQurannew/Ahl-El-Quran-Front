@@ -14,6 +14,7 @@ export const errorMessages: Record<string, string> = {
   'You cannot change your own account': 'لا يمكنك تغيير حالة حسابك الخاص',
   'You cannot change this account': 'لا يمكنك تغيير حالة هذا الحساب',
   'Account not found': 'الحساب غير موجود',
+  'This room is reserved for the administrator and inspectors': 'هذه الغرفة مخصصة للمسؤول والمفتشين',
   'The password must differ from the username and e-mail': 'يجب أن تختلف كلمة المرور عن اسم المستخدم والبريد الإلكتروني',
   'Email already registered': 'البريد الإلكتروني مسجل بالفعل',
   'Account is inactive': 'الحساب غير نشط',

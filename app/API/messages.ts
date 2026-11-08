@@ -23,7 +23,7 @@ axiosGlobal.interceptors.request.use((config) => {
 
     if (typeof window !== 'undefined') {
         const chatSchool = getChatSchool();
-        if (chatSchool) {
+        if (chatSchool !== null) {
             try {
                 const id = chatSchool;
                 if (config.method?.toLowerCase() === 'get' || config.method?.toLowerCase() === 'delete') {

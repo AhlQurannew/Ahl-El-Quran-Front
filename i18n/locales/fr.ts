@@ -1460,6 +1460,10 @@ const fr: Record<string, string> = {
   "الحساب غير موجود": "Compte introuvable",
   "لا يمكنك تغيير حالة حسابك الخاص": "Vous ne pouvez pas changer le statut de votre propre compte",
   "لا يمكنك تغيير حالة هذا الحساب": "Vous ne pouvez pas changer le statut de ce compte",
+  "المسؤول والمفتشون": "Administrateur et inspecteurs",
+  "غرفة المسؤول والمفتشين": "Salle administrateur et inspecteurs",
+  "غرفة خاصة لا تراها المدارس": "Salle privée, invisible pour les écoles",
+  "هذه الغرفة مخصصة للمسؤول والمفتشين": "Cette salle est réservée à l'administrateur et aux inspecteurs",
 };
 
 export default fr;
