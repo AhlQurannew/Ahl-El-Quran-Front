@@ -20,7 +20,7 @@ export const ATTENDANCE_LABELS: Record<ExamAttendance, string> = {
   excused: 'معذور',
 };
 
-export const EXAM_MANAGER_ROLES = ['PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR', 'ADMIN', 'TEACHER'];
+export const EXAM_MANAGER_ROLES = ['PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR', 'ADMIN', 'INSPECTOR', 'TEACHER'];
 
 export const formatMark = (value: number | null | undefined, digits = 2) =>
   value == null ? '—' : new Intl.NumberFormat(getLocale(), { maximumFractionDigits: digits }).format(value);

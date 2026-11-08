@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
+import { setChatSchool } from '@/utils/chatSchool';
 import { MessageCircle, WifiOff, Wifi, RefreshCw } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
@@ -22,7 +23,15 @@ interface TypingUser {
   sender_name: string;
 }
 
-export const MessagesPage: React.FC = () => {
+/** schoolId: open this school's room (admin chat page); otherwise the account's / viewed school. */
+export const MessagesPage: React.FC<{ schoolId?: number }> = ({ schoolId }) => {
+  // Layout effect: set before the history load and the WebSocket connect (passive effects) run.
+  useLayoutEffect(() => {
+    if (!schoolId) return;
+    setChatSchool(schoolId);
+    return () => setChatSchool(null);
+  }, [schoolId]);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
@@ -47,7 +56,7 @@ export const MessagesPage: React.FC = () => {
       if (adminView) hasAdminSession = true;
     }
 
-    if (rawUserRole === 'admin' || rawEffRole === 'admin') return 'admin';
+    if (rawUserRole === 'admin' || rawUserRole === 'inspector' || rawEffRole === 'admin') return 'admin';
     if (rawUserRole === 'president' || hasAdminSession || isAdminViewing) return 'president';
     if (rawUserRole === 'student' || rawEffRole === 'student') return 'student';
     if (rawUserRole === 'guardian' || rawEffRole === 'guardian') return 'guardian';

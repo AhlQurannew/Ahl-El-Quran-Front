@@ -1,6 +1,7 @@
 ﻿import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 import type { MessageResponse } from "@/types/message";
+import { getChatSchool } from "@/utils/chatSchool";
 
 import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
 
@@ -21,10 +22,10 @@ axiosGlobal.interceptors.request.use((config) => {
     }
 
     if (typeof window !== 'undefined') {
-        const adminViewData = sessionStorage.getItem('admin_viewing_school');
-        if (adminViewData) {
+        const chatSchool = getChatSchool();
+        if (chatSchool) {
             try {
-                const { id } = JSON.parse(adminViewData);
+                const id = chatSchool;
                 if (config.method?.toLowerCase() === 'get' || config.method?.toLowerCase() === 'delete') {
                     config.params = { ...config.params, school_id: id };
                 } else if (['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '')) {

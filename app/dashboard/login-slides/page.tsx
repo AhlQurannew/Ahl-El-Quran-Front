@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 import { SLIDE_INTERVAL_MS } from '@/components/login/LoginSlideshow';
+import { useAdminTheme } from '@/utils/adminTheme';
 import siteAPI, { LoginSlide } from '@/app/API/site';
 import { t } from '@/i18n';
 import { describeError } from '@/utils/errorMessages';
@@ -15,6 +16,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 export default function LoginSlidesPage() {
+  const { isInspector } = useAdminTheme();
   const confirm = useConfirm();
   const inputRef = useRef<HTMLInputElement>(null);
   const [slides, setSlides] = useState<LoginSlide[]>([]);
@@ -115,6 +117,16 @@ export default function LoginSlidesPage() {
       showToast('error', describeError(error, t('تعذر تغيير ترتيب الصور')));
     }
   };
+
+  if (isInspector) {
+    return (
+      <AppLayout title="صور صفحة الدخول" breadcrumb="لوحة التحكم / صور صفحة الدخول">
+        <div role="alert" className="mx-auto max-w-xl rounded-2xl border border-indigo-200 bg-indigo-50 p-6 text-center text-sm text-indigo-900">
+          {t('صور صفحة الدخول يديرها المسؤول فقط.')}
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="صور صفحة الدخول" breadcrumb="لوحة التحكم / صور صفحة الدخول">

@@ -87,7 +87,7 @@ export default function AddLectureModal({
         try {
           // Get admin viewing school context if user is admin
           let school_id: number | undefined;
-          if (user?.role === 'ADMIN') {
+          if (user?.role === 'ADMIN' || user?.role === 'INSPECTOR') {
             const viewingSchool = typeof window !== 'undefined' 
               ? sessionStorage.getItem('admin_viewing_school')
               : null;

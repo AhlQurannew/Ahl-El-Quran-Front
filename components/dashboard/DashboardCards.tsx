@@ -45,7 +45,8 @@ export function DashboardCards() {
   const user = useAuthStore((state) => state.user);
   const { isResolved: isAdminViewResolved, isAdminViewing, viewingSchoolId } = useAdminView();
   const isTeacher = user?.role === 'TEACHER';
-  const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT';
+  // An admin or inspector viewing a school sees it as its chief supervisor does.
+  const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT' || isAdminViewing;
   const isSupervisor = user?.role === 'SUPERVISOR';
 
   const [stats, setStats] = useState<StatsSummary | null>(null);

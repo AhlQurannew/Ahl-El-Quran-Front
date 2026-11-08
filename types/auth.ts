@@ -3,7 +3,7 @@
   email: string;
   firstname: string;
   lastname: string;
-  role: 'ADMIN' | 'PRESIDENT' | 'CHIEF_SUPERVISOR' | 'SUPERVISOR' | 'TEACHER' | 'GUARDIAN' | 'STUDENT';
+  role: 'ADMIN' | 'INSPECTOR' | 'PRESIDENT' | 'CHIEF_SUPERVISOR' | 'SUPERVISOR' | 'TEACHER' | 'GUARDIAN' | 'STUDENT';
   is_active: boolean;
 }
 

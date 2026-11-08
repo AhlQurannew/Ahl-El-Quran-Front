@@ -16,7 +16,8 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { LoginSlideshow } from '@/components/login/LoginSlideshow';
 
 const ROLES = [
-  { value: 'PRESIDENT', label: 'الرئيس' },
+  // Administrator and inspectors (مفتش) sign in here; the API tells which one it is.
+  { value: 'PRESIDENT', label: 'المسؤول / المفتش' },
   { value: 'CHIEF_SUPERVISOR', label: 'المشرف العام' },
   { value: 'SUPERVISOR', label: 'المشرف' },
   { value: 'TEACHER', label: 'المعلم' },
@@ -79,9 +80,12 @@ export default function LoginPage() {
           is_active: true
         };
         setUser(loggedUser);
-        setAuthCookies(res.access_token, role);
+        // The account's real role (ADMIN or INSPECTOR for the admin login), not the option picked in the list
+        const accountRole = String(loggedUser.role || role).toUpperCase();
+        setAuthCookies(res.access_token, accountRole);
         showToast(t("تم تسجيل الدخول بنجاح"), 'success');
-        setTimeout(() => router.push(role === 'ADMIN' || role === 'PRESIDENT' ? '/dashboard' : role === 'GUARDIAN' ? '/guardians' : '/students'), 500);
+        const adminArea = ['ADMIN', 'INSPECTOR', 'PRESIDENT'].includes(accountRole);
+        setTimeout(() => router.push(adminArea ? '/dashboard' : accountRole === 'GUARDIAN' ? '/guardians' : '/students'), 500);
       } else {
         showToast(res?.message || t("فشل تسجيل الدخول"), 'error');
       }

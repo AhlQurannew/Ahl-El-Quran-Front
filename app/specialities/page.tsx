@@ -28,7 +28,7 @@ interface FormState {
 }
 
 const EMPTY: FormState = { name: '', description: '', is_common: false, lectures: {} };
-const MANAGER_ROLES = ['PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR', 'ADMIN'];
+const MANAGER_ROLES = ['PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR', 'ADMIN', 'INSPECTOR'];
 
 /** One accent per card, in a fixed order (never cycled by rank), only to tell cards apart at a glance. */
 const ACCENTS = [

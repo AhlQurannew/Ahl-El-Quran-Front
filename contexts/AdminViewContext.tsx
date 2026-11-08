@@ -62,7 +62,7 @@ export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const accessToken = useAuthStore((state) => state.accessToken);
   const setEffectiveRole = useAuthStore((state) => state.setEffectiveRole);
   const storedToken = typeof window === 'undefined' ? null : localStorage.getItem('access_token');
-  const isAdminSession = user?.role?.toUpperCase() === 'ADMIN' || tokenIsAdmin(accessToken || storedToken);
+  const isAdminSession = ['ADMIN', 'INSPECTOR'].includes(user?.role?.toUpperCase() ?? '') || tokenIsAdmin(accessToken || storedToken);
   const [isAdminViewing, setIsAdminViewing] = useState(false);
   const [isResolved, setIsResolved] = useState(false);
   const [viewingSchoolId, setViewingSchoolId] = useState<number | null>(null);

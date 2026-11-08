@@ -42,7 +42,9 @@ import {
   LogOut,
   Layers,
   FileCheck2,
+  ShieldCheck,
 } from 'lucide-react';
+import { useAdminTheme } from '@/utils/adminTheme';
 import { cn } from '@/utils/cn';
 import { useAdminView } from '@/contexts/AdminViewContext';
 import { useAuthStore } from '@/store/authStore';
@@ -84,6 +86,8 @@ const adminNavGroups: NavGroup[] = [
       { label: 'التحليلات', href: '/dashboard/analytics', icon: <ChartNoAxesCombined size={18} /> },
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
+      { label: 'المحادثات', href: '/dashboard/messages', icon: <MessageSquare size={18} /> },
+      { label: 'المفتشون', href: '/dashboard/inspectors', icon: <ShieldCheck size={18} /> },
       { label: 'صور صفحة الدخول', href: '/dashboard/login-slides', icon: <Images size={18} /> },
       { label: 'الملف الشخصي والإعدادات', href: '/dashboard/settings', icon: <Settings size={18} /> },
     ],
@@ -203,12 +207,18 @@ export const Sidebar: React.FC = () => {
   
   // Determine if logged-in user is a teacher
   const isTeacher = user?.role === 'TEACHER';
-  const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT';
+  // An admin or inspector viewing a school sees it as its chief supervisor does.
+  const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT' || isAdminViewing;
+  const adminTheme = useAdminTheme();
+  // Inspectors: same admin area, minus the site settings and the inspector accounts.
+  const INSPECTOR_HIDDEN = ['/dashboard/login-slides', '/dashboard/inspectors'];
   const isSupervisor = user?.role === 'SUPERVISOR';
 
   // Choose navigation based on role
   const navGroups = isAdmin
-    ? adminNavGroups
+    ? (adminTheme.isInspector
+      ? adminNavGroups.map((group) => ({ ...group, items: group.items.filter((item) => !INSPECTOR_HIDDEN.includes(item.href)) }))
+      : adminNavGroups)
     : isTeacher
     ? teacherNavGroups
     : isSupervisor
@@ -221,7 +231,7 @@ export const Sidebar: React.FC = () => {
   // - المعلم (TEACHER): Sky Blue
   // - المسؤول (ADMIN): Gold / Amber
   const sidebarGradient = isAdmin
-    ? 'linear-gradient(to bottom, #C8963E, #B8832E)'
+    ? `linear-gradient(to bottom, ${adminTheme.primary}, ${adminTheme.dark})`
     : isChiefSupervisor
     ? 'linear-gradient(to bottom, #831843, #500724)'
     : isTeacher
@@ -229,7 +239,7 @@ export const Sidebar: React.FC = () => {
     : 'linear-gradient(to bottom, #047857, #064e3b)';
 
   const sidebarColor = isAdmin
-    ? '#C8963E'
+    ? adminTheme.primary
     : isChiefSupervisor
     ? '#831843'
     : isTeacher
@@ -243,6 +253,7 @@ export const Sidebar: React.FC = () => {
   // Role labels in Arabic
   const roleLabels: Record<string, string> = {
     ADMIN: t("المسؤول"),
+    INSPECTOR: t("مفتش"),
     PRESIDENT: t("المشرف العام"),
     CHIEF_SUPERVISOR: t("المشرف العام"),
     SUPERVISOR: t("المشرف"),
@@ -378,7 +389,7 @@ export const Sidebar: React.FC = () => {
             </div>
             <div className="min-w-0 overflow-hidden">
               <p className="whitespace-nowrap text-sm font-bold leading-tight text-white">
-                {isAdmin ? t('لوحة المسؤول') : t('نظام أهل القرآن')}
+                {isAdmin ? t(adminTheme.title) : t('نظام أهل القرآن')}
               </p>
               <p className="whitespace-nowrap text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                 {isAdmin ? t('إدارة المنصة') : t('لوحة الإدارة')}
@@ -446,7 +457,7 @@ export const Sidebar: React.FC = () => {
                   {isAdmin ? <Shield size={16} className="text-white" /> : <BookOpen size={16} className="text-white" />}
                 </div>
                 <p className="text-white font-bold text-sm">
-                  {isAdmin ? t('لوحة المسؤول') : t('نظام أهل القرآن')}
+                  {isAdmin ? t(adminTheme.title) : t('نظام أهل القرآن')}
                 </p>
               </div>
               <button onClick={() => setMobileOpen(false)} className="text-white/70 hover:text-white" aria-label={t('إغلاق القائمة')}>

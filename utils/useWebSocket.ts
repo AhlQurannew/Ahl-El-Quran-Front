@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { getChatSchool } from '@/utils/chatSchool';
 import { useAuthStore } from '@/store/authStore';
 import type { WebSocketMessage } from '@/types/message';
 import { API_ORIGIN } from '@/utils/apiConfig';
@@ -74,16 +75,8 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
     const wsHost = baseUrl.replace(/^https?:\/\//, '');
 
-    let schoolIdParam = '';
-    if (typeof window !== 'undefined') {
-      const adminView = sessionStorage.getItem('admin_viewing_school');
-      if (adminView) {
-        try {
-          const { id } = JSON.parse(adminView);
-          if (id) schoolIdParam = `&school_id=${id}`;
-        } catch {}
-      }
-    }
+    const chatSchool = getChatSchool();
+    const schoolIdParam = chatSchool ? `&school_id=${chatSchool}` : '';
 
     // Pass ngrok-skip-browser-warning to bypass ngrok interstitial warning on WebSocket upgrade
     const ngrokParam = wsHost.includes('ngrok') ? '&ngrok-skip-browser-warning=true' : '';

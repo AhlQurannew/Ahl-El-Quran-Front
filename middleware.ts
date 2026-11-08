@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
   // 2. Authenticated users trying to access /login or /register -> redirect to dashboard/home
   if (token && (pathname === '/login' || pathname === '/register')) {
     const role = request.cookies.get('user_role')?.value;
-    const dest = role === 'ADMIN' ? '/dashboard' : role === 'GUARDIAN' ? '/guardians' : (role === 'TEACHER' || role === 'SUPERVISOR') ? '/students' : '/';
+    const dest = role === 'ADMIN' || role === 'INSPECTOR' ? '/dashboard' : role === 'GUARDIAN' ? '/guardians' : (role === 'TEACHER' || role === 'SUPERVISOR') ? '/students' : '/';
     return NextResponse.redirect(new URL(dest, request.url));
   }
 

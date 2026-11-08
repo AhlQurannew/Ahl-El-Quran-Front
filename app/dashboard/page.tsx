@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SchoolCard } from "@/components/SchoolCard";
 import { useAdminView } from "@/contexts/AdminViewContext";
-import { 
-  Users, 
+import {
+  Users,
   Shield,
   School,
   Loader2,
@@ -15,6 +15,8 @@ import {
   Images,
   Settings,
   ChartNoAxesCombined,
+  MessageSquare,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,6 +24,7 @@ import adminAPI, { PlatformStatistics } from "@/app/API/admin";
 import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
 import { AcademicsOverview } from "@/components/dashboard/AcademicsOverview";
 import { t } from '@/i18n';
+import { useAdminTheme } from '@/utils/adminTheme';
 
 interface Statistics {
   total_schools: number;
@@ -86,6 +89,7 @@ export default function AdminDashboard() {
       .finally(() => setIsLoadingPlatform(false));
   }, []);
 
+  const theme = useAdminTheme();
   const quickLinks: { href: string; label: string; hint: string; icon: React.ReactNode }[] = [
     {
       href: "/dashboard/analytics",
@@ -112,11 +116,23 @@ export default function AdminDashboard() {
       icon: <Eye size={18} />,
     },
     {
+      href: "/dashboard/messages",
+      label: t("المحادثات"),
+      hint: t("تواصل مع أي مدرسة من حسابك"),
+      icon: <MessageSquare size={18} />,
+    },
+    ...(theme.isInspector ? [] : [{
+      href: "/dashboard/inspectors",
+      label: t("المفتشون"),
+      hint: t("إنشاء حسابات المفتشين وإدارتها"),
+      icon: <ShieldCheck size={18} />,
+    }]),
+    ...(theme.isInspector ? [] : [{
       href: "/dashboard/login-slides",
       label: t("صور صفحة الدخول"),
       hint: t("غيّر صورة الدخول أو أضف عرض شرائح"),
       icon: <Images size={18} />,
-    },
+    }]),
     {
       href: "/dashboard/settings",
       label: t("الملف الشخصي والإعدادات"),
@@ -126,14 +142,14 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <AppLayout title={t("لوحة تحكم المسؤول")} breadcrumb={t("الرئيسية")}>
+    <AppLayout title={theme.isInspector ? t("لوحة تحكم المفتش") : t("لوحة تحكم المسؤول")} breadcrumb={t("الرئيسية")}>
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="rounded-2xl p-6 text-white shadow-lg"
-          style={{ background: 'linear-gradient(to right, #C8963E, #B8832E)' }}>
+          style={{ background: `linear-gradient(to right, ${theme.primary}, ${theme.dark})` }}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-2">{t("مرحباً بك في لوحة المسؤول")}</h2>
+              <h2 className="text-2xl font-bold mb-2">{theme.isInspector ? t("مرحباً بك في لوحة المفتش") : t("مرحباً بك في لوحة المسؤول")}</h2>
               <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{t("إدارة المنصة والإشراف على المدارس")}</p>
             </div>
             <div className="hidden md:block">
@@ -199,9 +215,7 @@ export default function AdminDashboard() {
             <button 
               onClick={() => router.push('/dashboard/schools')}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-colors"
-              style={{ color: '#C8963E', backgroundColor: 'rgba(200, 150, 62, 0.1)' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(200, 150, 62, 0.1)'}>
+              style={{ color: theme.primary, backgroundColor: theme.soft }}>
               {t("عرض الكل")}
               <ChevronLeft className="ltr:-scale-x-100" size={16} />
             </button>
@@ -209,7 +223,7 @@ export default function AdminDashboard() {
 
           {isLoadingSchools ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8963E' }} />
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: theme.primary }} />
             </div>
           ) : schoolsStats && schoolsStats.schools.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -248,7 +262,7 @@ export default function AdminDashboard() {
                 href={link.href}
                 className="group flex items-center gap-3 rounded-xl border border-transparent bg-gray-50 px-4 py-3 transition-colors hover:border-amber-200 hover:bg-amber-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm" style={{ color: theme.primary }}>
                   {link.icon}
                 </span>
                 <span className="min-w-0 flex-1">
