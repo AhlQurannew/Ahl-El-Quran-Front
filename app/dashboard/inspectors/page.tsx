@@ -116,12 +116,12 @@ export default function InspectorsPage() {
   const toggleActive = async (inspector: Inspector) => {
     const name = inspector.full_name || inspector.username;
     const ok = await confirm(inspector.is_active
-      ? { title: t('تعطيل الحساب'), message: t('هل أنت متأكد من تعطيل حساب المفتش {name}؟ سيتم تسجيل خروجه فوراً.', { name }), confirmText: t('نعم، عطّل'), variant: 'danger' }
+      ? { title: t('إلغاء تفعيل الحساب'), message: t('هل أنت متأكد من إلغاء تفعيل حساب المفتش {name}؟ سيتم تسجيل خروجه فوراً.', { name }), confirmText: t('نعم، ألغِ التفعيل'), variant: 'danger' }
       : { title: t('تفعيل الحساب'), message: t('هل أنت متأكد من تفعيل حساب المفتش {name}؟', { name }), confirmText: t('نعم، فعّل') });
     if (!ok) return;
     try {
       await inspectorsAPI.updateInspector(inspector.id, { is_active: !inspector.is_active });
-      showToast('success', inspector.is_active ? t('تم تعطيل الحساب') : t('تم تفعيل الحساب'));
+      showToast('success', inspector.is_active ? t('تم إلغاء تفعيل الحساب') : t('تم تفعيل الحساب'));
       load();
     } catch (error) {
       showToast('error', describeError(error, t('تعذر حفظ المفتش')));
@@ -188,7 +188,7 @@ export default function InspectorsPage() {
           <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
             <ShieldCheck size={40} className="mx-auto mb-3 text-gray-300" />
             <p className="font-medium text-gray-700">{t('لا يوجد مفتشون بعد')}</p>
-            <p className="mt-1 text-sm text-gray-500">{t('أنشئ حساباً لكل مفتش؛ يمكنك تعطيله أو حذفه في أي وقت.')}</p>
+            <p className="mt-1 text-sm text-gray-500">{t('أنشئ حساباً لكل مفتش؛ يمكنك إلغاء تفعيله أو حذفه في أي وقت.')}</p>
           </div>
         ) : (
           <ul className="space-y-2.5">
@@ -203,7 +203,7 @@ export default function InspectorsPage() {
                     <span className="truncate font-semibold text-gray-900">{inspector.full_name || inspector.username}</span>
                     <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold',
                       inspector.is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-600')}>
-                      {inspector.is_active ? `● ${t('نشط')}` : `○ ${t('معطّل')}`}
+                      {inspector.is_active ? `● ${t('نشط')}` : `○ ${t('غير مفعّل')}`}
                     </span>
                   </div>
                   <p className="mt-0.5 truncate text-xs text-gray-500">
@@ -218,7 +218,7 @@ export default function InspectorsPage() {
                   </button>
                   <button type="button" onClick={() => void toggleActive(inspector)} className={cn('inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm',
                     inspector.is_active ? 'border-amber-200 text-amber-800 hover:bg-amber-50' : 'border-emerald-200 text-emerald-800 hover:bg-emerald-50')}>
-                    <Power size={14} /> {inspector.is_active ? t('تعطيل') : t('تفعيل')}
+                    <Power size={14} /> {inspector.is_active ? t('إلغاء التفعيل') : t('تفعيل')}
                   </button>
                   <button type="button" onClick={() => void remove(inspector)} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50" aria-label={t('حذف')}>
                     <Trash2 size={14} /> {t('حذف')}

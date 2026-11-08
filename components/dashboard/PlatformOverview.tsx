@@ -55,7 +55,7 @@ export const PlatformOverview: React.FC<PlatformOverviewProps> = ({ stats, isLoa
         {
           label: t('حسابات غير نشطة'),
           value: number(stats.inactive_accounts),
-          hint: t('بانتظار التفعيل أو معطّلة'),
+          hint: t('بانتظار التفعيل أو غير مفعّلة'),
           icon: <UserX size={18} />,
           tone: 'bg-gray-100 text-gray-600',
         },

@@ -38,11 +38,11 @@ export function ActivationButtons({ targets, onDone, onMessage }: {
           confirmText: t('نعم، فعّل'),
         }
       : {
-          title: t('تعطيل الحساب'),
+          title: t('إلغاء تفعيل الحساب'),
           message: one
-            ? t('هل أنت متأكد من تعطيل حساب {name}؟ سيتم تسجيل خروجه فوراً ولن يتمكن من الدخول حتى يُعاد تفعيله.', { name: list[0].name })
-            : t('هل أنت متأكد من تعطيل {count} حسابات؟ سيتم تسجيل خروج أصحابها فوراً.', { count: list.length }),
-          confirmText: t('نعم، عطّل'),
+            ? t('هل أنت متأكد من إلغاء تفعيل حساب {name}؟ سيتم تسجيل خروجه فوراً ولن يتمكن من الدخول حتى يُعاد تفعيله.', { name: list[0].name })
+            : t('هل أنت متأكد من إلغاء تفعيل {count} حسابات؟ سيتم تسجيل خروج أصحابها فوراً.', { count: list.length }),
+          confirmText: t('نعم، ألغِ التفعيل'),
           variant: 'danger',
         });
     if (!ok) return;
@@ -51,7 +51,7 @@ export function ActivationButtons({ targets, onDone, onMessage }: {
       const results = await Promise.allSettled(list.map((x) => accountsAPI.setAccountActive(x.userId, active)));
       const failed = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
       const done = list.length - failed.length;
-      if (done > 0) onMessage('success', active ? t('تم تفعيل {count} حساب', { count: done }) : t('تم تعطيل {count} حساب', { count: done }));
+      if (done > 0) onMessage('success', active ? t('تم تفعيل {count} حساب', { count: done }) : t('تم إلغاء تفعيل {count} حساب', { count: done }));
       if (failed.length > 0) onMessage('error', describeError(failed[0].reason, t('تعذر تغيير حالة الحساب')));
       onDone();
     } finally {
@@ -65,7 +65,7 @@ export function ActivationButtons({ targets, onDone, onMessage }: {
         type="button"
         onClick={() => void run(true)}
         disabled={busy || toActivate.length === 0}
-        title={toActivate.length === 0 ? t('اختر حساباً معطّلاً') : undefined}
+        title={toActivate.length === 0 ? t('اختر حساباً غير مفعّل') : undefined}
         className="flex items-center gap-2 rounded-lg border-2 border-emerald-600 px-4 py-2.5 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
       >
         <Power size={18} />
@@ -79,7 +79,7 @@ export function ActivationButtons({ targets, onDone, onMessage }: {
         className="flex items-center gap-2 rounded-lg border-2 border-amber-500 px-4 py-2.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
       >
         <PowerOff size={18} />
-        <span>{t('تعطيل')}{toDeactivate.length > 1 ? ` (${toDeactivate.length})` : ''}</span>
+        <span>{t('إلغاء التفعيل')}{toDeactivate.length > 1 ? ` (${toDeactivate.length})` : ''}</span>
       </button>
     </>
   );

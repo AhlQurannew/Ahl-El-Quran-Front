@@ -1,6 +1,5 @@
 ﻿'use client';
 
-import { ActivationButtons } from '@/components/ui/ActivationButtons';
 import React, { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StudentSearch } from '@/components/students/StudentSearch';
@@ -134,9 +133,6 @@ export default function StudentsPage() {
   const user = useAuthStore((state) => state.user);
   const isTeacher = user?.role === 'TEACHER';
   const [students, setStudents] = useState<Student[]>([]);
-  // تفعيل / تعطيل: only for the roles above these accounts in the hierarchy.
-  const activatorRole = useAuthStore((state) => state.user?.role);
-  const canActivate = !!activatorRole && ['ADMIN', 'INSPECTOR', 'PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR'].includes(activatorRole);
 
   const [specialityNames, setSpecialityNames] = useState<Record<number, string>>({});
 
@@ -438,13 +434,6 @@ export default function StudentsPage() {
           </div>
         ) : (
           <StudentSearch
-              extraActions={canActivate ? (
-                <ActivationButtons
-                  targets={students.filter((x) => selectedIds.includes(x.id) && x.userId).map((x) => ({ userId: Number(x.userId), name: `${x.firstName} ${x.lastName}`.trim(), isActive: x.isActive !== false }))}
-                  onDone={() => void loadStudents()}
-                  onMessage={showToast}
-                />
-              ) : undefined}
             query={query}
             onQueryChange={setQuery}
             selectedCount={selectedIds.length}

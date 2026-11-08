@@ -42,7 +42,7 @@ export default function ComponentShowcase() {
           <Button variant="outline">{tr("حدود")}</Button>
           <Button variant="danger">{tr("خطر")}</Button>
           <Button variant="ghost">{tr("شفاف")}</Button>
-          <Button disabled>{tr("معطّل")}</Button>
+          <Button disabled>{tr("غير مفعّل")}</Button>
           <Button isLoading>{tr("جاري...")}</Button>
         </div>
         <div className="flex flex-wrap gap-3 items-center">

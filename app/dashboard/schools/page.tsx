@@ -254,7 +254,7 @@ export default function SchoolsManagementPage() {
     const activate = !school.is_active;
     const ok = await confirm(activate
       ? { title: t('تفعيل الحساب'), message: t('هل أنت متأكد من تفعيل المدرسة {name}؟ سيتمكن مشرفها العام من الدخول مجدداً.', { name: school.school_name }), confirmText: t('نعم، فعّل') }
-      : { title: t('تعطيل الحساب'), message: t('هل أنت متأكد من تعطيل المدرسة {name}؟ سيتم تسجيل خروج مشرفها العام ولن يتمكن من الدخول حتى يُعاد تفعيلها.', { name: school.school_name }), confirmText: t('نعم، عطّل'), variant: 'danger' });
+      : { title: t('إلغاء تفعيل الحساب'), message: t('هل أنت متأكد من إلغاء تفعيل المدرسة {name}؟ سيتم تسجيل خروج مشرفها العام ولن يتمكن من الدخول حتى يُعاد تفعيلها.', { name: school.school_name }), confirmText: t('نعم، ألغِ التفعيل'), variant: 'danger' });
     if (!ok) return;
     try {
       await accountsAPI.setAccountActive(school.user_id, activate);
@@ -359,7 +359,7 @@ export default function SchoolsManagementPage() {
                         <span className="min-w-0">
                           <span className="block min-w-40 font-medium text-gray-900">{school.school_name}</span>
                           <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${school.is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
-                            {school.is_active ? `● ${t("نشط")}` : `○ ${t("معطّل")}`}
+                            {school.is_active ? `● ${t("نشط")}` : `○ ${t("غير مفعّل")}`}
                           </span>
                         </span>
                       </div>
@@ -377,8 +377,8 @@ export default function SchoolsManagementPage() {
                         <button
                           onClick={() => void toggleSchool(school)}
                           className={`p-2 rounded-lg transition-colors ${school.is_active ? 'hover:bg-amber-50' : 'hover:bg-emerald-50'}`}
-                          title={school.is_active ? t("تعطيل") : t("تفعيل")}
-                          aria-label={school.is_active ? t("تعطيل") : t("تفعيل")}
+                          title={school.is_active ? t("إلغاء التفعيل") : t("تفعيل")}
+                          aria-label={school.is_active ? t("إلغاء التفعيل") : t("تفعيل")}
                         >
                           {school.is_active ? <PowerOff size={18} className="text-amber-600" /> : <Power size={18} className="text-emerald-600" />}
                         </button>
