@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Award } from 'lucide-react';
 import type { SchoolTopStudents, TopStudent } from '@/app/API/analytics';
 import { RankPill } from '@/components/exams/examUi';
@@ -13,18 +14,42 @@ const MODES = [
   { key: 'external', label: 'خارجي (دوام جزئي)', tone: 'border-sky-200 bg-sky-50/50', bar: 'bg-sky-600', head: 'text-sky-900' },
 ] as const;
 
+type SexFilter = 'all' | 'male' | 'female';
+const SEX_OPTIONS: [SexFilter, string][] = [['all', 'الكل'], ['male', 'ذكور'], ['female', 'إناث']];
+
 /** Top students of each school, split by schooling mode; clicking a student opens their analytics. */
 export function TopStudents({ schools, lang, onSelect }: {
   schools: SchoolTopStudents[];
   lang: string;
   onSelect: (studentId: number) => void;
 }) {
+  const [sex, setSex] = useState<SexFilter>('all');
+  const listFor = (school: SchoolTopStudents, mode: 'internal' | 'external'): TopStudent[] =>
+    sex === 'all' ? school[mode] : school[sex]?.[mode] ?? [];
+
   return (
     <section aria-labelledby="top-heading" className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <h2 id="top-heading" className="flex items-center gap-2 text-sm font-bold text-gray-900 sm:text-base">
-        <Award size={18} className="text-amber-500" aria-hidden="true" />
-        {t('الطلبة المتميزون')}
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="top-heading" className="flex items-center gap-2 text-sm font-bold text-gray-900 sm:text-base">
+          <Award size={18} className="text-amber-500" aria-hidden="true" />
+          {t('الطلبة المتميزون')}
+        </h2>
+        <div role="radiogroup" aria-label={t('الجنس')} className="inline-flex rounded-xl border border-gray-200 bg-white p-1">
+          {SEX_OPTIONS.map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={sex === value}
+              onClick={() => setSex(value)}
+              className={cn('rounded-lg px-3 py-1 text-xs font-semibold transition-colors',
+                sex === value ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-50')}
+            >
+              {t(label)}
+            </button>
+          ))}
+        </div>
+      </div>
       <p className="mb-4 mt-1 text-xs text-gray-500">
         {t('أفضل 5 طلبة في كل مدرسة حسب نظام الدراسة. النتيجة = 35% الحضور + 35% الحفظ (مقارنة بأفضل طالب في نفس الفئة) + 30% معدل الامتحانات، خلال الفترة المحددة.')}
       </p>
@@ -34,7 +59,7 @@ export function TopStudents({ schools, lang, onSelect }: {
             {schools.length > 1 && <h3 className="mb-3 text-sm font-semibold text-gray-800">{school.school ?? '—'}</h3>}
             <div className="grid gap-3 lg:grid-cols-2">
               {MODES.map((mode) => {
-                const list: TopStudent[] = school[mode.key];
+                const list: TopStudent[] = listFor(school, mode.key);
                 return (
                   <div key={mode.key} className={cn('rounded-xl border p-3', mode.tone)}>
                     <p className={cn('mb-2 text-xs font-bold', mode.head)}>{t(mode.label)}</p>

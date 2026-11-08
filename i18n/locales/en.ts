@@ -1377,6 +1377,18 @@ const en: Record<string, string> = {
   "لا توجد بيانات كافية": "Not enough data",
   "لا توجد تعديلات": "No changes",
   "معدل الامتحانات": "Exam average",
+  "PNG أو JPG أو WebP حتى 5 ميغابايت (اختياري)": "PNG, JPG or WebP up to 5 MB (optional)",
+  "إزالة": "Remove",
+  "استعادة الصورة الافتراضية": "Restore the default photo",
+  "افتراضية": "Default",
+  "تعذر استعادة الصورة الافتراضية": "Could not restore the default photo",
+  "تم إنشاء المدرسة لكن تعذر رفع صورتها": "The school was created but its picture could not be uploaded",
+  "تمت استعادة الصورة الافتراضية": "Default photo restored",
+  "صورة المدرسة": "School picture",
+  "لوحة التحكم / صور صفحة الدخول": "Dashboard / Login page images",
+  "نعم، استعد": "Yes, restore",
+  "هل أنت متأكد من إزالة الصورة الافتراضية من صفحة الدخول؟ يمكنك استعادتها في أي وقت.": "Remove the default photo from the login page? You can restore it at any time.",
+  "هل تريد إعادة الصورة الافتراضية (المسجد النبوي) إلى صفحة الدخول؟": "Put the default photo (the Prophet's Mosque) back on the login page?",
 };
 
 export default en;

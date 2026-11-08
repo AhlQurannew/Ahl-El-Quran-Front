@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 
-import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
+import { API_BASE_URL as API_URL, API_ORIGIN } from '@/utils/apiConfig';
 
 // axios
 const axiosGlobal = axios.create({
@@ -146,7 +146,24 @@ const getSchoolsStatistics = async (limit: number = 3) => {
     return res.data;
 };
 
+/** School picture: upload (PNG/JPG/WebP, up to 5 MB) or remove. */
+const uploadSchoolImage = async (schoolId: number, file: File): Promise<{ image_url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await axiosGlobal.post(`/schools/${schoolId}/image`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return res.data;
+};
+
+const deleteSchoolImage = async (schoolId: number): Promise<void> => {
+    await axiosGlobal.delete(`/schools/${schoolId}/image`);
+};
+
+/** Absolute URL of a school picture returned by the API (null when the school has none). */
+export const schoolImageSrc = (url: string | null | undefined): string | null => (url ? `${API_ORIGIN}${url}` : null);
+
 const adminAPI = {
+    uploadSchoolImage,
+    deleteSchoolImage,
     getPendingPresidents,
     approvePresident,
     rejectPresident,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, ImagePlus, Images, Loader2, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ImagePlus, Images, Loader2, Trash2, RotateCcw, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
@@ -60,9 +60,11 @@ export default function LoginSlidesPage() {
     const lastOne = slides.length === 1;
     const confirmed = await confirm({
       title: t('حذف الصورة'),
-      message: lastOne
-        ? t('هل أنت متأكد من حذف هذه الصورة؟ ستعود صفحة الدخول إلى الصورة الافتراضية.')
-        : t('هل أنت متأكد من حذف هذه الصورة من صفحة الدخول؟'),
+      message: slide.builtin
+        ? t('هل أنت متأكد من إزالة الصورة الافتراضية من صفحة الدخول؟ يمكنك استعادتها في أي وقت.')
+        : lastOne
+          ? t('هل أنت متأكد من حذف هذه الصورة؟ ستعود صفحة الدخول إلى الصورة الافتراضية.')
+          : t('هل أنت متأكد من حذف هذه الصورة من صفحة الدخول؟'),
       confirmText: t('نعم، احذف'),
       variant: 'danger',
     });
@@ -74,6 +76,26 @@ export default function LoginSlidesPage() {
       showToast('success', t('تم حذف الصورة'));
     } catch (error) {
       showToast('error', describeError(error, t('تعذر حذف الصورة')));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const hasBuiltin = slides.some((slide) => slide.builtin);
+  const restoreBuiltin = async () => {
+    const confirmed = await confirm({
+      title: t('استعادة الصورة الافتراضية'),
+      message: t('هل تريد إعادة الصورة الافتراضية (المسجد النبوي) إلى صفحة الدخول؟'),
+      confirmText: t('نعم، استعد'),
+    });
+    if (!confirmed) return;
+    setBusy(true);
+    try {
+      const slide = await siteAPI.restoreBuiltinSlide();
+      setSlides((current) => [slide, ...current.filter((item) => item.id !== slide.id)]);
+      showToast('success', t('تمت استعادة الصورة الافتراضية'));
+    } catch (error) {
+      showToast('error', describeError(error, t('تعذر استعادة الصورة الافتراضية')));
     } finally {
       setBusy(false);
     }
@@ -120,9 +142,17 @@ export default function LoginSlidesPage() {
           </button>
         </header>
 
-        <p className="text-xs text-gray-400">
-          {t('{count} من {max} صور · PNG أو JPG أو WebP حتى 5 ميغابايت · يُفضّل الحجم الأفقي (1920×1080)', { count: slides.length, max: MAX_SLIDES })}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-gray-400">
+            {t('{count} من {max} صور · PNG أو JPG أو WebP حتى 5 ميغابايت · يُفضّل الحجم الأفقي (1920×1080)', { count: slides.length, max: MAX_SLIDES })}
+          </p>
+          {!isLoading && !hasBuiltin && (
+            <button type="button" onClick={() => void restoreBuiltin()} disabled={busy || slides.length >= MAX_SLIDES}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50">
+              <RotateCcw size={14} /> {t('استعادة الصورة الافتراضية')}
+            </button>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="flex min-h-48 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white text-gray-500">
@@ -142,6 +172,11 @@ export default function LoginSlidesPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element -- images come from the API origin */}
                   <img src={slide.url} alt={t('الصورة {number}', { number: index + 1 })} className="h-full w-full object-cover" />
                   <span className="absolute top-2 inset-s-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-bold text-white">{index + 1}</span>
+                  {slide.builtin && (
+                    <span className="absolute top-2 inset-e-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white shadow">
+                      <Star size={12} aria-hidden="true" /> {t('افتراضية')}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center justify-between gap-2 p-3">
                   <div className="flex gap-1">
@@ -153,7 +188,7 @@ export default function LoginSlidesPage() {
                     </button>
                   </div>
                   <button type="button" onClick={() => removeSlide(slide)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
-                    <Trash2 size={15} /> {t('حذف')}
+                    <Trash2 size={15} /> {slide.builtin ? t('إزالة') : t('حذف')}
                   </button>
                 </div>
               </li>

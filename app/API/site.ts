@@ -7,6 +7,8 @@ export interface LoginSlide {
   /** Absolute URL of the (public) slide image. */
   url: string;
   position: number;
+  /** The default photo shipped with the app: removable, and restorable at any time. */
+  builtin: boolean;
 }
 
 // Public reads need no token (the login page is shown before sign-in).
@@ -46,6 +48,11 @@ const deleteLoginSlide = async (id: number): Promise<void> => {
   await adminClient.delete(`/login-slides/${id}`);
 };
 
-const siteAPI = { listLoginSlides, uploadLoginSlide, reorderLoginSlides, deleteLoginSlide };
+const restoreBuiltinSlide = async (): Promise<LoginSlide> => {
+  const res = await adminClient.post<LoginSlide>('/login-slides/builtin');
+  return withAbsoluteUrl(res.data);
+};
+
+const siteAPI = { listLoginSlides, uploadLoginSlide, reorderLoginSlides, deleteLoginSlide, restoreBuiltinSlide };
 
 export default siteAPI;

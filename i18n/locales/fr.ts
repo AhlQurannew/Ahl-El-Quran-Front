@@ -1377,6 +1377,18 @@ const fr: Record<string, string> = {
   "لا توجد بيانات كافية": "Données insuffisantes",
   "لا توجد تعديلات": "Aucune modification",
   "معدل الامتحانات": "Moyenne aux examens",
+  "PNG أو JPG أو WebP حتى 5 ميغابايت (اختياري)": "PNG, JPG ou WebP jusqu'à 5 Mo (facultatif)",
+  "إزالة": "Retirer",
+  "استعادة الصورة الافتراضية": "Rétablir la photo par défaut",
+  "افتراضية": "Par défaut",
+  "تعذر استعادة الصورة الافتراضية": "Impossible de rétablir la photo par défaut",
+  "تم إنشاء المدرسة لكن تعذر رفع صورتها": "L'école a été créée mais son image n'a pas pu être envoyée",
+  "تمت استعادة الصورة الافتراضية": "Photo par défaut rétablie",
+  "صورة المدرسة": "Image de l'école",
+  "لوحة التحكم / صور صفحة الدخول": "Tableau de bord / Images de connexion",
+  "نعم، استعد": "Oui, rétablir",
+  "هل أنت متأكد من إزالة الصورة الافتراضية من صفحة الدخول؟ يمكنك استعادتها في أي وقت.": "Retirer la photo par défaut de la page de connexion ? Vous pourrez la rétablir à tout moment.",
+  "هل تريد إعادة الصورة الافتراضية (المسجد النبوي) إلى صفحة الدخول؟": "Remettre la photo par défaut (la Mosquée du Prophète) sur la page de connexion ?",
 };
 
 export default fr;

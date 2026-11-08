@@ -14,6 +14,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import adminAPI from "@/api/admin";
+import { schoolImageSrc } from "@/app/API/admin";
 import { t } from '@/i18n';
 
 interface SchoolData {
@@ -27,6 +28,7 @@ interface SchoolData {
   approval_date: string | null;
   created_at: string | null;
   is_active: boolean;
+  image_url?: string | null;
 }
 
 export default function ViewSchoolSelectionPage() {
@@ -139,30 +141,28 @@ export default function ViewSchoolSelectionPage() {
               <button
                 key={school.id}
                 onClick={() => handleSelectSchool(school.id, school.school_name)}
-                className="bg-white rounded-xl border-2 border-gray-100 hover:border-yellow-500/50 p-6 text-start transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                className="group overflow-hidden rounded-xl border-2 border-gray-100 bg-white text-start transition-all duration-300 hover:border-yellow-500/50 hover:shadow-xl"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform" 
-                        style={{ background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}>
-                        <School size={24} className="text-white" />
-                      </div>
-                      <div className="text-start">
-                        <h3 className="text-lg font-bold text-gray-900">{school.school_name}</h3>
-                        <p className="text-sm text-gray-500">{school.president_name}</p>
-                      </div>
+                <div className="relative h-36 overflow-hidden" style={school.image_url ? undefined : { background: 'linear-gradient(to bottom right, #C8963E, #B8832E)' }}>
+                  {school.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- image served by the API
+                    <img src={schoolImageSrc(school.image_url) ?? ''} alt={school.school_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <School size={44} className="text-white/80" aria-hidden="true" />
                     </div>
-                    
-                    <div className="flex items-center gap-2 text-sm text-gray-600 ps-3">
-                      <Users size={16} className="text-gray-400" />
-                      <span>{school.student_count}{' '}{t("طالب")}</span>
-                    </div>
+                  )}
+                </div>
+                <div className="flex items-center justify-between gap-4 p-5">
+                  <div className="min-w-0 space-y-1.5">
+                    <h3 className="truncate text-lg font-bold text-gray-900">{school.school_name}</h3>
+                    <p className="truncate text-sm text-gray-500">{school.president_name}</p>
+                    <p className="flex items-center gap-2 text-sm text-gray-600">
+                      <Users size={16} className="text-gray-400" aria-hidden="true" />
+                      {school.student_count}{' '}{t("طالب")}
+                    </p>
                   </div>
-
-                  <div className="shrink-0 text-gray-400 group-hover:text-yellow-600 transition-colors">
-                    <ChevronLeft size={24} className="ltr:-scale-x-100 group-hover:translate-x-1 transition-transform" />
-                  </div>
+                  <ChevronLeft size={24} className="shrink-0 text-gray-400 transition-colors group-hover:text-yellow-600 ltr:-scale-x-100" aria-hidden="true" />
                 </div>
               </button>
             ))}

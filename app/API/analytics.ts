@@ -93,6 +93,9 @@ export interface SchoolTopStudents {
   internal: TopStudent[];
   /** Part time (khariji) */
   external: TopStudent[];
+  /** Separate rankings among boys / girls (each its own top 5). */
+  male?: { internal: TopStudent[]; external: TopStudent[] };
+  female?: { internal: TopStudent[]; external: TopStudent[] };
 }
 
 export interface ScopeRef {

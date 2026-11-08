@@ -15,7 +15,8 @@ import {
   Plus,
   X
 } from "lucide-react";
-import adminAPI from "@/app/API/admin";
+import { SchoolImagePicker, NO_IMAGE_CHANGE, type SchoolImageChange } from '@/components/schools/SchoolImagePicker';
+import adminAPI, { schoolImageSrc } from "@/app/API/admin";
 import { t } from '@/i18n';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 
@@ -30,6 +31,7 @@ interface SchoolData {
   teacher_count?: number;
   supervisor_count?: number;
   is_active: boolean;
+  image_url?: string | null;
 }
 
 interface SchoolFormData {
@@ -80,6 +82,7 @@ export default function SchoolsManagementPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
+  const [imageChange, setImageChange] = useState<SchoolImageChange>(NO_IMAGE_CHANGE);
   
   // Form data
   const [formData, setFormData] = useState<SchoolFormData>({
@@ -142,7 +145,7 @@ export default function SchoolsManagementPage() {
     try {
       setIsSubmitting(true);
       setCreateError("");
-      await adminAPI.createSchool({
+      const created = await adminAPI.createSchool({
         ...formData,
         school_name: formData.school_name.trim(),
         chief_supervisor_firstname: formData.chief_supervisor_firstname.trim(),
@@ -150,6 +153,15 @@ export default function SchoolsManagementPage() {
         email: normalizedEmail,
         phone_number: formData.phone_number.trim(),
       });
+      const newId = created?.school?.id;
+      if (imageChange.file && newId) {
+        try {
+          await adminAPI.uploadSchoolImage(newId, imageChange.file);
+        } catch (imageError: unknown) {
+          // The school exists; only the picture failed. Say so instead of failing the whole creation.
+          setError(getRequestErrorMessage(imageError, t("تم إنشاء المدرسة لكن تعذر رفع صورتها")));
+        }
+      }
       setShowCreateDialog(false);
       resetForm();
       fetchSchools();
@@ -178,6 +190,8 @@ export default function SchoolsManagementPage() {
       if (formData.phone_number) updateData.phone_number = formData.phone_number;
 
       await adminAPI.updateSchool(selectedSchool.id, updateData);
+      if (imageChange.file) await adminAPI.uploadSchoolImage(selectedSchool.id, imageChange.file);
+      else if (imageChange.remove) await adminAPI.deleteSchoolImage(selectedSchool.id);
       setShowEditDialog(false);
       resetForm();
       setSelectedSchool(null);
@@ -218,6 +232,7 @@ export default function SchoolsManagementPage() {
       phone_number: school.phone_number
     });
     setEditError("");
+    setImageChange(NO_IMAGE_CHANGE);
     setShowEditDialog(true);
   };
 
@@ -236,6 +251,7 @@ export default function SchoolsManagementPage() {
       password: "",
       phone_number: ""
     });
+    setImageChange(NO_IMAGE_CHANGE);
     setError("");
     setCreateError("");
     setEditError("");
@@ -325,7 +341,17 @@ export default function SchoolsManagementPage() {
                 {filteredSchools.map((school) => (
                   <tr key={school.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{school.school_name}</div>
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-amber-50">
+                          {school.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element -- image served by the API
+                            <img src={schoolImageSrc(school.image_url) ?? ''} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <School size={18} className="text-amber-600" aria-hidden="true" />
+                          )}
+                        </span>
+                        <span className="font-medium text-gray-900">{school.school_name}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{school.president_name}</td>
                     <td className="px-6 py-4 text-gray-600">{school.email}</td>
@@ -385,6 +411,7 @@ export default function SchoolsManagementPage() {
               )}
 
               <div className="space-y-4">
+                <SchoolImagePicker currentUrl={null} value={imageChange} onChange={setImageChange} />
                 <label className="block text-sm font-medium text-gray-700">{t("اسم المدرسة")}{' '}<span className="text-red-500">*</span>
                   <input type="text" autoComplete="organization" placeholder={t("مثال: مدرسة النور")} value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
@@ -450,6 +477,7 @@ export default function SchoolsManagementPage() {
               )}
 
               <div className="space-y-4">
+                <SchoolImagePicker currentUrl={schoolImageSrc(selectedSchool.image_url)} value={imageChange} onChange={setImageChange} />
                 <label className="block text-sm font-medium text-gray-700">{t("اسم المدرسة")}
                   <input type="text" autoComplete="organization" placeholder={t("اسم المدرسة")} value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
