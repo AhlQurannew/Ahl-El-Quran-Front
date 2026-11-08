@@ -5,7 +5,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, ClipboardList, Layers, Loader2, Plus, Search, Trophy, Users } from 'lucide-react';
+import { BookOpen, CalendarClock, CalendarDays, ChevronDown, ChevronLeft, ClipboardList, Layers, Loader2, Plus, Search, SlidersHorizontal, Trophy, Users } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
@@ -43,6 +43,8 @@ export default function ExamsPage() {
   // Any filter change goes back to the first page.
   const filter = <T,>(setter: (value: T) => void) => (value: T) => { setter(value); setPage(1); };
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [toast, setToast] = useState({ visible: false, type: 'success' as 'success' | 'error' | 'info', message: '' });
 
   const load = useCallback(() => setReloadToken((n) => n + 1), []);
@@ -85,12 +87,19 @@ export default function ExamsPage() {
     }[sort]);
   }, [exams, lectureFilter, phaseFilter, typeFilter, dateFrom, dateTo, query, sort]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  // Upcoming exams fold into their own panel (unless the user filters by status); the rest is paginated.
+  const splitUpcoming = !phaseFilter;
+  const upcoming = splitUpcoming
+    ? filtered.filter((e) => examPhase(e) === 'upcoming').sort((a, b) => a.exam_date.localeCompare(b.exam_date))
+    : [];
+  const main = splitUpcoming ? filtered.filter((e) => examPhase(e) !== 'upcoming') : filtered;
+  const pageCount = Math.max(1, Math.ceil(main.length / pageSize));
   const currentPage = Math.min(page, pageCount);
-  const visible = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const hasFilters = !!(query || lectureFilter || phaseFilter || typeFilter || dateFrom || dateTo);
+  const visible = main.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const hasFilters = !!(query || lectureFilter || phaseFilter || typeFilter || dateFrom || dateTo || sort !== 'date_desc');
+  const advancedCount = [phaseFilter, typeFilter, dateFrom, dateTo].filter(Boolean).length + (sort !== 'date_desc' ? 1 : 0);
   const resetFilters = () => {
-    setQuery(''); setLectureFilter(''); setPhaseFilter(''); setTypeFilter(''); setDateFrom(''); setDateTo(''); setPage(1);
+    setQuery(''); setLectureFilter(''); setPhaseFilter(''); setTypeFilter(''); setDateFrom(''); setDateTo(''); setSort('date_desc'); setPage(1);
   };
 
   const create = async (payload: Parameters<typeof examsAPI.createExam>[0], includeStudents: boolean) => {
@@ -101,22 +110,22 @@ export default function ExamsPage() {
   };
 
   const tiles = overview ? [
-    { label: 'الامتحانات', value: String(overview.exam_count), hint: t('{count} قادم', { count: overview.upcoming_count }), icon: ClipboardList },
-    { label: 'متوسط النقاط', value: formatPct(overview.average_pct), hint: t('{count} نتيجة', { count: overview.graded_results }), icon: Trophy },
-    { label: 'نسبة النجاح', value: formatPct(overview.pass_rate), hint: t('من الطلاب المنقطين'), icon: Users },
-    { label: 'الحضور في الامتحانات', value: formatPct(overview.attendance_rate), hint: t('حاضر / المسجلون'), icon: BookOpen },
+    { label: 'الامتحانات', value: String(overview.exam_count), hint: t('{count} قادم', { count: overview.upcoming_count }), icon: ClipboardList, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
+    { label: 'متوسط النقاط', value: formatPct(overview.average_pct), hint: t('{count} نتيجة', { count: overview.graded_results }), icon: Trophy, tone: 'bg-amber-50 text-amber-700 ring-amber-100' },
+    { label: 'نسبة النجاح', value: formatPct(overview.pass_rate), hint: t('من الطلاب المنقطين'), icon: Users, tone: 'bg-sky-50 text-sky-700 ring-sky-100' },
+    { label: 'الحضور في الامتحانات', value: formatPct(overview.attendance_rate), hint: t('حاضر / المسجلون'), icon: BookOpen, tone: 'bg-violet-50 text-violet-700 ring-violet-100' },
   ] : [];
 
   return (
     <AppLayout title="الامتحانات" breadcrumb="الشؤون التعليمية / الامتحانات">
       <Toast type={toast.type} message={toast.message} isVisible={toast.visible} onClose={() => setToast((p) => ({ ...p, visible: false }))} />
       <div className="mx-auto max-w-6xl space-y-5 pb-8">
-        <header className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <header className="flex flex-col gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-l from-emerald-50 via-white to-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700"><ClipboardList size={22} /></div>
+            <div className="rounded-xl bg-emerald-600 p-2.5 text-white shadow-sm"><ClipboardList size={22} /></div>
             <div>
               <h1 className="text-lg font-bold text-gray-900">{t('الامتحانات')}</h1>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              <p className="mt-1 max-w-2xl text-sm text-gray-600">
                 {t('أنشئ امتحاناً لحلقة، سجّل حضور الطلاب ونقاطهم وملاحظاتك، واطّلع على الترتيب. تُحسب معدلات الأقسام والتخصصات بمعاملات كل حلقة.')}
               </p>
             </div>
@@ -137,14 +146,16 @@ export default function ExamsPage() {
 
         {tiles.length > 0 && (
           <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t('ملخص الامتحانات')}>
-            {tiles.map(({ label, value, hint, icon: Icon }) => (
-              <div key={label} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between gap-2 text-xs font-medium text-gray-500">
-                  <span>{t(label)}</span>
-                  <Icon size={15} className="text-gray-400" aria-hidden="true" />
+            {tiles.map(({ label, value, hint, icon: Icon, tone }) => (
+              <div key={label} className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1', tone)} aria-hidden="true">
+                  <Icon size={18} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-gray-500">{t(label)}</p>
+                  <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">{value}</p>
+                  <p className="text-xs text-gray-500">{hint}</p>
                 </div>
-                <p className="mt-2 text-2xl font-bold tabular-nums text-gray-900">{value}</p>
-                <p className="mt-0.5 text-xs text-gray-500">{hint}</p>
               </div>
             ))}
           </section>
@@ -170,6 +181,7 @@ export default function ExamsPage() {
           <div className="flex min-h-48 items-center justify-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={20} /> {t('جارٍ التحميل…')}</div>
         ) : tab === 'exams' ? (
           <>
+            {/* Essential filters only; the rest folds into «الفلاتر» */}
             <div className="flex flex-col gap-2 sm:flex-row">
               <label className="relative flex-1">
                 <span className="sr-only">{t('بحث')}</span>
@@ -190,54 +202,68 @@ export default function ExamsPage() {
                 onValueChange={filter(setLectureFilter)}
                 ariaLabel={t('الحلقة')}
               />
-              <select
-                value={phaseFilter}
-                onChange={(e) => filter(setPhaseFilter)(e.target.value as '' | ExamPhase)}
-                aria-label={t('الحالة')}
-                className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm sm:w-48"
+              <button
+                type="button"
+                onClick={() => setFiltersOpen((open) => !open)}
+                aria-expanded={filtersOpen}
+                aria-controls="exam-filters"
+                className={cn('flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
+                  filtersOpen || advancedCount > 0 ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50')}
               >
-                <option value="">{t('كل الحالات')}</option>
-                <option value="upcoming">{t('قادم')}</option>
-                <option value="pending">{t('بانتظار النقاط')}</option>
-                <option value="done">{t('مكتمل')}</option>
-              </select>
+                <SlidersHorizontal size={16} aria-hidden="true" />
+                {t('الفلاتر')}
+                {advancedCount > 0 && <span className="rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white">{advancedCount}</span>}
+                <ChevronDown size={15} className={cn('transition-transform', filtersOpen && 'rotate-180')} aria-hidden="true" />
+              </button>
             </div>
 
-            <div className="flex flex-wrap items-end gap-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
-              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-                {t('من تاريخ')}
-                <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => filter(setDateFrom)(e.target.value)}
-                  className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none" />
-              </label>
-              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-                {t('إلى تاريخ')}
-                <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => filter(setDateTo)(e.target.value)}
-                  className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none" />
-              </label>
-              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-                {t('نوع الامتحان')}
-                <select value={typeFilter} onChange={(e) => filter(setTypeFilter)(e.target.value as '' | ExamType)}
-                  className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900">
-                  <option value="">{t('كل الأنواع')}</option>
-                  {(Object.keys(EXAM_TYPE_LABELS) as ExamType[]).map((type) => <option key={type} value={type}>{t(EXAM_TYPE_LABELS[type])}</option>)}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-                {t('الترتيب حسب')}
-                <select value={sort} onChange={(e) => filter(setSort)(e.target.value as SortKey)}
-                  className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900">
-                  <option value="date_desc">{t('الأحدث أولاً')}</option>
-                  <option value="date_asc">{t('الأقدم أولاً')}</option>
-                  <option value="avg_desc">{t('أعلى معدل')}</option>
-                  <option value="avg_asc">{t('أدنى معدل')}</option>
-                </select>
-              </label>
-              {hasFilters && (
-                <button type="button" onClick={resetFilters} className="ms-auto rounded-lg px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50">
-                  {t('إعادة تعيين الفلاتر')}
-                </button>
-              )}
-            </div>
+            {filtersOpen && (
+              <div id="exam-filters" className="grid gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 sm:grid-cols-2 lg:grid-cols-5">
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  {t('الحالة')}
+                  <select value={phaseFilter} onChange={(e) => filter(setPhaseFilter)(e.target.value as '' | ExamPhase)}
+                    className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-900">
+                    <option value="">{t('كل الحالات')}</option>
+                    <option value="upcoming">{t('قادم')}</option>
+                    <option value="pending">{t('بانتظار النقاط')}</option>
+                    <option value="done">{t('مكتمل')}</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  {t('من تاريخ')}
+                  <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => filter(setDateFrom)(e.target.value)}
+                    className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none" />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  {t('إلى تاريخ')}
+                  <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => filter(setDateTo)(e.target.value)}
+                    className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none" />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  {t('نوع الامتحان')}
+                  <select value={typeFilter} onChange={(e) => filter(setTypeFilter)(e.target.value as '' | ExamType)}
+                    className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-900">
+                    <option value="">{t('كل الأنواع')}</option>
+                    {(Object.keys(EXAM_TYPE_LABELS) as ExamType[]).map((type) => <option key={type} value={type}>{t(EXAM_TYPE_LABELS[type])}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  {t('الترتيب حسب')}
+                  <select value={sort} onChange={(e) => filter(setSort)(e.target.value as SortKey)}
+                    className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-900">
+                    <option value="date_desc">{t('الأحدث أولاً')}</option>
+                    <option value="date_asc">{t('الأقدم أولاً')}</option>
+                    <option value="avg_desc">{t('أعلى معدل')}</option>
+                    <option value="avg_asc">{t('أدنى معدل')}</option>
+                  </select>
+                </label>
+                {hasFilters && (
+                  <button type="button" onClick={resetFilters} className="justify-self-start rounded-lg px-3 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 sm:col-span-2 lg:col-span-5">
+                    {t('إعادة تعيين الفلاتر')}
+                  </button>
+                )}
+              </div>
+            )}
 
             {filtered.length === 0 ? (
               <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
@@ -251,54 +277,50 @@ export default function ExamsPage() {
               </div>
             ) : (
               <>
-              <ul className="grid gap-3 md:grid-cols-2">
-                {visible.map((exam) => (
-                  <li key={exam.id}>
-                    <Link href={`/exams/${exam.id}`} className="block h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h2 className="truncate font-bold text-gray-900">{exam.title}</h2>
-                          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-gray-500">
-                            <span>{formatExamDate(exam.exam_date)}</span>
-                            <span aria-hidden="true">·</span>
-                            <span className="flex items-center gap-1"><BookOpen size={12} aria-hidden="true" />{lectureName(exam)}</span>
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 flex-col items-end gap-1">
-                          <ExamPhaseBadge exam={exam} />
-                          <ExamTypeBadge type={exam.exam_type} />
-                        </div>
-                      </div>
-                      <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                        <div className="rounded-lg bg-gray-50 p-2">
-                          <dt className="text-gray-500">{t('المعدل')}</dt>
-                          <dd className="mt-0.5 font-bold tabular-nums text-gray-900">{exam.stats.average == null ? '—' : `${formatMark(exam.stats.average)} / ${formatMark(exam.max_mark)}`}</dd>
-                        </div>
-                        <div className="rounded-lg bg-gray-50 p-2">
-                          <dt className="text-gray-500">{t('الحضور')}</dt>
-                          <dd className="mt-0.5 font-bold tabular-nums text-gray-900">{exam.stats.present}/{exam.stats.total}</dd>
-                        </div>
-                        <div className="rounded-lg bg-gray-50 p-2">
-                          <dt className="text-gray-500">{t('المنقطون')}</dt>
-                          <dd className="mt-0.5 font-bold tabular-nums text-gray-900">{exam.stats.graded}/{exam.stats.present}</dd>
-                        </div>
-                      </dl>
-                      <div className="mt-3">
-                        <p className="mb-1 text-[11px] text-gray-500">{t('نسبة النجاح')}</p>
-                        <PctBar value={exam.stats.pass_rate} label={t('نسبة النجاح')} />
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <Pagination
-                page={currentPage}
-                pageSize={pageSize}
-                total={filtered.length}
-                onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0 }); }}
-                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
-                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
-              />
+                {upcoming.length > 0 && (
+                  <section className="overflow-hidden rounded-2xl border border-sky-200 bg-sky-50/50">
+                    <button
+                      type="button"
+                      onClick={() => setUpcomingOpen((open) => !open)}
+                      aria-expanded={upcomingOpen}
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-start hover:bg-sky-50"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-600 text-white" aria-hidden="true"><CalendarClock size={16} /></span>
+                        <span>
+                          <span className="block text-sm font-semibold text-sky-900">{t('الامتحانات القادمة')} ({upcoming.length})</span>
+                          <span className="block text-xs text-sky-800/80">{t('أقربها: {date}', { date: formatExamDate(upcoming[0].exam_date) })}</span>
+                        </span>
+                      </span>
+                      <ChevronDown size={18} className={cn('shrink-0 text-sky-700 transition-transform', upcomingOpen && 'rotate-180')} aria-hidden="true" />
+                    </button>
+                    {upcomingOpen && (
+                      <ul className="divide-y divide-sky-100 border-t border-sky-100 bg-white">
+                        {upcoming.map((exam) => <ExamRow key={exam.id} exam={exam} lectureName={lectureName} />)}
+                      </ul>
+                    )}
+                  </section>
+                )}
+
+                {main.length > 0 && (
+                  <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <h2 className="flex items-center justify-between border-b border-gray-100 bg-gray-50/70 px-4 py-2.5 text-sm font-semibold text-gray-800">
+                      <span>{upcoming.length > 0 ? t('الامتحانات المنجزة') : t('قائمة الامتحانات')}</span>
+                      <span className="rounded-full bg-gray-200/70 px-2 py-0.5 text-xs font-medium text-gray-700">{main.length}</span>
+                    </h2>
+                    <ul className="divide-y divide-gray-100">
+                      {visible.map((exam) => <ExamRow key={exam.id} exam={exam} lectureName={lectureName} />)}
+                    </ul>
+                    <Pagination
+                      page={currentPage}
+                      pageSize={pageSize}
+                      total={main.length}
+                      onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0 }); }}
+                      onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                      className="border-t border-gray-100 px-4 py-3"
+                    />
+                  </section>
+                )}
               </>
             )}
           </>
@@ -309,6 +331,58 @@ export default function ExamsPage() {
 
       <ExamFormModal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} lectures={lectures} exam={null} onSubmit={create} />
     </AppLayout>
+  );
+}
+
+/** Phase accent: a coloured start stripe; the badge beside it carries icon + label (never colour alone). */
+const PHASE_STRIPE: Record<ExamPhase, string> = {
+  upcoming: 'border-s-sky-400',
+  pending: 'border-s-amber-400',
+  done: 'border-s-emerald-500',
+};
+
+/** One compact exam line: what, when, which circle, then the key numbers. */
+function ExamRow({ exam, lectureName }: { exam: Exam; lectureName: (l: { lecture_name_ar: string; lecture_name_en?: string | null }) => string }) {
+  const phase = examPhase(exam);
+  return (
+    <li>
+      <Link
+        href={`/exams/${exam.id}`}
+        className={cn('group flex flex-col gap-3 border-s-4 px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:bg-emerald-50 sm:flex-row sm:items-center', PHASE_STRIPE[phase])}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-semibold text-gray-900">{exam.title}</span>
+            <ExamPhaseBadge exam={exam} />
+            <ExamTypeBadge type={exam.exam_type} />
+          </div>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-gray-500">
+            <span className="flex items-center gap-1"><CalendarDays size={12} aria-hidden="true" />{formatExamDate(exam.exam_date)}</span>
+            <span aria-hidden="true">·</span>
+            <span className="flex items-center gap-1"><BookOpen size={12} aria-hidden="true" />{lectureName(exam)}</span>
+          </p>
+        </div>
+        {phase === 'upcoming' ? (
+          <p className="text-xs text-gray-500 sm:w-72 sm:text-end">{t('{count} طالب مسجل', { count: exam.stats.total })}</p>
+        ) : (
+          <dl className="grid grid-cols-3 gap-3 text-xs sm:w-72">
+            <div>
+              <dt className="text-gray-500">{t('المعدل')}</dt>
+              <dd className="font-bold tabular-nums text-gray-900">{exam.stats.average == null ? '—' : `${formatMark(exam.stats.average)}/${formatMark(exam.max_mark)}`}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">{t('الحضور')}</dt>
+              <dd className="font-bold tabular-nums text-gray-900">{exam.stats.present}/{exam.stats.total}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">{t('نسبة النجاح')}</dt>
+              <dd><PctBar value={exam.stats.pass_rate} label={t('نسبة النجاح')} /></dd>
+            </div>
+          </dl>
+        )}
+        <ChevronLeft size={18} className="hidden shrink-0 text-gray-300 transition-colors group-hover:text-emerald-600 ltr:rotate-180 sm:block" aria-hidden="true" />
+      </Link>
+    </li>
   );
 }
 

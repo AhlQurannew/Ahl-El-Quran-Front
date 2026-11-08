@@ -1350,6 +1350,20 @@ const fr: Record<string, string> = {
   "في الصفحة": "par page",
   "كل الأنواع": "Tous les types",
   "من تاريخ": "Du",
+  "{count} طالب مسجل": "{count} élèves inscrits",
+  "{count} قسم/تخصص": "{count} sections/spécialités",
+  "أقربها: {date}": "Prochain : {date}",
+  "ابحث عن الطالب بالاسم...": "Rechercher l'élève par nom...",
+  "ابحث عن طالب في هذا الامتحان...": "Rechercher un élève dans cet examen...",
+  "ابحث عن قسم/تخصص أو حلقة...": "Rechercher une section/spécialité ou une halaqa...",
+  "اختر الطالب الذي تريد إضافته إلى هذا الامتحان": "Choisissez l'élève à ajouter à cet examen",
+  "الامتحانات المنجزة": "Examens passés",
+  "الفلاتر": "Filtres",
+  "بدون حلقات": "Sans halaqas",
+  "طي الكل": "Tout replier",
+  "عرض التفاصيل للكل": "Tout déplier",
+  "غائبون / معذورون": "Absents / excusés",
+  "مجموع المعاملات {total}": "Total des coefficients {total}",
 };
 
 export default fr;

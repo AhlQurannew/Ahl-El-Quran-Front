@@ -1350,6 +1350,20 @@ const en: Record<string, string> = {
   "في الصفحة": "per page",
   "كل الأنواع": "All types",
   "من تاريخ": "From date",
+  "{count} طالب مسجل": "{count} students enrolled",
+  "{count} قسم/تخصص": "{count} departments/specialities",
+  "أقربها: {date}": "Next one: {date}",
+  "ابحث عن الطالب بالاسم...": "Search for the student by name...",
+  "ابحث عن طالب في هذا الامتحان...": "Search for a student in this exam...",
+  "ابحث عن قسم/تخصص أو حلقة...": "Search for a department/speciality or circle...",
+  "اختر الطالب الذي تريد إضافته إلى هذا الامتحان": "Choose the student to add to this exam",
+  "الامتحانات المنجزة": "Past exams",
+  "الفلاتر": "Filters",
+  "بدون حلقات": "No circles",
+  "طي الكل": "Collapse all",
+  "عرض التفاصيل للكل": "Show details for all",
+  "غائبون / معذورون": "Absent / excused",
+  "مجموع المعاملات {total}": "Total coefficients {total}",
 };
 
 export default en;

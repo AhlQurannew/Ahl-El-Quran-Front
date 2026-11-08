@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BookOpen, GraduationCap, Layers, Loader2, Pencil, Plus, Trash2, Users } from 'lucide-react';
+import { BookOpen, ChevronDown, GraduationCap, Layers, Loader2, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Pagination } from '@/components/ui/Pagination';
+import { normalizeSearch } from '@/components/ui/SearchableSelect';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -27,6 +29,19 @@ interface FormState {
 const EMPTY: FormState = { name: '', description: '', is_common: false, lectures: {} };
 const MANAGER_ROLES = ['PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR', 'ADMIN'];
 
+/** One accent per card, in a fixed order (never cycled by rank), only to tell cards apart at a glance. */
+const ACCENTS = [
+  { stripe: 'border-s-emerald-500', badge: 'bg-emerald-100 text-emerald-800', soft: 'bg-emerald-50/40' },
+  { stripe: 'border-s-sky-500', badge: 'bg-sky-100 text-sky-800', soft: 'bg-sky-50/40' },
+  { stripe: 'border-s-violet-500', badge: 'bg-violet-100 text-violet-800', soft: 'bg-violet-50/40' },
+  { stripe: 'border-s-amber-500', badge: 'bg-amber-100 text-amber-900', soft: 'bg-amber-50/40' },
+  { stripe: 'border-s-rose-500', badge: 'bg-rose-100 text-rose-800', soft: 'bg-rose-50/40' },
+  { stripe: 'border-s-teal-500', badge: 'bg-teal-100 text-teal-800', soft: 'bg-teal-50/40' },
+];
+const PAGE_SIZE = 10;
+/** First meaningful letter: skips the Arabic article «ال» (otherwise every badge would read «ا»). */
+const initialOf = (name: string) => name.trim().replace(/^ال(?=\S{2})/, '').charAt(0).toUpperCase();
+
 const formatCoefficient = (value: number) => new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 2 }).format(value);
 
 export default function SpecialitiesPage() {
@@ -42,6 +57,11 @@ export default function SpecialitiesPage() {
   const [loadedToken, setLoadedToken] = useState(-1);
   const loading = loadedToken === -1;
   const [loadError, setLoadError] = useState('');
+  // Cards start folded: name and key counts first, circles on demand.
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [editing, setEditing] = useState<Speciality | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -167,13 +187,31 @@ export default function SpecialitiesPage() {
     [lectures],
   );
 
+  const shownSpecialities = useMemo(() => {
+    const q = normalizeSearch(query);
+    if (!q) return specialities;
+    return specialities.filter((s) => normalizeSearch(
+      `${s.name} ${s.description ?? ''} ${s.lectures.map((l) => `${l.lecture_name_ar} ${l.lecture_name_en ?? ''}`).join(' ')}`,
+    ).includes(q));
+  }, [specialities, query]);
+  const pageCount = Math.max(1, Math.ceil(shownSpecialities.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pageItems = shownSpecialities.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const allOpen = pageItems.length > 0 && pageItems.every((s) => expanded.has(s.id));
+  const toggle = (id: number) => setExpanded((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const toggleAll = () => setExpanded(allOpen ? new Set() : new Set(pageItems.map((s) => s.id)));
+
   return (
     <AppLayout title="الأقسام والتخصصات" breadcrumb="الشؤون الإدارية / الأقسام والتخصصات">
       <Toast type={toast.type} message={toast.message} isVisible={toast.visible} onClose={() => setToast((p) => ({ ...p, visible: false }))} />
       <div className="mx-auto max-w-6xl space-y-5 pb-8">
-        <header className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <header className="flex flex-col gap-3 rounded-2xl border border-violet-100 bg-gradient-to-l from-violet-50 via-white to-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700"><Layers size={22} /></div>
+            <div className="rounded-xl bg-violet-600 p-2.5 text-white shadow-sm"><Layers size={22} /></div>
             <div>
               <h1 className="text-lg font-bold text-gray-900">{t('الأقسام والتخصصات')}</h1>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
@@ -204,66 +242,120 @@ export default function SpecialitiesPage() {
             <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">{t('ابدأ مثلاً بإضافة «الجذع المشترك» ثم أقسام وتخصصات مثل الفقه أو التلاوة.')}</p>
           </div>
         ) : (
-          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {specialities.map((speciality) => {
-              const total = speciality.lectures.reduce((sum, l) => sum + l.coefficient, 0);
-              return (
-                <li key={speciality.id} className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm">
-                  <div className="flex items-start justify-between gap-2 border-b border-gray-100 p-4">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="truncate font-bold text-gray-900">{speciality.name}</h2>
-                        {speciality.is_common && (
-                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{t('جذع مشترك')}</span>
+          <section className="space-y-3">
+            {specialities.length > 6 && (
+              <label className="relative block">
+                <span className="sr-only">{t('بحث')}</span>
+                <Search size={16} className="pointer-events-none absolute inset-y-0 start-3 my-auto text-gray-400" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+                  placeholder={t('ابحث عن قسم/تخصص أو حلقة...')}
+                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pe-3 ps-9 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+                />
+              </label>
+            )}
+
+            <div className="flex items-center justify-between px-1 text-xs text-gray-500">
+              <span>{t('{count} قسم/تخصص', { count: shownSpecialities.length })}</span>
+              <button type="button" onClick={toggleAll} className="font-semibold text-emerald-700 hover:underline">
+                {allOpen ? t('طي الكل') : t('عرض التفاصيل للكل')}
+              </button>
+            </div>
+
+            <ul className="space-y-2.5">
+              {pageItems.map((speciality) => {
+                const total = speciality.lectures.reduce((sum, l) => sum + l.coefficient, 0);
+                const isOpen = expanded.has(speciality.id);
+                const accent = ACCENTS[specialities.indexOf(speciality) % ACCENTS.length];
+                return (
+                  <li key={speciality.id} className={cn('overflow-hidden rounded-2xl border bg-white shadow-sm transition-shadow', isOpen ? 'border-gray-300 shadow-md' : 'border-gray-200')}>
+                    <div className={cn('flex items-center gap-3 border-s-4 p-3 sm:p-4', accent.stripe)}>
+                      <button
+                        type="button"
+                        onClick={() => toggle(speciality.id)}
+                        aria-expanded={isOpen}
+                        aria-controls={`spec-${speciality.id}`}
+                        className="flex min-w-0 flex-1 items-center gap-3 text-start"
+                      >
+                        <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base font-bold', accent.badge)} aria-hidden="true">
+                          {initialOf(speciality.name)}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="truncate font-bold text-gray-900">{speciality.name}</span>
+                            {speciality.is_common && (
+                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{t('جذع مشترك')}</span>
+                            )}
+                          </span>
+                          <span className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-gray-700"><Users size={11} aria-hidden="true" />{t('{count} طالب', { count: speciality.student_count })}</span>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-gray-700"><BookOpen size={11} aria-hidden="true" />{t('{count} حلقة', { count: speciality.lectures.length })}</span>
+                            {speciality.lectures.length > 0 && (
+                              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">{t('مجموع المعاملات {total}', { total: formatCoefficient(total) })}</span>
+                            )}
+                            {speciality.lectures.length === 0 && (
+                              <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800">⚠ {t('بدون حلقات')}</span>
+                            )}
+                          </span>
+                        </span>
+                        <ChevronDown size={18} className={cn('shrink-0 text-gray-400 transition-transform', isOpen && 'rotate-180')} aria-hidden="true" />
+                      </button>
+                      {canManage && (
+                        <div className="flex shrink-0 gap-1">
+                          <button type="button" onClick={() => openEdit(speciality)} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label={t('تعديل')} title={t('تعديل')}>
+                            <Pencil size={15} />
+                          </button>
+                          <button type="button" onClick={() => void remove(speciality)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t('حذف')} title={t('حذف')}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {isOpen && (
+                      <div id={`spec-${speciality.id}`} className={cn('border-t border-gray-100 px-4 py-3', accent.soft)}>
+                        {speciality.description && <p className="mb-2 text-sm text-gray-600">{speciality.description}</p>}
+                        {speciality.lectures.length === 0 ? (
+                          <p className="text-sm text-amber-700">{t('لا توجد حلقات في هذا القسم/التخصص بعد، ولا يمكن تسجيل طلاب فيه.')}</p>
+                        ) : (
+                          <>
+                            <p className="mb-2 text-xs font-medium text-gray-500">{t('الحلقات والمعاملات')}</p>
+                            <ul className="flex flex-wrap gap-2">
+                              {speciality.lectures.map((lecture) => (
+                                <li key={lecture.lecture_id} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800">
+                                  <BookOpen size={13} className="shrink-0 text-gray-400" aria-hidden="true" />
+                                  {lectureName(lecture)}
+                                  <span className={cn('rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums', accent.badge)} title={t('المعامل')}>
+                                    ×{formatCoefficient(lecture.coefficient)}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
                         )}
                       </div>
-                      {speciality.description && <p className="mt-1 line-clamp-2 text-xs text-gray-500">{speciality.description}</p>}
-                    </div>
-                    {canManage && (
-                      <div className="flex shrink-0 gap-1">
-                        <button type="button" onClick={() => openEdit(speciality)} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label={t('تعديل')} title={t('تعديل')}>
-                          <Pencil size={15} />
-                        </button>
-                        <button type="button" onClick={() => void remove(speciality)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t('حذف')} title={t('حذف')}>
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
                     )}
-                  </div>
-                  <div className="flex-1 p-4">
-                    {speciality.lectures.length === 0 ? (
-                      <p className="text-sm text-amber-700">{t('لا توجد حلقات في هذا القسم/التخصص بعد، ولا يمكن تسجيل طلاب فيه.')}</p>
-                    ) : (
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-xs text-gray-500">
-                            <th className="pb-1.5 text-start font-medium">{t('الحلقة')}</th>
-                            <th className="pb-1.5 text-end font-medium">{t('المعامل')}</th>
-                          </tr>
-                        </thead>
-                        <tbody className="tabular-nums">
-                          {speciality.lectures.map((lecture) => (
-                            <tr key={lecture.lecture_id} className="border-t border-gray-100">
-                              <td className="py-1.5 text-gray-800">
-                                <span className="flex items-center gap-1.5"><BookOpen size={13} className="shrink-0 text-gray-400" aria-hidden="true" />{lectureName(lecture)}</span>
-                              </td>
-                              <td className="py-1.5 text-end font-semibold text-gray-900">{formatCoefficient(lecture.coefficient)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between gap-2 rounded-b-2xl bg-gray-50 px-4 py-2.5 text-xs text-gray-600">
-                    <span className="flex items-center gap-1.5"><Users size={13} aria-hidden="true" />{t('{count} طالب', { count: speciality.student_count })}</span>
-                    {speciality.lectures.length > 0 && (
-                      <span>{t('{count} حلقة · مجموع المعاملات {total}', { count: speciality.lectures.length, total: formatCoefficient(total) })}</span>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {shownSpecialities.length === 0 && (
+              <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">{t('لا توجد نتائج مطابقة')}</p>
+            )}
+            {shownSpecialities.length > PAGE_SIZE && (
+              <Pagination
+                page={currentPage}
+                pageSize={pageSize}
+                total={shownSpecialities.length}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                pageSizes={[10, 20, 50]}
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
+              />
+            )}
+          </section>
         )}
       </div>
 

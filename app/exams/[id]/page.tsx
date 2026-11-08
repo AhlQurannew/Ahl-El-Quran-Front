@@ -1,10 +1,11 @@
 'use client';
 
-import { SearchableSelect } from '@/components/ui/SearchableSelect';
+import { SearchableSelect, normalizeSearch } from '@/components/ui/SearchableSelect';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowRight, BookOpen, CalendarDays, Loader2, Pencil, Save, Trash2, Trophy, UserMinus, UserPlus } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarDays, CheckCircle2, Loader2, Pencil, Save, Search, Trash2, Trophy, UserMinus, UserPlus, Users } from 'lucide-react';
+import { Pagination } from '@/components/ui/Pagination';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
@@ -73,6 +74,12 @@ export default function ExamDetailPage() {
   const [saving, setSaving] = useState(false);
   const [view, setView] = useState<'entry' | 'ranking'>('entry');
   const [candidate, setCandidate] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  // Entry list helpers: find a student, show only what still needs work, and page long rosters.
+  const [rowQuery, setRowQuery] = useState('');
+  const [rowFilter, setRowFilter] = useState<'all' | 'missing' | 'absent'>('all');
+  const [rowPage, setRowPage] = useState(1);
+  const [rowPageSize, setRowPageSize] = useState(20);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [toast, setToast] = useState({ visible: false, type: 'success' as 'success' | 'error' | 'info', message: '' });
   const showToast = (type: 'success' | 'error' | 'info', message: string) => setToast({ visible: true, type, message });
@@ -151,6 +158,7 @@ export default function ExamDetailPage() {
       attendance: 'present', mark: '', notes: '',
     }]);
     setCandidate('');
+    setAddOpen(false);
     setDirty(true);
   };
 
@@ -247,11 +255,22 @@ export default function ExamDetailPage() {
   }
 
   const tiles = [
-    { label: 'الحضور', value: `${live.present}/${live.total}`, hint: t('{absent} غائب · {excused} معذور', { absent: live.absent, excused: live.excused }) },
-    { label: 'المعدل', value: live.average == null ? '—' : `${formatMark(live.average)} / ${formatMark(max)}`, hint: t('أعلى نقطة: {mark}', { mark: formatMark(live.highest) }) },
-    { label: 'نسبة النجاح', value: formatPct(live.passRate), hint: t('نقطة النجاح: {mark}', { mark: formatMark(exam.pass_mark) }) },
-    { label: 'المنقطون', value: `${live.graded}/${live.present}`, hint: live.present - live.graded > 0 ? t('{count} بدون نقطة', { count: live.present - live.graded }) : live.present > 0 ? t('كل الحاضرين منقطون') : '' },
+    { label: 'الحضور', value: `${live.present}/${live.total}`, hint: t('{absent} غائب · {excused} معذور', { absent: live.absent, excused: live.excused }), icon: Users, tone: 'bg-violet-50 text-violet-700 ring-violet-100' },
+    { label: 'المعدل', value: live.average == null ? '—' : `${formatMark(live.average)} / ${formatMark(max)}`, hint: t('أعلى نقطة: {mark}', { mark: formatMark(live.highest) }), icon: Trophy, tone: 'bg-amber-50 text-amber-700 ring-amber-100' },
+    { label: 'نسبة النجاح', value: formatPct(live.passRate), hint: t('نقطة النجاح: {mark}', { mark: formatMark(exam.pass_mark) }), icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
+    { label: 'المنقطون', value: `${live.graded}/${live.present}`, hint: live.present - live.graded > 0 ? t('{count} بدون نقطة', { count: live.present - live.graded }) : live.present > 0 ? t('كل الحاضرين منقطون') : '', icon: Pencil, tone: 'bg-sky-50 text-sky-700 ring-sky-100' },
   ];
+
+  const missingCount = rows.filter((r) => r.attendance === 'present' && r.mark.trim() === '').length;
+  const absentCount = rows.filter((r) => r.attendance !== 'present').length;
+  const rq = normalizeSearch(rowQuery);
+  const shownRows = rows.filter((r) =>
+    (rowFilter === 'all' || (rowFilter === 'missing' ? r.attendance === 'present' && r.mark.trim() === '' : r.attendance !== 'present'))
+    && (!rq || normalizeSearch(`${r.name} ${r.registration_number ?? ''}`).includes(rq)));
+  const rowPageCount = Math.max(1, Math.ceil(shownRows.length / rowPageSize));
+  const rowCurrentPage = Math.min(rowPage, rowPageCount);
+  const pageRows = shownRows.slice((rowCurrentPage - 1) * rowPageSize, rowCurrentPage * rowPageSize);
+  const addable = exam.candidates.filter((c) => !rows.some((r) => r.student_id === c.student_id));
 
   return (
     <AppLayout title="الامتحانات" breadcrumb="الشؤون التعليمية / الامتحانات">
@@ -286,11 +305,14 @@ export default function ExamDetailPage() {
         </header>
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t('ملخص الامتحان')}>
-          {tiles.map((tile) => (
-            <div key={tile.label} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-medium text-gray-500">{t(tile.label)}</p>
-              <p className="mt-1.5 text-xl font-bold tabular-nums text-gray-900">{tile.value}</p>
-              <p className="mt-0.5 text-xs text-gray-500">{tile.hint}</p>
+          {tiles.map(({ label, value, hint, icon: Icon, tone }) => (
+            <div key={label} className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1', tone)} aria-hidden="true"><Icon size={18} /></span>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500">{t(label)}</p>
+                <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">{value}</p>
+                <p className="text-xs text-gray-500">{hint}</p>
+              </div>
             </div>
           ))}
         </section>
@@ -312,30 +334,73 @@ export default function ExamDetailPage() {
           </div>
           {editable && view === 'entry' && (
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={markAllPresent} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-                {t('الكل حاضر')}
-              </button>
-              {exam.candidates.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <SearchableSelect
-                    size="sm"
-                    className="w-56"
-                    options={exam.candidates.filter((c) => !rows.some((r) => r.student_id === c.student_id)).map((c) => ({
-                      value: c.student_id, label: `${c.name}${c.in_lecture ? '' : ` (${t('من حلقة أخرى')})`}`,
-                    }))}
-                    value={candidate}
-                    onValueChange={setCandidate}
-                    placeholder={t('إضافة طالب...')}
-                    ariaLabel={t('إضافة طالب')}
-                  />
-                  <button type="button" onClick={() => void addCandidate()} disabled={!candidate} className="rounded-lg bg-emerald-50 p-1.5 text-emerald-700 hover:bg-emerald-100 disabled:opacity-40" aria-label={t('إضافة')}>
-                    <UserPlus size={16} />
-                  </button>
-                </div>
+              <Button variant="outline" size="sm" onClick={markAllPresent}>
+                <CheckCircle2 size={15} /> {t('الكل حاضر')}
+              </Button>
+              {addable.length > 0 && (
+                <Button size="sm" onClick={() => setAddOpen((open) => !open)} aria-expanded={addOpen} aria-controls="add-student-panel">
+                  <UserPlus size={16} /> {t('إضافة طالب')}
+                </Button>
               )}
             </div>
           )}
         </div>
+
+        {editable && view === 'entry' && addOpen && (
+          <div id="add-student-panel" className="flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 sm:flex-row sm:items-end">
+            <div className="min-w-0 flex-1">
+              <p className="mb-1.5 text-sm font-semibold text-emerald-900">{t('اختر الطالب الذي تريد إضافته إلى هذا الامتحان')}</p>
+              <SearchableSelect
+                options={addable.map((c) => ({
+                  value: c.student_id,
+                  label: `${c.name}${c.in_lecture ? '' : ` (${t('من حلقة أخرى')})`}`,
+                  keywords: c.registration_number ?? '',
+                }))}
+                value={candidate}
+                onValueChange={setCandidate}
+                placeholder={t('ابحث عن الطالب بالاسم...')}
+                ariaLabel={t('إضافة طالب')}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => void addCandidate()} disabled={!candidate}>
+                <UserPlus size={16} /> {t('إضافة')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => { setAddOpen(false); setCandidate(''); }}>{t('إلغاء')}</Button>
+            </div>
+          </div>
+        )}
+
+        {editable && view === 'entry' && rows.length > 0 && (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label className="relative flex-1">
+              <span className="sr-only">{t('بحث')}</span>
+              <Search size={16} className="pointer-events-none absolute inset-y-0 start-3 my-auto text-gray-400" aria-hidden="true" />
+              <input
+                type="search"
+                value={rowQuery}
+                onChange={(e) => { setRowQuery(e.target.value); setRowPage(1); }}
+                placeholder={t('ابحث عن طالب في هذا الامتحان...')}
+                className="w-full rounded-xl border border-gray-200 bg-white py-2 pe-3 ps-9 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+              />
+            </label>
+            <div role="group" aria-label={t('عرض')} className="inline-flex rounded-xl border border-gray-200 bg-white p-1">
+              {([['all', 'الكل', rows.length], ['missing', 'بدون نقطة', missingCount], ['absent', 'غائبون / معذورون', absentCount]] as const).map(([value, label, count]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={rowFilter === value}
+                  onClick={() => { setRowFilter(value); setRowPage(1); }}
+                  className={cn('flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium',
+                    rowFilter === value ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-50')}
+                >
+                  {t(label)}
+                  <span className={cn('rounded-full px-1.5 tabular-nums', rowFilter === value ? 'bg-white/20' : value === 'missing' && count > 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100')}>{count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {rows.length === 0 ? (
           <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
@@ -372,8 +437,12 @@ export default function ExamDetailPage() {
             </ol>
           </section>
         ) : (
+          <>
           <ul className="space-y-2">
-            {rows.map((row) => {
+            {pageRows.length === 0 && (
+              <li className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">{t('لا توجد نتائج مطابقة')}</li>
+            )}
+            {pageRows.map((row) => {
               const error = markError(row);
               const rank = ranks.get(row.student_id) ?? null;
               return (
@@ -444,6 +513,18 @@ export default function ExamDetailPage() {
               );
             })}
           </ul>
+          {shownRows.length > 10 && (
+            <Pagination
+              page={rowCurrentPage}
+              pageSize={rowPageSize}
+              total={shownRows.length}
+              onPageChange={setRowPage}
+              onPageSizeChange={(size) => { setRowPageSize(size); setRowPage(1); }}
+              pageSizes={[10, 20, 50]}
+              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
+            />
+          )}
+          </>
         )}
         {editable && (view === 'entry' || dirty) && (
           <div className="sticky bottom-2 z-20 rounded-2xl border border-gray-200 bg-white/95 shadow-lg backdrop-blur">
