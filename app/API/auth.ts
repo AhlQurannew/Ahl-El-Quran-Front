@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "@/store/authStore";
 
 import { API_BASE_URL as API_URL } from '@/utils/apiConfig';
 
@@ -60,11 +61,17 @@ const loginAdmin = async (data: { user?: string; email?: string; password: strin
     return res.data;
 };
 const getCurrentUser = async () => {
-    const res = await axiosGlobal.get("/me");
+    const res = await axiosGlobal.get("/me", { headers: authHeader() });
     return res.data;
 }
+/** Bearer header for the authenticated calls of this (otherwise public) client. */
+const authHeader = () => {
+    const token = useAuthStore.getState().accessToken || (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null);
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 const getCurrentAdmin = async () => {
-    const res = await axiosGlobal.get("/admin/me");
+    const res = await axiosGlobal.get("/admin/me", { headers: authHeader() });
     return res.data;
 }
 const refreshToken = async () => {

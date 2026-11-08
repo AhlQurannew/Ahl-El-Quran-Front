@@ -10,6 +10,7 @@ import { Toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 import inspectorsAPI, { type Inspector } from '@/app/API/inspectors';
 import { ADMIN_THEME, useAdminTheme } from '@/utils/adminTheme';
+import { useAuthStore } from '@/store/authStore';
 import { sameValues } from '@/utils/formChanges';
 import { getLocale, t } from '@/i18n';
 import { describeError } from '@/utils/errorMessages';
@@ -38,6 +39,7 @@ const formatDate = (iso: string | null) =>
 export default function InspectorsPage() {
   const confirm = useConfirm();
   const { isInspector } = useAdminTheme();
+  const role = useAuthStore((state) => state.user?.role);
   const indigo = ADMIN_THEME.inspector.primary;
   const [inspectors, setInspectors] = useState<Inspector[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
@@ -54,14 +56,15 @@ export default function InspectorsPage() {
   const load = useCallback(() => setReloadToken((n) => n + 1), []);
 
   useEffect(() => {
-    if (isInspector) return;
+    // Wait for the account: inspectors never call this administrator-only endpoint.
+    if (!role || isInspector) return;
     let active = true;
     inspectorsAPI.listInspectors()
       .then((list) => { if (active) { setInspectors(list); setLoadError(''); } })
       .catch((error) => { if (active) setLoadError(describeError(error, t('تعذر تحميل المفتشين'))); })
       .finally(() => { if (active) setLoadedToken(reloadToken); });
     return () => { active = false; };
-  }, [reloadToken, isInspector]);
+  }, [reloadToken, isInspector, role]);
 
   const openCreate = () => {
     setEditing(null);

@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import authAPI from '@/app/API/auth';
 
 interface AdminViewContextType {
   isResolved: boolean;
@@ -61,6 +62,7 @@ export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
   const setEffectiveRole = useAuthStore((state) => state.setEffectiveRole);
+  const setUser = useAuthStore((state) => state.setUser);
   const storedToken = typeof window === 'undefined' ? null : localStorage.getItem('access_token');
   const isAdminSession = ['ADMIN', 'INSPECTOR'].includes(user?.role?.toUpperCase() ?? '') || tokenIsAdmin(accessToken || storedToken);
   const [isAdminViewing, setIsAdminViewing] = useState(false);
@@ -127,6 +129,27 @@ export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // eslint-disable-next-line react-hooks/set-state-in-effect
     syncSchoolView();
   }, [syncSchoolView]);
+
+  // Sessions opened before the admin login returned a real profile still hold an invented one
+  // (role PRESIDENT, «الرئيس»): refresh it once so labels, colours and inspector limits are right.
+  const storedRole = user?.role?.toUpperCase();
+  useEffect(() => {
+    if (!isAdminSession || !user || storedRole === 'ADMIN' || storedRole === 'INSPECTOR') return;
+    let active = true;
+    authAPI.getCurrentAdmin()
+      .then((me: { id: number; username: string; full_name?: string | null; role?: string }) => {
+        if (!active) return;
+        setUser({
+          ...user,
+          id: me.id,
+          firstname: me.full_name || me.username,
+          lastname: '',
+          role: me.role === 'INSPECTOR' ? 'INSPECTOR' : 'ADMIN',
+        });
+      })
+      .catch(() => { /* keep the stored profile; the next login fixes it */ });
+    return () => { active = false; };
+  }, [isAdminSession, user, storedRole, setUser]);
 
   useEffect(() => {
     window.addEventListener('pageshow', syncSchoolView);

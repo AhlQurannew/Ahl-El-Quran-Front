@@ -8,7 +8,6 @@ import {
   School,
   Search,
   Loader2,
-  Eye,
   ArrowRight,
   Users,
   ChevronLeft

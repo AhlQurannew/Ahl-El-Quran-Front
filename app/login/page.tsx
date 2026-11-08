@@ -3,7 +3,7 @@
 import { describeError } from '@/utils/errorMessages';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock, User, ChevronDown } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import authAPI from '@/app/API/auth';
 import { useAuthStore } from '@/store/authStore';
