@@ -26,4 +26,7 @@ export interface Student {
   specialityName?: string;
   /** Names of every circle the student is enrolled in. */
   lectureNames?: string[];
+  /** Account behind the student (for تفعيل / تعطيل) */
+  userId?: number;
+  isActive?: boolean;
 }

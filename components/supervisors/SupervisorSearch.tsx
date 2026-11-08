@@ -5,6 +5,8 @@ import { Search, Plus, Edit2, Trash2, CheckSquare, X, Printer, FileSpreadsheet }
 import { t } from '@/i18n';
 
 interface SupervisorSearchProps {
+  /** Extra actions on the selection (e.g. تفعيل / تعطيل), shown after «حذف». */
+  extraActions?: React.ReactNode;
   query: string;
   onQueryChange: (query: string) => void;
   selectedCount: number;
@@ -18,6 +20,7 @@ interface SupervisorSearchProps {
 }
 
 export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
+  extraActions,
   query,
   onQueryChange,
   selectedCount,
@@ -75,6 +78,8 @@ export const SupervisorSearch: React.FC<SupervisorSearchProps> = ({
           <Trash2 size={18} />
           <span>{t("حذف")}</span>
         </button>
+
+        {extraActions}
 
         {/* Select All Button */}
         <button

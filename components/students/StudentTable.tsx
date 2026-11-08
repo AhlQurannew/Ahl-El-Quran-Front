@@ -144,6 +144,9 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                   </td>
                   <td className="px-4 py-3.5 text-sm font-semibold text-gray-800">
                     {student.firstName}
+                    {student.isActive === false && (
+                      <span className="ms-2 inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600">○ {t("معطّل")}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3.5 text-sm text-gray-700">
                     {student.lastName}

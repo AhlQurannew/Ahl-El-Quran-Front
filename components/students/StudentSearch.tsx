@@ -5,6 +5,8 @@ import { Search, Printer, Edit, Trash2, CheckSquare, XCircle, PlusCircle, FileSp
 import { t } from '@/i18n';
 
 interface StudentSearchProps {
+  /** Extra actions on the selection (e.g. تفعيل / تعطيل), shown after «حذف». */
+  extraActions?: React.ReactNode;
   query: string;
   onQueryChange: (v: string) => void;
   selectedCount: number;
@@ -18,6 +20,7 @@ interface StudentSearchProps {
 }
 
 export const StudentSearch: React.FC<StudentSearchProps> = ({
+  extraActions,
   query,
   onQueryChange,
   selectedCount,
@@ -86,6 +89,8 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
             <Trash2 size={14} />
             {t("حذف")}
           </button>
+
+        {extraActions}
 
           {/* Select All */}
           <button

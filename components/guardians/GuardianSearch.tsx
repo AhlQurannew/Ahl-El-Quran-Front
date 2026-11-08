@@ -5,6 +5,8 @@ import { Search, PlusCircle, Edit, Trash2, CheckSquare, XCircle, Printer, Downlo
 import { t } from '@/i18n';
 
 interface GuardianSearchProps {
+  /** Extra actions on the selection (e.g. تفعيل / تعطيل), shown after «حذف». */
+  extraActions?: React.ReactNode;
   query: string;
   onQueryChange: (query: string) => void;
   selectedCount: number;
@@ -18,6 +20,7 @@ interface GuardianSearchProps {
 }
 
 export const GuardianSearch: React.FC<GuardianSearchProps> = ({
+  extraActions,
   query,
   onQueryChange,
   selectedCount,
@@ -86,6 +89,8 @@ export const GuardianSearch: React.FC<GuardianSearchProps> = ({
             <Trash2 size={14} />
             {t("حذف")}
           </button>
+
+        {extraActions}
 
           {/* Select All */}
           <button

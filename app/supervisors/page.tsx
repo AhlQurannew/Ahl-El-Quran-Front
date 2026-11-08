@@ -1,5 +1,7 @@
 ﻿'use client';
 
+import { ActivationButtons } from '@/components/ui/ActivationButtons';
+import { useAuthStore } from '@/store/authStore';
 import React, { useState, useMemo, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -21,6 +23,10 @@ type ToastState = { visible: boolean; type: 'success' | 'info' | 'error'; messag
 export default function SupervisorsPage() {
   const confirm = useConfirm();
   const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
+  // تفعيل / تعطيل: only for the roles above these accounts in the hierarchy.
+  const activatorRole = useAuthStore((state) => state.user?.role);
+  const canActivate = !!activatorRole && ['ADMIN', 'INSPECTOR', 'PRESIDENT', 'CHIEF_SUPERVISOR'].includes(activatorRole);
+
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -260,6 +266,13 @@ export default function SupervisorsPage() {
 
             {/* Search Input and action buttons */}
             <SupervisorSearch
+              extraActions={canActivate ? (
+                <ActivationButtons
+                  targets={supervisors.filter((s) => selectedIds.includes(s.id)).map((s) => ({ userId: Number(s.user_id), name: `${s.firstname} ${s.lastname}`.trim(), isActive: s.is_active }))}
+                  onDone={() => void loadSupervisors()}
+                  onMessage={showToast}
+                />
+              ) : undefined}
               query={query}
               onQueryChange={setQuery}
               selectedCount={selectedIds.length}

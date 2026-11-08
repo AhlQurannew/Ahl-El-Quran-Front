@@ -1446,6 +1446,20 @@ const en: Record<string, string> = {
   "هذا الحساب معطّل": "This account is deactivated",
   "يجب أن تختلف كلمة المرور عن اسم المستخدم والبريد الإلكتروني": "The password must differ from the username and e-mail",
   "لوحة تحكم المفتش": "Inspector dashboard",
+  "اختر حساباً معطّلاً": "Select a deactivated account",
+  "اختر حساباً نشطاً": "Select an active account",
+  "تعذر تغيير حالة الحساب": "Could not change the account status",
+  "تم تعطيل {count} حساب": "{count} account(s) deactivated",
+  "تم تفعيل {count} حساب": "{count} account(s) activated",
+  "هل أنت متأكد من تعطيل {count} حسابات؟ سيتم تسجيل خروج أصحابها فوراً.": "Are you sure you want to deactivate {count} accounts? Their owners will be signed out immediately.",
+  "هل أنت متأكد من تعطيل المدرسة {name}؟ سيتم تسجيل خروج مشرفها العام ولن يتمكن من الدخول حتى يُعاد تفعيلها.": "Are you sure you want to deactivate the school {name}? Its chief supervisor will be signed out and cannot sign in until it is activated again.",
+  "هل أنت متأكد من تعطيل حساب {name}؟ سيتم تسجيل خروجه فوراً ولن يتمكن من الدخول حتى يُعاد تفعيله.": "Are you sure you want to deactivate the account of {name}? They will be signed out immediately and cannot sign in until it is activated again.",
+  "هل أنت متأكد من تفعيل {count} حسابات؟": "Are you sure you want to activate {count} accounts?",
+  "هل أنت متأكد من تفعيل المدرسة {name}؟ سيتمكن مشرفها العام من الدخول مجدداً.": "Are you sure you want to activate the school {name}? Its chief supervisor will be able to sign in again.",
+  "هل أنت متأكد من تفعيل حساب {name}؟": "Are you sure you want to activate the account of {name}?",
+  "الحساب غير موجود": "Account not found",
+  "لا يمكنك تغيير حالة حسابك الخاص": "You cannot change the status of your own account",
+  "لا يمكنك تغيير حالة هذا الحساب": "You cannot change the status of this account",
 };
 
 export default en;

@@ -4,19 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSearchParams } from "next/navigation";
 import { useAdminView } from "@/contexts/AdminViewContext";
-import { 
-  School,
-  Search,
-  Loader2,
-  Eye,
-  EyeOff,
-  Edit,
-  Trash2,
-  Plus,
-  X
-} from "lucide-react";
+import { School, Search, Loader2, Eye, EyeOff, Edit, Trash2, Plus, X, Power, PowerOff } from "lucide-react";
 import { SchoolImagePicker, NO_IMAGE_CHANGE, type SchoolImageChange } from '@/components/schools/SchoolImagePicker';
 import adminAPI, { schoolImageSrc } from "@/app/API/admin";
+import accountsAPI from "@/app/API/accounts";
 import { t } from '@/i18n';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 
@@ -258,6 +249,21 @@ export default function SchoolsManagementPage() {
     setDeleteError("");
   };
 
+  // تفعيل / تعطيل a school = its chief supervisor's account (signed out at once when deactivated).
+  const toggleSchool = async (school: SchoolData) => {
+    const activate = !school.is_active;
+    const ok = await confirm(activate
+      ? { title: t('تفعيل الحساب'), message: t('هل أنت متأكد من تفعيل المدرسة {name}؟ سيتمكن مشرفها العام من الدخول مجدداً.', { name: school.school_name }), confirmText: t('نعم، فعّل') }
+      : { title: t('تعطيل الحساب'), message: t('هل أنت متأكد من تعطيل المدرسة {name}؟ سيتم تسجيل خروج مشرفها العام ولن يتمكن من الدخول حتى يُعاد تفعيلها.', { name: school.school_name }), confirmText: t('نعم، عطّل'), variant: 'danger' });
+    if (!ok) return;
+    try {
+      await accountsAPI.setAccountActive(school.user_id, activate);
+      fetchSchools();
+    } catch (requestError: unknown) {
+      setError(getRequestErrorMessage(requestError, t('تعذر تغيير حالة الحساب')));
+    }
+  };
+
   const handleEnterSchool = (school: SchoolData) => {
     setAdminSchool(school.id, school.school_name);
   };
@@ -313,7 +319,7 @@ export default function SchoolsManagementPage() {
         </div>
 
         {/* Schools Table */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="relative bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8963E' }} />
@@ -326,21 +332,21 @@ export default function SchoolsManagementPage() {
               </p>
             </div>
           ) : (
-            <table className="w-full">
+            <table className="w-full min-w-[48rem]">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("اسم المدرسة")}</th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("الرئيس")}</th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("البريد الإلكتروني")}</th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("رقم الهاتف")}</th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600">{t("الطلاب")}</th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600">{t("الإجراءات")}</th>
+                  <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("اسم المدرسة")}</th>
+                  <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("الرئيس")}</th>
+                  <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("البريد الإلكتروني")}</th>
+                  <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("رقم الهاتف")}</th>
+                  <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("الطلاب")}</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-gray-600">{t("الإجراءات")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredSchools.map((school) => (
                   <tr key={school.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-3">
                         <span className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-amber-50">
                           {school.image_url ? (
@@ -350,19 +356,32 @@ export default function SchoolsManagementPage() {
                             <School size={18} className="text-amber-600" aria-hidden="true" />
                           )}
                         </span>
-                        <span className="font-medium text-gray-900">{school.school_name}</span>
+                        <span className="min-w-0">
+                          <span className="block min-w-40 font-medium text-gray-900">{school.school_name}</span>
+                          <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${school.is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
+                            {school.is_active ? `● ${t("نشط")}` : `○ ${t("معطّل")}`}
+                          </span>
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{school.president_name}</td>
-                    <td className="px-6 py-4 text-gray-600">{school.email}</td>
-                    <td className="px-6 py-4 text-gray-600">{school.phone_number}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 text-sm text-gray-600">{school.president_name}</td>
+                    <td className="px-3 py-3 text-sm text-gray-600">{school.email}</td>
+                    <td className="px-3 py-3 text-sm text-gray-600">{school.phone_number}</td>
+                    <td className="px-3 py-3">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {school.student_count}{' '}{t("طالب")}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="px-3 py-3">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => void toggleSchool(school)}
+                          className={`p-2 rounded-lg transition-colors ${school.is_active ? 'hover:bg-amber-50' : 'hover:bg-emerald-50'}`}
+                          title={school.is_active ? t("تعطيل") : t("تفعيل")}
+                          aria-label={school.is_active ? t("تعطيل") : t("تفعيل")}
+                        >
+                          {school.is_active ? <PowerOff size={18} className="text-amber-600" /> : <Power size={18} className="text-emerald-600" />}
+                        </button>
                         <button
                           onClick={() => handleEnterSchool(school)}
                           className="p-2 hover:bg-blue-50 rounded-lg transition-colors"

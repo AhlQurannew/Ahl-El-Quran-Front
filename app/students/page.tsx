@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { ActivationButtons } from '@/components/ui/ActivationButtons';
 import React, { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StudentSearch } from '@/components/students/StudentSearch';
@@ -38,6 +39,8 @@ function inputDateToApiDate(d?: string): string {
 function apiStudentToStudent(api: any): Student {
   return {
     id: String(api.id ?? api.user_id ?? Date.now()),
+    userId: api.user_id != null ? Number(api.user_id) : undefined,
+    isActive: api.is_active ?? true,
     firstName: (api.personalInfo?.firstNameAr || api.firstname || '').trim(),
     lastName: (api.personalInfo?.lastNameAr || api.lastname || '').trim(),
     // Created as 'Masculin'/'Féminin'; older rows may hold 'male'/'female'.
@@ -131,6 +134,10 @@ export default function StudentsPage() {
   const user = useAuthStore((state) => state.user);
   const isTeacher = user?.role === 'TEACHER';
   const [students, setStudents] = useState<Student[]>([]);
+  // تفعيل / تعطيل: only for the roles above these accounts in the hierarchy.
+  const activatorRole = useAuthStore((state) => state.user?.role);
+  const canActivate = !!activatorRole && ['ADMIN', 'INSPECTOR', 'PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR'].includes(activatorRole);
+
   const [specialityNames, setSpecialityNames] = useState<Record<number, string>>({});
 
   useEffect(() => {
@@ -431,6 +438,13 @@ export default function StudentsPage() {
           </div>
         ) : (
           <StudentSearch
+              extraActions={canActivate ? (
+                <ActivationButtons
+                  targets={students.filter((x) => selectedIds.includes(x.id) && x.userId).map((x) => ({ userId: Number(x.userId), name: `${x.firstName} ${x.lastName}`.trim(), isActive: x.isActive !== false }))}
+                  onDone={() => void loadStudents()}
+                  onMessage={showToast}
+                />
+              ) : undefined}
             query={query}
             onQueryChange={setQuery}
             selectedCount={selectedIds.length}

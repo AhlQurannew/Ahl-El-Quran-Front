@@ -1446,6 +1446,20 @@ const fr: Record<string, string> = {
   "هذا الحساب معطّل": "Ce compte est désactivé",
   "يجب أن تختلف كلمة المرور عن اسم المستخدم والبريد الإلكتروني": "Le mot de passe doit être différent du nom d'utilisateur et de l'e-mail",
   "لوحة تحكم المفتش": "Tableau de bord inspecteur",
+  "اختر حساباً معطّلاً": "Sélectionnez un compte désactivé",
+  "اختر حساباً نشطاً": "Sélectionnez un compte actif",
+  "تعذر تغيير حالة الحساب": "Impossible de changer le statut du compte",
+  "تم تعطيل {count} حساب": "{count} compte(s) désactivé(s)",
+  "تم تفعيل {count} حساب": "{count} compte(s) activé(s)",
+  "هل أنت متأكد من تعطيل {count} حسابات؟ سيتم تسجيل خروج أصحابها فوراً.": "Voulez-vous vraiment désactiver {count} comptes ? Leurs titulaires seront déconnectés immédiatement.",
+  "هل أنت متأكد من تعطيل المدرسة {name}؟ سيتم تسجيل خروج مشرفها العام ولن يتمكن من الدخول حتى يُعاد تفعيلها.": "Voulez-vous vraiment désactiver l'école {name} ? Son superviseur général sera déconnecté et ne pourra plus se connecter tant qu'elle ne sera pas réactivée.",
+  "هل أنت متأكد من تعطيل حساب {name}؟ سيتم تسجيل خروجه فوراً ولن يتمكن من الدخول حتى يُعاد تفعيله.": "Voulez-vous vraiment désactiver le compte de {name} ? Il sera déconnecté immédiatement et ne pourra plus se connecter tant qu'il ne sera pas réactivé.",
+  "هل أنت متأكد من تفعيل {count} حسابات؟": "Voulez-vous vraiment activer {count} comptes ?",
+  "هل أنت متأكد من تفعيل المدرسة {name}؟ سيتمكن مشرفها العام من الدخول مجدداً.": "Voulez-vous vraiment activer l'école {name} ? Son superviseur général pourra de nouveau se connecter.",
+  "هل أنت متأكد من تفعيل حساب {name}؟": "Voulez-vous vraiment activer le compte de {name} ?",
+  "الحساب غير موجود": "Compte introuvable",
+  "لا يمكنك تغيير حالة حسابك الخاص": "Vous ne pouvez pas changer le statut de votre propre compte",
+  "لا يمكنك تغيير حالة هذا الحساب": "Vous ne pouvez pas changer le statut de ce compte",
 };
 
 export default fr;

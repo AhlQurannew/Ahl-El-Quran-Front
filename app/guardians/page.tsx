@@ -1,5 +1,7 @@
 ﻿'use client';
 
+import { ActivationButtons } from '@/components/ui/ActivationButtons';
+import { useAuthStore } from '@/store/authStore';
 import React, { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -49,6 +51,10 @@ function escapeHtml(value: string): string {
 export default function GuardiansPage() {
   const confirm = useConfirm();
   const [guardians, setGuardians] = useState<Guardian[]>([]);
+  // تفعيل / تعطيل: only for the roles above these accounts in the hierarchy.
+  const activatorRole = useAuthStore((state) => state.user?.role);
+  const canActivate = !!activatorRole && ['ADMIN', 'INSPECTOR', 'PRESIDENT', 'CHIEF_SUPERVISOR', 'SUPERVISOR'].includes(activatorRole);
+
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -220,6 +226,13 @@ export default function GuardiansPage() {
         </div>
         <GuardianStats guardians={guardians} />
         <GuardianSearch
+              extraActions={canActivate ? (
+                <ActivationButtons
+                  targets={guardians.filter((g) => selectedIds.includes(g.id)).map((g) => ({ userId: g.userId, name: `${g.firstName} ${g.lastName}`.trim(), isActive: g.isActive }))}
+                  onDone={() => void loadGuardians()}
+                  onMessage={showToast}
+                />
+              ) : undefined}
           query={query}
           onQueryChange={setQuery}
           selectedCount={selectedIds.length}
