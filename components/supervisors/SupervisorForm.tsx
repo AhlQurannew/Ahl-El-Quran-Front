@@ -1,5 +1,6 @@
 'use client';
 
+import { sameValues } from '@/utils/formChanges';
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
@@ -31,6 +32,9 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const unchanged = !!editingSupervisor && sameValues(formData, {
+    firstname: editingSupervisor.firstname, lastname: editingSupervisor.lastname, email: editingSupervisor.email, password: '',
+  });
 
   // Generate random password
   const generatePassword = () => {
@@ -204,7 +208,8 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
             type="submit" 
             variant="primary" 
             className="flex-1"
-            disabled={isSubmitting}
+            disabled={isSubmitting || unchanged}
+            title={unchanged ? t("لا توجد تعديلات") : undefined}
           >
             {isSubmitting ? t("جاري الحفظ...") : editingSupervisor ? t("حفظ التعديلات") : t("إضافة المشرف")}
           </Button>

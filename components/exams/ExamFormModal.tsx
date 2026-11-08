@@ -1,5 +1,6 @@
 'use client';
 
+import { sameValues } from '@/utils/formChanges';
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -58,6 +59,7 @@ export function ExamFormModal({ isOpen, onClose, lectures, exam, onSubmit }: Pro
     }
   }
 
+  const unchanged = !!exam && sameValues(form, fromExam(exam));
   const lectureName = (l: { lecture_name_ar: string; lecture_name_en?: string | null }) =>
     lang !== 'ar' && l.lecture_name_en ? l.lecture_name_en : l.lecture_name_ar;
   const selectedLecture = lectures.find((l) => String(l.lecture_id) === form.lecture_id);
@@ -99,7 +101,7 @@ export function ExamFormModal({ isOpen, onClose, lectures, exam, onSubmit }: Pro
       footer={
         <>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={saving}>{t('إلغاء')}</Button>
-          <Button size="sm" onClick={() => void submit()} isLoading={saving}>{exam ? t('حفظ التعديلات') : t('إضافة')}</Button>
+          <Button size="sm" onClick={() => void submit()} isLoading={saving} disabled={unchanged} title={unchanged ? t('لا توجد تعديلات') : undefined}>{exam ? t('حفظ التعديلات') : t('إضافة')}</Button>
         </>
       }
     >

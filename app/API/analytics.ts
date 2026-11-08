@@ -74,6 +74,27 @@ export interface StudentAlert {
   pages: number;
 }
 
+/** A top student of a school, for one schooling mode; score is 0-100. */
+export interface TopStudent {
+  id: number;
+  name: string;
+  name_en?: string | null;
+  rank: number;
+  score: number;
+  attendance_rate: number | null;
+  pages: number;
+  exam_average: number | null;
+}
+
+export interface SchoolTopStudents {
+  school_id: number;
+  school: string | null;
+  /** Full time */
+  internal: TopStudent[];
+  /** Part time (khariji) */
+  external: TopStudent[];
+}
+
 export interface ScopeRef {
   id: number;
   name: string;
@@ -97,6 +118,7 @@ export interface AnalyticsData {
   series: SeriesPoint[];
   breakdown: { level: 'school' | 'lecture' | 'student' | null; rows: BreakdownRow[] };
   alerts: StudentAlert[];
+  top_students: SchoolTopStudents[];
   student: StudentDetail | null;
   generated_at: string;
 }

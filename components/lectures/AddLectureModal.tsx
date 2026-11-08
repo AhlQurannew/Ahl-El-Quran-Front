@@ -1,5 +1,6 @@
 'use client';
 
+import { sameValues } from '@/utils/formChanges';
 import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -152,6 +153,17 @@ export default function AddLectureModal({
   }, [isOpen, initialData]);
 
   
+  // Edit mode: «تحديث» stays disabled until something differs from the circle as it was opened.
+  const scheduleKey = (list: Schedule[]) => list.map((s) => `${s.day_of_week}|${s.start_time}|${s.end_time}`).sort();
+  const teacherKey = (list: { id?: number; teacher_id?: number }[]) => list.map((t) => Number(t.teacher_id || t.id || 0)).sort((a, b) => a - b);
+  const unchanged = isEditMode && !!initialData && sameValues(
+    { ar: lectureNameAr, en: lectureNameEn, type: circleType, category, web: shownOnWebsite,
+      teachers: teacherKey(selectedTeachersList), schedules: scheduleKey(schedules) },
+    { ar: initialData.lecture_name_ar || '', en: initialData.lecture_name_en || '', type: initialData.circle_type || 'حفظ ومراجعة',
+      category: initialData.category || 'both', web: initialData.shown_on_website ?? true,
+      teachers: teacherKey(initialData.teachers || []), schedules: scheduleKey(initialData.schedules || []) },
+  );
+
   const handleAddTeacher = () => {
     if (!selectedTeacherId) return;
 
@@ -487,7 +499,7 @@ export default function AddLectureModal({
           <Button type="button" variant="secondary" onClick={onClose}>
             {tr("إلغاء")}
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || unchanged} title={unchanged ? tr("لا توجد تعديلات") : undefined}>
             {loading ? tr("جاري الحفظ...") : isEditMode ? tr("تحديث") : tr("حفظ")}
           </Button>
         </div>

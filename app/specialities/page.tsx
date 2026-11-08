@@ -1,5 +1,6 @@
 'use client';
 
+import { sameValues } from '@/utils/formChanges';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BookOpen, ChevronDown, GraduationCap, Layers, Loader2, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
 import { Pagination } from '@/components/ui/Pagination';
@@ -41,6 +42,14 @@ const ACCENTS = [
 const PAGE_SIZE = 10;
 /** First meaningful letter: skips the Arabic article «ال» (otherwise every badge would read «ا»). */
 const initialOf = (name: string) => name.trim().replace(/^ال(?=\S{2})/, '').charAt(0).toUpperCase();
+
+/** Form values of a department/speciality being edited. */
+const specialityToForm = (speciality: Speciality): FormState => ({
+  name: speciality.name,
+  description: speciality.description ?? '',
+  is_common: speciality.is_common,
+  lectures: Object.fromEntries(speciality.lectures.map((l) => [l.lecture_id, String(l.coefficient)])),
+});
 
 const formatCoefficient = (value: number) => new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 2 }).format(value);
 
@@ -100,12 +109,7 @@ export default function SpecialitiesPage() {
 
   const openEdit = (speciality: Speciality) => {
     setEditing(speciality);
-    setForm({
-      name: speciality.name,
-      description: speciality.description ?? '',
-      is_common: speciality.is_common,
-      lectures: Object.fromEntries(speciality.lectures.map((l) => [l.lecture_id, String(l.coefficient)])),
-    });
+    setForm(specialityToForm(speciality));
     setFormError('');
     setIsFormOpen(true);
   };
@@ -120,6 +124,10 @@ export default function SpecialitiesPage() {
   };
 
   const selectedCount = Object.keys(form.lectures).length;
+  const unchanged = !!editing && sameValues(
+    { ...form, lectures: Object.fromEntries(Object.entries(form.lectures).map(([id, c]) => [id, Number(c)])) },
+    { ...specialityToForm(editing), lectures: Object.fromEntries(editing.lectures.map((l) => [l.lecture_id, l.coefficient])) },
+  );
 
   const save = async () => {
     setFormError('');
@@ -367,7 +375,7 @@ export default function SpecialitiesPage() {
         footer={
           <>
             <Button variant="ghost" size="sm" onClick={() => setIsFormOpen(false)} disabled={saving}>{t('إلغاء')}</Button>
-            <Button size="sm" onClick={() => void save()} isLoading={saving}>{editing ? t('حفظ التعديلات') : t('إضافة')}</Button>
+            <Button size="sm" onClick={() => void save()} isLoading={saving} disabled={unchanged} title={unchanged ? t('لا توجد تعديلات') : undefined}>{editing ? t('حفظ التعديلات') : t('إضافة')}</Button>
           </>
         }
       >

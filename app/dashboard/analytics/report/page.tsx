@@ -250,19 +250,21 @@ export default function AnalyticsReportPage() {
             </Section>
           )}
 
-          {data.alerts.length > 0 && (
-            <Section number={++section} title={t('طلاب يحتاجون إلى متابعة')}>
-              <p className="text-xs text-gray-500">{t('حضور أقل من 70% (3 سجلات على الأقل)، أو بدون أي نشاط خلال الفترة')}</p>
+          {data.top_students?.some((s) => s.internal.length + s.external.length > 0) && (
+            <Section number={++section} title={t('الطلبة المتميزون')}>
+              <p className="text-xs text-gray-500">{t('أفضل 5 طلبة في كل مدرسة حسب نظام الدراسة. النتيجة = 35% الحضور + 35% الحفظ (مقارنة بأفضل طالب في نفس الفئة) + 30% معدل الامتحانات، خلال الفترة المحددة.')}</p>
               <DataTable dense table={{
-                columns: [t('الطالب'), ...(data.level === 'platform' ? [t('المدرسة')] : []), t('السبب'), t('نسبة الحضور'), t('سجلات الحضور'), t('الصفحات')],
-                rows: data.alerts.map((a) => [
-                  entityName(a, lang),
-                  ...(data.level === 'platform' ? [a.school ?? '—'] : []),
-                  a.reason === 'low_attendance' ? t('حضور منخفض') : t('بدون نشاط'),
-                  formatPercent(a.attendance_rate),
-                  formatNumber(a.attendance_records),
-                  formatNumber(a.pages, 0),
-                ]),
+                columns: [t('المدرسة'), t('نظام الدراسة'), t('الترتيب'), t('الطالب'), t('النتيجة'), t('نسبة الحضور'), t('الصفحات'), t('معدل الامتحانات')],
+                rows: data.top_students.flatMap((school) => (['internal', 'external'] as const).flatMap((mode) => school[mode].map((s) => [
+                  school.school ?? '—',
+                  mode === 'internal' ? t('داخلي (دوام كامل)') : t('خارجي (دوام جزئي)'),
+                  formatNumber(s.rank),
+                  entityName(s, lang),
+                  formatNumber(s.score, 1),
+                  formatPercent(s.attendance_rate),
+                  formatNumber(s.pages, 0),
+                  formatPercent(s.exam_average),
+                ]))),
               }} />
             </Section>
           )}

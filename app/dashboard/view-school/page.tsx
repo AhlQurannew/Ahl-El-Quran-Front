@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminView } from '@/contexts/AdminViewContext';
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -30,6 +31,7 @@ interface SchoolData {
 
 export default function ViewSchoolSelectionPage() {
   const router = useRouter();
+  const { setSelectedSchool } = useAdminView();
   const [schools, setSchools] = useState<SchoolData[]>([]);
   const [filteredSchools, setFilteredSchools] = useState<SchoolData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,17 +81,9 @@ export default function ViewSchoolSelectionPage() {
     }
   };
 
-  const handleSelectSchool = (schoolId: number, schoolName: string) => {
-    // Store selected school in session/local storage
-    sessionStorage.setItem('admin_viewing_school', JSON.stringify({
-      id: schoolId,
-      name: schoolName,
-      timestamp: new Date().toISOString()
-    }));
-    
-    // Redirect to president view (home page) with the school context
-    router.push(`/?school_id=${schoolId}`);
-  };
+  // Same entry path as the dashboard and «إدارة المدارس»: the shared admin-view context sets the
+  // school before navigating, so the layout never sees an admin outside a school and bounces back.
+  const handleSelectSchool = (schoolId: number, schoolName: string) => setSelectedSchool(schoolId, schoolName);
 
   return (
     <AppLayout title={t("عرض مدرسة")} breadcrumb={t("لوحة التحكم / عرض مدرسة")}>

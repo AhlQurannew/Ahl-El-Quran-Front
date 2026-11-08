@@ -1,5 +1,6 @@
 'use client';
 
+import { sameValues } from '@/utils/formChanges';
 import React, { useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
@@ -16,6 +17,14 @@ import guardianAPI, { type GuardianCreatePayload } from '@/app/API/guardian';
 import { mapGuardianResponse, type Guardian } from '@/types/guardian';
 import { t } from '@/i18n';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
+
+/** Form values for a student being edited (empty form for a new one). */
+function studentToForm(student: Student | null | undefined): StudentFormData {
+  if (!student) return EMPTY_FORM;
+  const { id, ...studentData } = student;
+  void id;
+  return { ...studentData, photoFile: undefined };
+}
 
 export type StudentFormData = Omit<Student, 'id'> & { photoFile?: File };
 
@@ -59,12 +68,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   isSubmitting,
 }) => {
   const confirm = useConfirm();
-  const [form, setForm] = React.useState<StudentFormData>(() => {
-    if (!editingStudent) return EMPTY_FORM;
-    const { id, ...studentData } = editingStudent;
-    void id;
-    return { ...studentData, photoFile: undefined };
-  });
+  const [form, setForm] = React.useState<StudentFormData>(() => studentToForm(editingStudent));
   const [errors, setErrors] = React.useState<Partial<Record<keyof StudentFormData, string>>>({});
   const [lectures, setLectures] = React.useState<Lecture[]>([]);
   const [loadingLectures, setLoadingLectures] = React.useState(false);
@@ -76,6 +80,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
   const [guardianCreateError, setGuardianCreateError] = React.useState('');
 
   const isEditing = !!editingStudent;
+  const unchanged = isEditing && sameValues(form, studentToForm(editingStudent));
   const [specialities, setSpecialities] = React.useState<Speciality[]>([]);
   // Only specialities with circles can receive students.
   const usableSpecialities = specialities.filter((s) => s.lectures.length > 0);
@@ -288,7 +293,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
           <Button variant="ghost" size="sm" onClick={handleClose} disabled={isLoading || isSubmitting}>
             {t("إلغاء")}
           </Button>
-          <Button size="sm" isLoading={isLoading || isSubmitting} onClick={handleSubmit}>
+          <Button size="sm" isLoading={isLoading || isSubmitting} onClick={handleSubmit} disabled={unchanged} title={unchanged ? t("لا توجد تعديلات") : undefined}>
             {isEditing ? t("حفظ التعديلات") : t("إضافة")}
           </Button>
         </>

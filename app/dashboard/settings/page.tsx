@@ -55,6 +55,7 @@ export default function AdminSettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [emailBusy, setEmailBusy] = useState(false);
+  const emailChanged = !!settings && email.trim().toLowerCase() !== (settings.profile.email ?? '').toLowerCase();
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -227,7 +228,7 @@ export default function AdminSettingsPage() {
                   <label htmlFor="email-current-password" className="mb-2 block text-sm font-medium text-gray-700">{t("كلمة المرور الحالية للتأكيد")}</label>
                   <input id="email-current-password" type="password" autoComplete="current-password" required value={emailPassword} onChange={(event) => setEmailPassword(event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
                 </div>
-                <button type="submit" disabled={emailBusy} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="submit" disabled={emailBusy || !emailChanged} title={emailChanged ? undefined : t('لا توجد تعديلات')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">
                   {emailBusy ? <Loader2 size={17} className="animate-spin" /> : <Mail size={17} />}
                   {emailBusy ? t("جارٍ حفظ البريد الإلكتروني…") : t("حفظ البريد الإلكتروني")}
                 </button>

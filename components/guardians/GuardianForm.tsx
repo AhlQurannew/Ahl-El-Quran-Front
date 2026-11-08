@@ -1,5 +1,6 @@
 'use client';
 
+import { sameValues } from '@/utils/formChanges';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +9,23 @@ import { Modal } from '@/components/ui/Modal';
 import guardianAPI from '@/app/API/guardian';
 import type { Guardian, GuardianStudentOption } from '@/types/guardian';
 import { t } from '@/i18n';
+
+/** Editable fields of a guardian, as the form holds them. */
+function guardianToForm(guardian: Guardian): GuardianFormData {
+  return {
+    ...EMPTY_FORM,
+    firstName: guardian.firstName,
+    lastName: guardian.lastName,
+    relationship: guardian.relationship,
+    dateOfBirth: guardian.dateOfBirth ?? '',
+    phoneNumber: guardian.phoneNumber ?? '',
+    email: guardian.email ?? '',
+    job: guardian.job ?? '',
+    address: guardian.address ?? '',
+    username: guardian.username,
+    studentIds: guardian.studentIds,
+  };
+}
 
 export interface GuardianFormData {
   firstName: string;
@@ -69,19 +87,7 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
   createOnly = false,
   serverError,
 }) => {
-  const [form, setForm] = useState<GuardianFormData>(() => editingGuardian ? {
-    ...EMPTY_FORM,
-    firstName: editingGuardian.firstName,
-    lastName: editingGuardian.lastName,
-    relationship: editingGuardian.relationship,
-    dateOfBirth: editingGuardian.dateOfBirth ?? '',
-    phoneNumber: editingGuardian.phoneNumber ?? '',
-    email: editingGuardian.email ?? '',
-    job: editingGuardian.job ?? '',
-    address: editingGuardian.address ?? '',
-    username: editingGuardian.username,
-    studentIds: editingGuardian.studentIds,
-  } : { ...EMPTY_FORM, password: generatePassword() });
+  const [form, setForm] = useState<GuardianFormData>(() => editingGuardian ? guardianToForm(editingGuardian) : { ...EMPTY_FORM, password: generatePassword() });
   // New accounts: the username follows the name (firstname_lastname) until edited by hand.
   const [usernameTouched, setUsernameTouched] = useState(Boolean(editingGuardian));
   const [suggesting, setSuggesting] = useState(false);
@@ -91,6 +97,10 @@ export const GuardianForm: React.FC<GuardianFormProps> = ({
   const [studentLoadError, setStudentLoadError] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof GuardianFormData, string>>>({});
   const isEditing = Boolean(editingGuardian);
+  const unchanged = !!editingGuardian && sameValues(
+    { ...form, studentIds: [...(form.studentIds ?? [])].sort((a, b) => a - b) },
+    { ...guardianToForm(editingGuardian), studentIds: [...(editingGuardian.studentIds ?? [])].sort((a, b) => a - b) },
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -193,7 +203,7 @@ ${t('كلمة المرور')}: ${form.password}`);
       footer={(
         <>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isSubmitting}>{t("إلغاء")}</Button>
-          <Button size="sm" type="submit" form="guardian-form" isLoading={isSubmitting}>
+          <Button size="sm" type="submit" form="guardian-form" isLoading={isSubmitting} disabled={unchanged} title={unchanged ? t("لا توجد تعديلات") : undefined}>
             {isEditing ? t("حفظ التعديلات") : t("إضافة ولي الأمر")}
           </Button>
         </>

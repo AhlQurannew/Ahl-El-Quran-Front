@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
-  ArrowUpDown, ChevronLeft, CircleMinus, CircleX, FileDown, Loader2, RefreshCw,
+  ArrowUpDown, ChevronLeft, FileDown, Loader2, RefreshCw,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import analyticsAPI, { AnalyticsData, AnalyticsQuery, BreakdownRow, Granularity } from '@/app/API/analytics';
@@ -16,6 +16,7 @@ import {
 } from '@/components/analytics/derive';
 import { buildInsights, entityName, Insight } from '@/components/analytics/insights';
 import { InsightList } from '@/components/analytics/InsightList';
+import { TopStudents } from '@/components/analytics/TopStudents';
 import {
   ACHIEVEMENT_LABELS, STATUS_LABELS, delta, formatCompact, formatDay, formatNumber, formatPercent,
 } from '@/components/analytics/theme';
@@ -424,33 +425,9 @@ export default function AnalyticsPage() {
               </section>
             )}
 
-            {/* Students needing attention */}
-            {data.alerts.length > 0 && (
-              <section aria-labelledby="alerts-heading" className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-                <h2 id="alerts-heading" className="mb-1 text-sm font-bold text-gray-900 sm:text-base">{t('طلاب يحتاجون إلى متابعة')}</h2>
-                <p className="mb-3 text-xs text-gray-500">{t('حضور أقل من 70% (3 سجلات على الأقل)، أو بدون أي نشاط خلال الفترة')}</p>
-                <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                  {data.alerts.map((alert) => (
-                    <li key={alert.id}>
-                      <button type="button" onClick={() => navigate({ student: alert.id })}
-                        className="flex w-full items-start gap-2 rounded-xl border border-gray-100 p-3 text-start hover:border-sky-200 hover:bg-sky-50/40">
-                        {alert.reason === 'low_attendance'
-                          ? <CircleX size={16} className="mt-0.5 shrink-0 text-[#d03b3b]" aria-hidden="true" />
-                          : <CircleMinus size={16} className="mt-0.5 shrink-0 text-gray-400" aria-hidden="true" />}
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-gray-900">{entityName(alert, lang)}</span>
-                          <span className="block text-xs text-gray-500">
-                            {alert.reason === 'low_attendance'
-                              ? t('حضور {rate} · {count} سجل', { rate: formatPercent(alert.attendance_rate), count: formatNumber(alert.attendance_records) })
-                              : t('لا يوجد أي نشاط خلال الفترة')}
-                            {alert.school ? ` · ${alert.school}` : ''}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+            {/* Top students per school, full time and part time */}
+            {data.top_students?.some((s) => s.internal.length + s.external.length > 0) && (
+              <TopStudents schools={data.top_students} lang={lang} onSelect={(id) => navigate({ student: id })} />
             )}
 
             {/* Student detail */}

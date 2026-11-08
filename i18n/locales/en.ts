@@ -1364,6 +1364,19 @@ const en: Record<string, string> = {
   "عرض التفاصيل للكل": "Show details for all",
   "غائبون / معذورون": "Absent / excused",
   "مجموع المعاملات {total}": "Total coefficients {total}",
+  "{pages} صفحة": "{pages} pages",
+  "أفضل 5 طلبة في كل مدرسة حسب نظام الدراسة. النتيجة = 35% الحضور + 35% الحفظ (مقارنة بأفضل طالب في نفس الفئة) + 30% معدل الامتحانات، خلال الفترة المحددة.": "Top 5 students of each school by schooling mode. Score = 35% attendance + 35% memorisation (compared with the best student of the same group) + 30% exam average, over the selected period.",
+  "الطلبة المتميزون": "Outstanding students",
+  "النتيجة": "Score",
+  "امتحانات {avg}": "exams {avg}",
+  "بدون امتحانات": "no exams",
+  "تراجع": "Discard",
+  "حضور {rate}": "attendance {rate}",
+  "خارجي (دوام جزئي)": "External (part time)",
+  "داخلي (دوام كامل)": "Internal (full time)",
+  "لا توجد بيانات كافية": "Not enough data",
+  "لا توجد تعديلات": "No changes",
+  "معدل الامتحانات": "Exam average",
 };
 
 export default en;

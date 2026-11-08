@@ -68,7 +68,8 @@ export default function ExamDetailPage() {
 
   const [exam, setExam] = useState<ExamDetail | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
-  const [dirty, setDirty] = useState(false);
+  // Last saved roster: «unsaved changes» is a real difference from it, not a flag set on any click.
+  const [savedRows, setSavedRows] = useState<Row[]>([]);
   const [lectures, setLectures] = useState<ExamLecture[]>([]);
   const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -87,7 +88,7 @@ export default function ExamDetailPage() {
   const apply = (data: ExamDetail) => {
     setExam(data);
     setRows(toRows(data));
-    setDirty(false);
+    setSavedRows(toRows(data));
   };
 
   useEffect(() => {
@@ -97,11 +98,23 @@ export default function ExamDetailPage() {
         if (!active) return;
         setExam(data);
         setRows(toRows(data));
+        setSavedRows(toRows(data));
         setLectures(circles);
       })
       .catch((error) => { if (active) setLoadError(describeError(error, t('تعذر تحميل الامتحان'))); });
     return () => { active = false; };
   }, [examId]);
+
+  const max = exam?.max_mark ?? 20;
+  const ranks = useMemo(() => liveRanks(rows, max), [rows, max]);
+  // Compared as what would be sent: order-independent, trimmed notes, mark ignored when not present.
+  const dirty = useMemo(() => {
+    const key = (list: Row[]) => JSON.stringify([...list]
+      .map((r) => [r.student_id, r.attendance, r.attendance === 'present' ? r.mark.trim() : '', r.notes.trim()])
+      .sort((a, b) => Number(a[0]) - Number(b[0])));
+    return key(rows) !== key(savedRows);
+  }, [rows, savedRows]);
+  const editable = !!exam?.can_edit;
 
   // Warn before leaving with unsaved marks.
   useEffect(() => {
@@ -111,16 +124,11 @@ export default function ExamDetailPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [dirty]);
 
-  const max = exam?.max_mark ?? 20;
-  const ranks = useMemo(() => liveRanks(rows, max), [rows, max]);
-  const editable = !!exam?.can_edit;
-
   const lectureName = (l: { lecture_name_ar: string; lecture_name_en?: string | null }) =>
     lang !== 'ar' && l.lecture_name_en ? l.lecture_name_en : l.lecture_name_ar;
 
   const update = (studentId: number, patch: Partial<Row>) => {
     setRows((current) => current.map((r) => (r.student_id === studentId ? { ...r, ...patch } : r)));
-    setDirty(true);
   };
 
   const markError = (row: Row) => {
@@ -159,7 +167,6 @@ export default function ExamDetailPage() {
     }]);
     setCandidate('');
     setAddOpen(false);
-    setDirty(true);
   };
 
   const removeRow = async (row: Row) => {
@@ -171,7 +178,6 @@ export default function ExamDetailPage() {
     });
     if (!ok) return;
     setRows((current) => current.filter((r) => r.student_id !== row.student_id));
-    setDirty(true);
   };
 
   const save = async () => {
@@ -229,7 +235,6 @@ export default function ExamDetailPage() {
 
   const markAllPresent = () => {
     setRows((current) => current.map((r) => ({ ...r, attendance: 'present' })));
-    setDirty(true);
   };
 
   const ranked = useMemo(
@@ -526,15 +531,16 @@ export default function ExamDetailPage() {
           )}
           </>
         )}
-        {editable && (view === 'entry' || dirty) && (
-          <div className="sticky bottom-2 z-20 rounded-2xl border border-gray-200 bg-white/95 shadow-lg backdrop-blur">
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <p className={cn('text-sm', dirty ? 'font-medium text-amber-700' : 'text-gray-500')}>
-                {dirty ? t('تعديلات غير محفوظة') : t('كل النتائج محفوظة')}
-              </p>
-              <Button size="sm" onClick={() => void save()} isLoading={saving} disabled={!dirty}>
-                <Save size={15} /> {t('حفظ النتائج')}
-              </Button>
+        {editable && dirty && (
+          <div className="sticky bottom-2 z-20 rounded-2xl border border-amber-200 bg-amber-50/95 shadow-lg backdrop-blur" role="status">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+              <p className="text-sm font-medium text-amber-800">{t('تعديلات غير محفوظة')}</p>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setRows(savedRows)} disabled={saving}>{t('تراجع')}</Button>
+                <Button size="sm" onClick={() => void save()} isLoading={saving}>
+                  <Save size={15} /> {t('حفظ النتائج')}
+                </Button>
+              </div>
             </div>
           </div>
         )}

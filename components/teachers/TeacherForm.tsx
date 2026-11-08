@@ -1,5 +1,6 @@
 'use client';
 
+import { sameValues } from '@/utils/formChanges';
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
@@ -28,6 +29,24 @@ const EMPTY_PROFILE = {
 };
 
 const REGISTRATION_NUMBER = /^[A-Za-z0-9][A-Za-z0-9_/-]{0,29}$/;
+
+/** Editable fields of a teacher, as the form holds them. */
+function teacherToForm(teacher: Teacher): TeacherCreatePayload {
+  return {
+    firstname: teacher.firstname,
+    lastname: teacher.lastname,
+    email: teacher.email,
+    riwaya: teacher.riwaya,
+    password: '',
+    registration_number: teacher.registration_number ?? '',
+    speciality: teacher.speciality ?? '',
+    date_of_birth: teacher.date_of_birth ?? '',
+    place_of_birth: teacher.place_of_birth ?? '',
+    phone_number: teacher.phone_number ?? '',
+    address: teacher.address ?? '',
+    medical_condition: teacher.medical_condition ?? '',
+  };
+}
 
 export const TeacherForm: React.FC<TeacherFormProps> = ({
   isOpen,
@@ -61,6 +80,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const unchanged = !!editingTeacher && sameValues(formData, teacherToForm(editingTeacher));
 
   // Generate random password
   const generatePassword = () => {
@@ -75,20 +95,7 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   useEffect(() => {
     if (editingTeacher) {
       // Edit mode - only include editable fields
-      setFormData({
-        firstname: editingTeacher.firstname,
-        lastname: editingTeacher.lastname,
-        email: editingTeacher.email,
-        riwaya: editingTeacher.riwaya,
-        password: '',
-        registration_number: editingTeacher.registration_number ?? '',
-        speciality: editingTeacher.speciality ?? '',
-        date_of_birth: editingTeacher.date_of_birth ?? '',
-        place_of_birth: editingTeacher.place_of_birth ?? '',
-        phone_number: editingTeacher.phone_number ?? '',
-        address: editingTeacher.address ?? '',
-        medical_condition: editingTeacher.medical_condition ?? '',
-      });
+      setFormData(teacherToForm(editingTeacher));
       setShowPasswordReset(false); // Hide password reset by default
     } else {
       // Create mode - include password
@@ -435,7 +442,8 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
             type="submit" 
             variant="primary" 
             className="flex-1"
-            disabled={isSubmitting}
+            disabled={isSubmitting || unchanged}
+            title={unchanged ? t("لا توجد تعديلات") : undefined}
           >
             {isSubmitting ? t("جاري الحفظ...") : editingTeacher ? t("حفظ التعديلات") : t("إضافة المعلم")}
           </Button>

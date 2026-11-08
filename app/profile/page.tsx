@@ -44,6 +44,7 @@ export default function ProfilePage() {
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [profileBusy, setProfileBusy] = useState(false);
+  const profileChanged = !!settings && (firstname.trim() !== (settings.profile.firstname ?? '') || lastname.trim() !== (settings.profile.lastname ?? ''));
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -203,7 +204,7 @@ export default function ProfilePage() {
                     <input id="profile-lastname" value={lastname} maxLength={50} required onChange={(event) => setLastname(event.target.value)} className={inputClass} />
                   </div>
                 </div>
-                <button type="submit" disabled={profileBusy} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="submit" disabled={profileBusy || !profileChanged} title={profileChanged ? undefined : t('لا توجد تعديلات')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60">
                   {profileBusy ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
                   {t('حفظ التعديلات')}
                 </button>
