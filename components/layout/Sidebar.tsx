@@ -43,6 +43,7 @@ import {
   Layers,
   FileCheck2,
   ShieldCheck,
+  UserCog,
 } from 'lucide-react';
 import { useAdminTheme } from '@/utils/adminTheme';
 import { cn } from '@/utils/cn';
@@ -87,6 +88,7 @@ const adminNavGroups: NavGroup[] = [
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
       { label: 'المحادثات', href: '/dashboard/messages', icon: <MessageSquare size={18} /> },
+      { label: 'المسؤولون', href: '/dashboard/admins', icon: <UserCog size={18} /> },
       { label: 'المفتشون', href: '/dashboard/inspectors', icon: <ShieldCheck size={18} /> },
       { label: 'صور صفحة الدخول', href: '/dashboard/login-slides', icon: <Images size={18} /> },
       { label: 'الملف الشخصي والإعدادات', href: '/dashboard/settings', icon: <Settings size={18} /> },
@@ -211,7 +213,7 @@ export const Sidebar: React.FC = () => {
   const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT' || isAdminViewing;
   const adminTheme = useAdminTheme();
   // Inspectors: same admin area, minus the site settings and the inspector accounts.
-  const INSPECTOR_HIDDEN = ['/dashboard/login-slides', '/dashboard/inspectors'];
+  const INSPECTOR_HIDDEN = ['/dashboard/login-slides', '/dashboard/inspectors', '/dashboard/admins'];
   const isSupervisor = user?.role === 'SUPERVISOR';
 
   // Choose navigation based on role

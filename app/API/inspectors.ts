@@ -2,30 +2,40 @@ import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { API_BASE_URL } from '@/utils/apiConfig';
 
-/** An inspector (مفتش): admin-area account created and managed by the administrator. */
-export interface Inspector {
+/** An account of the admin area (administrator or inspector). */
+export interface StaffAccount {
   id: number;
   username: string;
   full_name: string | null;
   email: string | null;
   is_active: boolean;
   created_at: string | null;
+  /** Administrators only: main account, shown without actions. */
+  protected?: boolean;
+  /** Administrators only: the signed-in account itself. */
+  is_self?: boolean;
 }
 
-export interface InspectorCreatePayload {
+export type Inspector = StaffAccount;
+
+export interface StaffAccountCreatePayload {
   username: string;
   full_name: string;
   email: string | null;
   password: string;
 }
 
-export interface InspectorUpdatePayload {
+export type InspectorCreatePayload = StaffAccountCreatePayload;
+
+export interface StaffAccountUpdatePayload {
   full_name?: string;
   email?: string | null;
   is_active?: boolean;
   /** Resets the inspector's sessions */
   password?: string;
 }
+
+export type InspectorUpdatePayload = StaffAccountUpdatePayload;
 
 const client = axios.create({
   baseURL: `${API_BASE_URL}/admin/inspectors`,

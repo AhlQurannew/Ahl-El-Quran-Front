@@ -17,6 +17,7 @@ import {
   ChartNoAxesCombined,
   MessageSquare,
   ShieldCheck,
+  UserCog,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -121,6 +122,12 @@ export default function AdminDashboard() {
       hint: t("تواصل مع أي مدرسة من حسابك"),
       icon: <MessageSquare size={18} />,
     },
+    ...(theme.isInspector ? [] : [{
+      href: "/dashboard/admins",
+      label: t("المسؤولون"),
+      hint: t("إنشاء حسابات المسؤولين وإدارتها"),
+      icon: <UserCog size={18} />,
+    }]),
     ...(theme.isInspector ? [] : [{
       href: "/dashboard/inspectors",
       label: t("المفتشون"),
