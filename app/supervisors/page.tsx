@@ -1,5 +1,7 @@
 ﻿'use client';
 
+import { escapeHtml } from '@/utils/html';
+import { describeError } from '@/utils/errorMessages';
 import { ActivationButtons } from '@/components/ui/ActivationButtons';
 import { useAuthStore } from '@/store/authStore';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -52,7 +54,7 @@ export default function SupervisorsPage() {
       setSupervisors(supervisorsList);
     } catch (err: any) {
       console.error('Error loading supervisors:', err);
-      setLoadError(err.response?.data?.detail || err.message || tr("فشل تحميل بيانات المشرفين"));
+      setLoadError(describeError(err, tr("فشل تحميل بيانات المشرفين")));
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +119,7 @@ export default function SupervisorsPage() {
       await loadSupervisors();
     } catch (err: any) {
       console.error('Error deleting supervisors:', err);
-      showToast('error', err.response?.data?.detail || err.message || tr("فشل حذف المشرفين"));
+      showToast('error', describeError(err, tr("فشل حذف المشرفين")));
     }
   };
 
@@ -149,7 +151,7 @@ export default function SupervisorsPage() {
       setSelectedIds([]);
     } catch (err: any) {
       console.error('Error saving supervisor:', err);
-      showToast('error', err.response?.data?.detail || err.message || tr("فشل حفظ بيانات المشرف"));
+      showToast('error', describeError(err, tr("فشل حفظ بيانات المشرف")));
     } finally {
       setIsSubmitting(false);
     }
@@ -195,10 +197,10 @@ export default function SupervisorsPage() {
           <tbody>
             ${filtered.map((s, i) => `<tr>
               <td>${i + 1}</td>
-              <td>${s.firstname || ''}</td>
-              <td>${s.lastname || ''}</td>
-              <td>${s.email || ''}</td>
-              <td>${s.is_active ? 'نشط' : 'غير نشط'}</td>
+              <td>${escapeHtml(s.firstname || '')}</td>
+              <td>${escapeHtml(s.lastname || '')}</td>
+              <td>${escapeHtml(s.email || '')}</td>
+              <td>${s.is_active ? tr('نشط') : tr('غير نشط')}</td>
               <td>${s.created_at ? new Date(s.created_at).toLocaleDateString(getLocale()) : '-'}</td>
             </tr>`).join('')}
           </tbody>

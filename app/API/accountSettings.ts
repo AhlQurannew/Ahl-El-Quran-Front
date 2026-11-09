@@ -23,6 +23,7 @@ export interface AdminAccountSettings {
   preferences: {
     timezone: string;
     reduce_motion: boolean;
+    honorific?: 'male' | 'female' | null;
   };
   has_photo: boolean;
 }
@@ -100,7 +101,12 @@ const changeAdminPassword = async (data: {
   return response.data;
 };
 
+const updateHonorific = async (honorific: 'male' | 'female'): Promise<void> => {
+  await settingsClient.patch('/settings/preferences', { honorific });
+};
+
 const accountSettingsAPI = {
+  updateHonorific,
   getAccountSettings,
   getUserAccountSettings,
   updateProfile,

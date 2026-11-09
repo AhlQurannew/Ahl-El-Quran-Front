@@ -1,5 +1,6 @@
 'use client';
 
+import { getTodayInputDate } from '@/utils/dateHelpers';
 import { addressed } from '@/utils/address';
 import { formatThumn } from '@/utils/thumn';
 import React, { useState, useEffect } from 'react';
@@ -27,12 +28,13 @@ export default function HalqaStatsPage() {
   const [loading, setLoading] = useState(false);
   const [halqa, setHalqa] = useState('');
   const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(getTodayInputDate());
 
   const [chartData, setChartData] = useState<{ student: string; thumn: number; color: string }[]>([]);
 
   // Load teacher's assigned lectures (episodes)
   useEffect(() => {
+    if (!user) return;
     async function loadLectures() {
       try {
         let lectures: any[] = [];
@@ -54,7 +56,7 @@ export default function HalqaStatsPage() {
       }
     }
     loadLectures();
-  }, [isTeacher]);
+  }, [isTeacher, user]);
 
   const maxChartValue = Math.max(10, ...(chartData.map((d) => d.thumn) || [0])) + 5;
 

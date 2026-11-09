@@ -18,6 +18,7 @@ import { useAdminView } from '@/contexts/AdminViewContext';
 import accountSettingsAPI, { AdminAccountSettings } from '@/app/API/accountSettings';
 import { useAuthStore } from '@/store/authStore';
 import { ProfilePhotoCard } from '@/components/profile/ProfilePhotoCard';
+import { HonorificCard } from '@/components/profile/HonorificCard';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 import { t } from '@/i18n';
 
@@ -188,6 +189,7 @@ export default function AdminSettingsPage() {
               subtitle={t("المسؤول")}
               onNotice={setNotice}
             />
+            <HonorificCard />
 
             <section aria-labelledby="profile-heading" className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
               <div className="mb-6 flex items-center gap-3">

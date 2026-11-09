@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuthStore } from '@/store/authStore';
 import { addressed } from '@/utils/address';
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -96,6 +97,7 @@ export default function AdminDashboard() {
   }, []);
 
   const theme = useAdminTheme();
+  useAuthStore((state) => state.user?.honorific); // re-render the greeting once it is known
   // Stays blank until the account is known, so the main admin never sees the other greeting first.
   const greeting = isMainAdmin === null
     ? '\u00a0'

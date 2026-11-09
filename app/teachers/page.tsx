@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { escapeHtml } from '@/utils/html';
 import { ActivationButtons } from '@/components/ui/ActivationButtons';
 import { useAuthStore } from '@/store/authStore';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -230,11 +231,11 @@ export default function TeachersPage() {
           <tbody>
             ${filtered.map((t, i) => `<tr>
               <td>${i + 1}</td>
-              <td>${t.firstname || ''}</td>
-              <td>${t.lastname || ''}</td>
-              <td>${t.email || ''}</td>
-              <td>${t.riwaya || '-'}</td>
-              <td>${t.is_active ? 'نشط' : 'غير نشط'}</td>
+              <td>${escapeHtml(t.firstname || '')}</td>
+              <td>${escapeHtml(t.lastname || '')}</td>
+              <td>${escapeHtml(t.email || '')}</td>
+              <td>${escapeHtml(t.riwaya || '-')}</td>
+              <td>${t.is_active ? tr('نشط') : tr('غير نشط')}</td>
             </tr>`).join('')}
           </tbody>
         </table>

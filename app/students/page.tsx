@@ -1,5 +1,7 @@
 ﻿'use client';
 
+import { escapeHtml } from '@/utils/html';
+import { getTodayInputDate } from '@/utils/dateHelpers';
 import React, { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StudentSearch } from '@/components/students/StudentSearch';
@@ -342,7 +344,7 @@ export default function StudentsPage() {
         { wch: 15 },
       ];
 
-      const dateStr = new Date().toISOString().split('T')[0];
+      const dateStr = getTodayInputDate();
       XLSX.writeFile(workbook, tr("قائمة_الطلاب_{dateStr}.xlsx", { dateStr }));
       showToast('success', tr("تم تصدير ملف Excel بنجاح"));
     } catch (error) {
@@ -382,12 +384,12 @@ export default function StudentsPage() {
           <tbody>
             ${filtered.map((s, i) => `<tr>
               <td>${i + 1}</td>
-              <td>${s.firstName}</td>
-              <td>${s.lastName}</td>
-              <td>${s.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
-              <td>${s.halqa || '-'}</td>
-              <td>${s.dob || '-'}</td>
-              <td>${s.nationality || '-'}</td>
+              <td>${escapeHtml(s.firstName)}</td>
+              <td>${escapeHtml(s.lastName)}</td>
+              <td>${s.gender === 'male' ? tr('ذكر') : tr('أنثى')}</td>
+              <td>${escapeHtml(s.halqa || '-')}</td>
+              <td>${escapeHtml(s.dob || '-')}</td>
+              <td>${escapeHtml(s.nationality || '-')}</td>
             </tr>`).join('')}
           </tbody>
         </table>

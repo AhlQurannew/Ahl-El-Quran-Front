@@ -11,7 +11,7 @@
  * @version 1.0.0
  */
 
-import { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { logout } from '@/utils/auth';
 
@@ -124,6 +124,19 @@ export const authErrorInterceptor = async (error: any) => {
   return Promise.reject(error);
 };
 
+const UNREACHABLE_RETRIES = 2;
+const UNREACHABLE_RETRY_DELAY_MS = 4000;
+
+/** A read that got no answer at all (server waking up or redeploying) is tried again before failing. */
+function retryWhileUnreachable(client: AxiosInstance, error: AxiosError): Promise<unknown> | null {
+  const config = error.config as (InternalAxiosRequestConfig & { unreachableRetries?: number }) | undefined;
+  if (error.response || !config || config.method !== 'get' || error.code === 'ERR_CANCELED') return null;
+  const attempts = config.unreachableRetries ?? 0;
+  if (attempts >= UNREACHABLE_RETRIES) return null;
+  config.unreachableRetries = attempts + 1;
+  return new Promise((resolve) => setTimeout(resolve, UNREACHABLE_RETRY_DELAY_MS)).then(() => client.request(config));
+}
+
 /**
  * Setup Interceptors
  * 
@@ -161,6 +174,6 @@ export const setupInterceptors = (axiosInstance: AxiosInstance, includeSchoolCon
   // Handle error responses (check for 401 and logout if needed)
   axiosInstance.interceptors.response.use(
     (response) => response, // Success: return response as-is
-    authErrorInterceptor    // Error: handle 401 and other errors
+    (error) => retryWhileUnreachable(axiosInstance, error) ?? authErrorInterceptor(error)
   );
 };

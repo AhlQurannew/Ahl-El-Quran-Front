@@ -5,6 +5,7 @@
   lastname: string;
   role: 'ADMIN' | 'INSPECTOR' | 'PRESIDENT' | 'CHIEF_SUPERVISOR' | 'SUPERVISOR' | 'TEACHER' | 'GUARDIAN' | 'STUDENT';
   is_active: boolean;
+  honorific?: 'male' | 'female' | null;
 }
 
 export interface Token {

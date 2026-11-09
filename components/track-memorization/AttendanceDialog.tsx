@@ -1,3 +1,4 @@
+import { describeError } from '@/utils/errorMessages';
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import studentsAPI, { AttendancePayload } from '@/app/API/students';
@@ -114,7 +115,7 @@ export function AttendanceDialog({
       onClose();
     } catch (err: any) {
       console.error('Error saving attendance:', err);
-      setError(err.response?.data?.detail || t("فشل حفظ المواظبة"));
+      setError(describeError(err, t("فشل حفظ المواظبة")));
     } finally {
       setIsSaving(false);
     }
@@ -136,7 +137,7 @@ export function AttendanceDialog({
       onClose();
     } catch (err: any) {
       console.error('Error deleting attendance:', err);
-      setError(err.response?.data?.detail || t("فشل حذف المواظبة"));
+      setError(describeError(err, t("فشل حذف المواظبة")));
     } finally {
       setIsDeleting(false);
     }

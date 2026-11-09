@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, KeyRound, Loader2, Save, UserRound } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProfilePhotoCard } from '@/components/profile/ProfilePhotoCard';
+import { HonorificCard } from '@/components/profile/HonorificCard';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 import { useAdminView } from '@/contexts/AdminViewContext';
 import accountSettingsAPI, { UserAccountSettings } from '@/app/API/accountSettings';
@@ -169,6 +170,7 @@ export default function ProfilePage() {
         )}
 
         <ProfilePhotoCard name={displayName || t('مستخدم')} subtitle={roleLabel} onNotice={setNotice} />
+        <HonorificCard />
 
         {isLoading ? (
           <div className="flex min-h-48 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white text-gray-500">

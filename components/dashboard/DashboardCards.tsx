@@ -1,5 +1,6 @@
 'use client';
 
+import { describeError } from '@/utils/errorMessages';
 import { addressed } from '@/utils/address';
 import { logout } from '@/utils/auth';
 import { useState, useEffect } from 'react';
@@ -43,6 +44,7 @@ interface StatsSummary {
 }
 
 export function DashboardCards() {
+  useAuthStore((state) => state.user?.honorific); // re-render the greeting once it is known
   const user = useAuthStore((state) => state.user);
   const { isResolved: isAdminViewResolved, isAdminViewing, viewingSchoolId } = useAdminView();
   const isTeacher = user?.role === 'TEACHER';
@@ -78,7 +80,7 @@ export function DashboardCards() {
           logout(true);
           return;
         }
-        setError(requestError.response?.data?.detail || requestError.message || t("فشل تحميل الإحصائيات"));
+        setError(describeError(requestError, t("فشل تحميل الإحصائيات")));
       } finally {
         setIsLoading(false);
       }

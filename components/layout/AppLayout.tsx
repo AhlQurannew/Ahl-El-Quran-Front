@@ -6,8 +6,20 @@ import { syncAuthCookies } from '@/utils/auth';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { useAdminView } from '@/contexts/AdminViewContext';
+import { useAuthStore } from '@/store/authStore';
+import accountSettingsAPI from '@/app/API/accountSettings';
 import { X, Eye } from 'lucide-react';
 import { t } from '@/i18n';
+
+/** Pages a role never has in its menu; their APIs refuse it, so it should not land there. */
+const BLOCKED_ROUTES: Record<string, string[]> = {
+  TEACHER: ['/teachers', '/supervisors', '/guardians', '/teacher-attendance', '/track-memorization', '/dashboard'],
+  SUPERVISOR: ['/supervisors', '/notes', '/dashboard'],
+  CHIEF_SUPERVISOR: ['/notes', '/dashboard'],
+};
+
+const isBlockedRoute = (role: string | undefined, pathname: string) =>
+  (BLOCKED_ROUTES[role ?? ''] ?? []).some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -45,6 +57,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
     if (adminOutsideSchool) router.replace('/dashboard');
   }, [adminOutsideSchool, router]);
 
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+  const blocked = isResolved && !isAdminSession && isBlockedRoute(user?.role, pathname);
+
+  useEffect(() => {
+    if (blocked) router.replace('/');
+  }, [blocked, router]);
+
+  // Sessions opened before this preference existed, or just signed in, learn it once.
+  useEffect(() => {
+    if (!user || user.honorific !== undefined) return;
+    accountSettingsAPI.getAccountSettings()
+      .then((settings) => setUser({ ...user, honorific: settings.preferences?.honorific ?? null }))
+      .catch(() => {});
+  }, [user, setUser]);
+
   return (
     <div className="flex h-dvh bg-gray-50 overflow-hidden">
       <Sidebar />
@@ -73,7 +101,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, breadcrum
         
         <Topbar title={title} breadcrumb={breadcrumb} />
         <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-6">
-          {isResolved && !adminOutsideSchool ? children : null}
+          {isResolved && !adminOutsideSchool && !blocked ? children : null}
         </main>
       </div>
     </div>

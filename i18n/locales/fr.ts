@@ -1529,7 +1529,14 @@ const fr: Record<string, string> = {
   "هذا السجل القديم مسجل بالآيات. اختيار ثمن آخر يستبدل هذا المدى.": "Cet ancien enregistrement a été saisi par versets. Choisir un autre Thumn remplace cette plage.",
   "سيدي، {message}": "Sidi, {message}",
   "مرحباً بكم سيدنا الشيخ في لوحة التحكم": "Bienvenue, Sidi Cheikh, sur le tableau de bord",
-  "سيدي، يرجى اختيار صورة بصيغة PNG أو JPG أو WebP": "Sidi, veuillez choisir une image PNG, JPG ou WebP",
+  "سيدتي، {message}": "Lalla, {message}",
+  "سيدي": "Sidi",
+  "سيدتي": "Lalla",
+  "صيغة المخاطبة": "Formule d'adresse",
+  "كيف تخاطبك المنصة في رسائل الترحيب والتأكيد": "Comment la plateforme s’adresse à vous dans les messages",
+  "هل أنت متأكد من تغيير صيغة المخاطبة؟": "Êtes-vous sûr de vouloir changer votre formule d’adresse ?",
+  "تعذر حفظ صيغة المخاطبة": "Impossible d'enregistrer la formule d'adresse",
+  "هذا الإجراء مخصص للمشرف العام": "Cette action est réservée au superviseur général",
 };
 
 export default fr;

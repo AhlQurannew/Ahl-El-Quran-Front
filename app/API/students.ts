@@ -167,7 +167,7 @@ const getNextRegistrationNumber = async (): Promise<string> => {
 };
 
 const getStudents = async () => {
-    const res = await axiosGlobal.get("/");
+    const res = await axiosGlobal.get("/", { params: { limit: 5000 } });
     return res.data;
 };
 

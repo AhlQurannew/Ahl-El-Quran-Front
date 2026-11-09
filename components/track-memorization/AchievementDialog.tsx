@@ -1,3 +1,4 @@
+import { describeError } from '@/utils/errorMessages';
 import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import studentsAPI, { AchievementPayload } from '@/app/API/students';
@@ -79,7 +80,7 @@ export function AchievementDialog({
       setAchievementType('normal');
     } catch (err: any) {
       console.error('Error saving achievement:', err);
-      setError(err.response?.data?.detail || t("فشل حفظ الإنجاز"));
+      setError(describeError(err, t("فشل حفظ الإنجاز")));
     } finally {
       setIsSaving(false);
     }

@@ -68,7 +68,7 @@ export interface SupervisorUpdatePayload {
     password?: string;
 }
 
-const getSupervisors = async (skip = 0, limit = 100, school_id?: number): Promise<SupervisorListResponse> => {
+const getSupervisors = async (skip = 0, limit = 1000, school_id?: number): Promise<SupervisorListResponse> => {
     const params: Record<string, number> = { skip, limit };
     if (school_id) {
         params.school_id = school_id;

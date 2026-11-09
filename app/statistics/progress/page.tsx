@@ -1,5 +1,6 @@
 'use client';
 
+import { getTodayInputDate } from '@/utils/dateHelpers';
 import { addressed } from '@/utils/address';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -31,7 +32,7 @@ export default function ProgressStatsPage() {
   const [halqa, setHalqa] = useState('');
   const [student, setStudent] = useState('');
   const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(getTodayInputDate());
 
   const [chartData, setChartData] = useState<
     { date: string; memorization: number; minorRev: number; majorRev: number }[]
@@ -39,6 +40,7 @@ export default function ProgressStatsPage() {
 
   // Load teacher's assigned lectures (episodes)
   useEffect(() => {
+    if (!user) return;
     async function loadLectures() {
       try {
         let lectures: any[] = [];
@@ -60,10 +62,12 @@ export default function ProgressStatsPage() {
       }
     }
     loadLectures();
-  }, [isTeacher]);
+  }, [isTeacher, user]);
 
   // Load students for the selected halqa
   useEffect(() => {
+    if (!user) return;
+    let stale = false;
     async function loadStudents() {
       try {
         let students: any[] = [];
@@ -97,14 +101,16 @@ export default function ProgressStatsPage() {
             value: String(s.id),
           })),
         ];
-        setStudentList(options);
-        setStudent('');
+        if (!stale) setStudentList(options);
       } catch (err) {
         console.error('Error loading students:', err);
       }
     }
     loadStudents();
-  }, [halqa, isTeacher]);
+    return () => {
+      stale = true;
+    };
+  }, [halqa, isTeacher, user]);
 
   const maxVal = Math.max(10, ...(chartData.flatMap((d) => [d.memorization, d.minorRev, d.majorRev]) || [0]));
   const maxChartValue = Math.ceil(maxVal * 1.2);
@@ -198,7 +204,11 @@ export default function ProgressStatsPage() {
                 <Select
                   label={t("الحلقة (اختياري للفلترة)")}
                   value={halqa}
-                  onChange={(e) => setHalqa(e.target.value)}
+                  onChange={(e) => {
+                    setHalqa(e.target.value);
+                    setStudent('');
+                    setStudentList((list) => list.slice(0, 1));
+                  }}
                   options={halqaList}
                 />
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { describeError } from '@/utils/errorMessages';
+import { getTodayInputDate } from '@/utils/dateHelpers';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -42,7 +44,7 @@ export default function TrackMemorizationPage() {
       }
     } catch (err: any) {
       console.error('Error loading lectures:', err);
-      showToast('error', err.response?.data?.detail || tr("فشل تحميل الحلقات"));
+      showToast('error', describeError(err, tr("فشل تحميل الحلقات")));
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +150,7 @@ export default function TrackMemorizationPage() {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      max={new Date().toISOString().split('T')[0]}
+                      max={getTodayInputDate()}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                     />
                   </div>

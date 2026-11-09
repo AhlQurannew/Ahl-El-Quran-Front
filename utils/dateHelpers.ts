@@ -85,8 +85,12 @@ export function getTodayApiDate(): string {
  * getTodayInputDate() // Returns "2026-09-27" (if today is Sept 27, 2026)
  */
 export function getTodayInputDate(): string {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
+  return toInputDate(new Date());
+}
+
+/** YYYY-MM-DD of the local calendar day; toISOString() would give the UTC day, often the day before. */
+function toInputDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 /**
@@ -209,8 +213,8 @@ export function getCurrentWeekRange(): { startDate: string; endDate: string } {
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   
   return {
-    startDate: inputDateToApiDate(startOfWeek.toISOString().split('T')[0]),
-    endDate: inputDateToApiDate(endOfWeek.toISOString().split('T')[0]),
+    startDate: inputDateToApiDate(toInputDate(startOfWeek)),
+    endDate: inputDateToApiDate(toInputDate(endOfWeek)),
   };
 }
 
@@ -228,7 +232,7 @@ export function getCurrentMonthRange(): { startDate: string; endDate: string } {
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   
   return {
-    startDate: inputDateToApiDate(startOfMonth.toISOString().split('T')[0]),
-    endDate: inputDateToApiDate(endOfMonth.toISOString().split('T')[0]),
+    startDate: inputDateToApiDate(toInputDate(startOfMonth)),
+    endDate: inputDateToApiDate(toInputDate(endOfMonth)),
   };
 }

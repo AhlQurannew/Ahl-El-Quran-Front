@@ -105,12 +105,6 @@ const getTeachers = async () => {
 };
 
 
-const getStudents = async () => {
-    const res = await axiosGlobal.get("/students");
-    return res.data;
-};
-
-
 const getStatisticsSummary = async (schoolId?: number) => {
     const res = await axiosGlobal.get("/statistics/summary", schoolId ? {
         params: { school_id: schoolId },
@@ -127,7 +121,6 @@ const presidentAPI = {
     registerTeacher,
     registerStudent,
     getTeachers,
-    getStudents,
     getStatisticsSummary,
 };
 

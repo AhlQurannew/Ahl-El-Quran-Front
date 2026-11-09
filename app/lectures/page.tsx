@@ -1,5 +1,6 @@
 'use client';
 
+import { getTodayInputDate } from '@/utils/dateHelpers';
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LectureTable } from '@/components/lectures/LectureTable';
@@ -232,7 +233,7 @@ export default function LecturesPage() {
         { wch: 35 }, // التوقيت والأيام
         { wch: 15 }, // الظهور في الموقع
       ];
-      const dateStr = new Date().toISOString().split('T')[0];
+      const dateStr = getTodayInputDate();
       XLSX.writeFile(workbook, tr("قائمة_الحلقات_{dateStr}.xlsx", { dateStr }));
 
       showToast(tr("تم تصدير ملف Excel بنجاح"), 'success');

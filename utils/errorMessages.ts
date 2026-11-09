@@ -1,9 +1,11 @@
+import { addressed } from '@/utils/address';
 import { t } from '@/i18n';
 
 /**
  * Map API error messages to user-friendly Arabic messages (translated via t()).
  */
 export const errorMessages: Record<string, string> = {
+  'requires president or chief supervisor privileges': 'هذا الإجراء مخصص للمشرف العام',
   // Auth errors
   'Invalid email or password': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
   'Invalid username or password': 'اسم المستخدم أو كلمة المرور غير صحيحة',
@@ -45,8 +47,8 @@ export const errorMessages: Record<string, string> = {
   'Something went wrong': 'حدث خطأ',
 
   // Profile image errors
-  'Upload a PNG, JPG, JPEG, or WebP image': 'سيدي، يرجى اختيار صورة بصيغة PNG أو JPG أو WebP',
-  'Only PNG, JPG, JPEG, and WebP images are supported': 'سيدي، يرجى اختيار صورة بصيغة PNG أو JPG أو WebP',
+  'Upload a PNG, JPG, JPEG, or WebP image': 'يرجى اختيار صورة بصيغة PNG أو JPG أو WebP',
+  'Only PNG, JPG, JPEG, and WebP images are supported': 'يرجى اختيار صورة بصيغة PNG أو JPG أو WebP',
   'Image must be 2 MB or smaller': 'يجب ألا يتجاوز حجم الصورة 2 ميغابايت',
   'The uploaded image is empty': 'الصورة المرفوعة فارغة',
   'The uploaded file is not a valid supported image': 'الملف المرفوع ليس صورة صالحة',
@@ -81,7 +83,7 @@ export const getErrorMessage = (error: string): string => {
   // Check if error contains any known substring
   for (const [key, value] of Object.entries(errorMessages)) {
     if (error.includes(key)) {
-      return t(value);
+      return value.startsWith('يرجى') ? addressed(t(value)) : t(value);
     }
   }
 

@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { escapeHtml } from '@/utils/html';
 import React, { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -38,12 +39,6 @@ function toProfilePayload(data: GuardianFormData): GuardianProfilePayload {
     },
     student_ids: data.studentIds,
   };
-}
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  })[character] ?? character);
 }
 
 export default function GuardiansPage() {

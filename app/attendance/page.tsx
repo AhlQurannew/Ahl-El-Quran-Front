@@ -1,5 +1,6 @@
 'use client';
 
+import { getTodayInputDate } from '@/utils/dateHelpers';
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/Button';
@@ -39,7 +40,7 @@ export default function AttendancePage() {
   const user = useAuthStore((state) => state.user);
   const role = user?.role;
   const isTeacher = role === 'TEACHER';
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayInputDate();
   
   const [selectedDate, setSelectedDate] = useState(today);
   const [students, setStudents] = useState<StudentData[]>([]);

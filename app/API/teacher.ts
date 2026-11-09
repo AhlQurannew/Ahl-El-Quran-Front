@@ -113,7 +113,7 @@ const getNextRegistrationNumber = async (): Promise<string> => {
     return res.data.registration_number;
 };
 
-const getTeachers = async (skip = 0, limit = 100): Promise<TeacherListResponse> => {
+const getTeachers = async (skip = 0, limit = 1000): Promise<TeacherListResponse> => {
     const res = await axiosGlobal.get("/", { params: { skip, limit } });
     return res.data;
 };
@@ -141,7 +141,7 @@ const getMyStudents = async (params?: {
     limit?: number;
     lecture_id?: number;
 }) => {
-    const res = await axiosGlobal.get("/my-students", { params });
+    const res = await axiosGlobal.get("/my-students", { params: { limit: 1000, ...params } });
     return res.data;
 };
 
