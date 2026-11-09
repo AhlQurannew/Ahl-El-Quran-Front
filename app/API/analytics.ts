@@ -22,8 +22,8 @@ export interface PeriodSummary {
   attendance_rate: number | null;
   status_breakdown: Record<AttendanceStatusKey, number>;
   achievements: number;
-  pages: number;
-  pages_by_type: Record<AchievementTypeKey, number>;
+  thumn: number;
+  thumn_by_type: Record<AchievementTypeKey, number>;
 }
 
 export interface AnalyticsKpis extends PeriodSummary {
@@ -40,10 +40,10 @@ export interface SeriesPoint extends Record<AttendanceStatusKey, number> {
   attendance_rate: number | null;
   attendance_records: number;
   achievements: number;
-  pages: number;
-  pages_normal: number;
-  pages_small: number;
-  pages_big: number;
+  thumn: number;
+  thumn_normal: number;
+  thumn_small: number;
+  thumn_big: number;
 }
 
 export interface BreakdownRow {
@@ -58,7 +58,7 @@ export interface BreakdownRow {
   attendance_records: number;
   status_breakdown: Record<AttendanceStatusKey, number>;
   achievements: number;
-  pages: number;
+  thumn: number;
   last_activity: string | null;
   health: Health;
 }
@@ -71,7 +71,7 @@ export interface StudentAlert {
   reason: 'low_attendance' | 'no_activity';
   attendance_rate: number | null;
   attendance_records: number;
-  pages: number;
+  thumn: number;
 }
 
 /** A top student of a school, for one schooling mode; score is 0-100. */
@@ -82,7 +82,7 @@ export interface TopStudent {
   rank: number;
   score: number;
   attendance_rate: number | null;
-  pages: number;
+  thumn: number;
   exam_average: number | null;
 }
 
@@ -109,8 +109,8 @@ export interface StudentDetail {
   sex: string | null;
   lectures: ScopeRef[];
   attendance: { day: string; status: AttendanceStatusKey; lecture: string | null }[];
-  achievements: { day: string; type: AchievementTypeKey; pages: number }[];
-  cumulative_pages: { day: string; pages: number }[];
+  achievements: { day: string; type: AchievementTypeKey; thumn: number }[];
+  cumulative_thumn: { day: string; thumn: number }[];
 }
 
 export interface AnalyticsData {

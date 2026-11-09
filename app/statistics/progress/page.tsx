@@ -249,7 +249,7 @@ export default function ProgressStatsPage() {
             <div className="space-y-10">
               <div className="text-center space-y-3">
                 <h2 className="text-xl font-bold text-gray-800">
-                  {t("منحنى تطور الإنجاز")}
+                  {t("منحنى تطور الإنجاز (بالأثمان)")}
                 </h2>
 
                 {/* Legend */}
@@ -316,7 +316,7 @@ export default function ProgressStatsPage() {
                         <g key={i}>
                           <circle cx={getX(i)} cy={getY(d.memorization)} r="4" fill="#34d399" className="hover:r-6 transition-all duration-300 cursor-pointer" />
                           <text x={getX(i)} y={getY(d.memorization) - 10} fontSize="12" fill="#34d399" textAnchor="middle" fontWeight="bold">
-                            {d.memorization}
+                            {Math.round(d.memorization)}
                           </text>
 
                           <circle cx={getX(i)} cy={getY(d.minorRev)} r="4" fill="#fbbf24" opacity="0.6" />

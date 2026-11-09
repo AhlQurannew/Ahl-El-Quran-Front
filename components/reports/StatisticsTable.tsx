@@ -1,5 +1,6 @@
 'use client';
 
+import { formatThumn } from '@/utils/thumn';
 import React, { useEffect, useState } from 'react';
 import reportsAPI, { StatsSummary, AttendanceRecord, MemorizationRecord, LectureDistribution } from '@/app/API/reports';
 import { Loader2 } from 'lucide-react';
@@ -83,8 +84,8 @@ export function StatisticsTable() {
           <p className="text-white text-3xl font-bold">{summary?.present_today ?? 0}</p>
         </div>
         <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-6 shadow-md">
-          <h3 className="text-white text-sm font-semibold mb-2">{t("الصفحات المحفوظة")}</h3>
-          <p className="text-white text-3xl font-bold">{summary?.total_pages_memorized ?? 0}</p>
+          <h3 className="text-white text-sm font-semibold mb-2">{t("مقدار الحفظ")}</h3>
+          <p className="text-white text-3xl font-bold">{formatThumn(summary?.total_thumn_memorized)}</p>
         </div>
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-md">
           <h3 className="text-white text-sm font-semibold mb-2">{t("عدد الحلقات")}</h3>
@@ -163,7 +164,7 @@ export function StatisticsTable() {
         {/* Memorization Progress Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="bg-amber-500/85 text-white py-3 px-6 font-semibold text-sm">
-            {t("عدد الصفحات المحفوظة لكل طالب")}
+            {t("مقدار الحفظ لكل طالب")}
           </div>
           <div className="overflow-x-auto">
             {memorizationData.length === 0 ? (
@@ -179,7 +180,7 @@ export function StatisticsTable() {
                       {t("اسم الطالب")}
                     </th>
                     <th className="px-4 py-3.5 text-xs font-bold text-center uppercase tracking-wider">
-                      {t("عدد الصفحات")}
+                      {t("المقدار")}
                     </th>
                   </tr>
                 </thead>
@@ -201,7 +202,7 @@ export function StatisticsTable() {
                       </td>
                       <td className="px-4 py-3.5 text-sm text-center">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                          {record.pages}{' '}{t("صفحة")}
+                          {formatThumn(record.thumn)}
                         </span>
                       </td>
                     </tr>

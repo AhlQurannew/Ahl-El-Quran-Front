@@ -48,7 +48,7 @@ axiosGlobal.interceptors.request.use(
 export interface StatsSummary {
     total_students: number;
     present_today: number;
-    total_pages_memorized: number;
+    total_thumn_memorized: number;
     total_lectures: number;
 }
 
@@ -62,7 +62,7 @@ export interface AttendanceRecord {
 
 export interface MemorizationRecord {
     student: string;
-    pages: number;
+    thumn: number;
     rank: number;
 }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { formatThumn } from '@/utils/thumn';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -27,7 +28,7 @@ export default function HalqaStatsPage() {
   const [startDate, setStartDate] = useState('2026-01-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const [chartData, setChartData] = useState<{ student: string; pages: number; color: string }[]>([]);
+  const [chartData, setChartData] = useState<{ student: string; thumn: number; color: string }[]>([]);
 
   // Load teacher's assigned lectures (episodes)
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function HalqaStatsPage() {
     loadLectures();
   }, [isTeacher]);
 
-  const maxChartValue = Math.max(10, ...(chartData.map((d) => d.pages) || [0])) + 5;
+  const maxChartValue = Math.max(10, ...(chartData.map((d) => d.thumn) || [0])) + 5;
 
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +73,7 @@ export default function HalqaStatsPage() {
 
       const formatted = (res || []).map((item) => ({
         student: item.student,
-        pages: item.pages || 0,
+        thumn: item.thumn || 0,
         color: 'bg-emerald-400',
       }));
       setChartData(formatted);
@@ -166,7 +167,7 @@ export default function HalqaStatsPage() {
             {/* Chart Section */}
             <div className="space-y-10">
               <h2 className="text-center text-xl font-bold text-gray-800">
-                {t("عدد الصفحات المحفوظة لكل طالب")}
+                {t("مقدار الحفظ لكل طالب")}
               </h2>
 
               {chartData.length === 0 ? (
@@ -185,12 +186,12 @@ export default function HalqaStatsPage() {
 
                   {/* Bars */}
                   {chartData.map((item, index) => {
-                    const heightPercent = (item.pages / maxChartValue) * 100;
+                    const heightPercent = (item.thumn / maxChartValue) * 100;
                     return (
                       <div key={index} className="h-full flex flex-col justify-end items-center gap-3 w-1/4 group relative">
                         {/* Tooltip on hover */}
                         <div className="absolute top-0 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none z-10 whitespace-nowrap shadow-lg mb-2">
-                          {item.student}: {item.pages}{' '}{t("صفحة")}
+                          {item.student}: {formatThumn(item.thumn)}
                           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                         </div>
 

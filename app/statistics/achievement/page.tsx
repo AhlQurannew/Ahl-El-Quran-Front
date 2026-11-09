@@ -1,5 +1,6 @@
 'use client';
 
+import { formatThumn } from '@/utils/thumn';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -229,7 +230,7 @@ export default function AchievementStatsPage() {
             {/* Chart Section */}
             <div className="space-y-10">
               <h2 className="text-center text-xl font-bold text-gray-800">
-                {t("عدد الصفحات حسب نوع الإنجاز")}
+                {t("المقدار المنجز حسب نوع الإنجاز")}
               </h2>
 
               <div className="relative h-80 max-w-3xl mx-auto flex items-end justify-around pb-8 border-b-2 border-gray-100 pt-10 px-4">
@@ -249,7 +250,7 @@ export default function AchievementStatsPage() {
                     <div key={index} className="h-full flex flex-col justify-end items-center gap-3 w-1/4 group relative">
                       {/* Tooltip on hover */}
                       <div className="absolute top-0 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none z-10 whitespace-nowrap shadow-lg mb-2">
-                        {item.label}: {item.value}{' '}{t("صفحة")}
+                        {item.label}: {formatThumn(item.value)}
                         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                       </div>
 
@@ -274,7 +275,7 @@ export default function AchievementStatsPage() {
                   <div key={index} className="flex items-center gap-2">
                     <span className={`w-3.5 h-3.5 rounded-full shadow-sm ${item.color}`}></span>
                     <span className="text-sm font-semibold text-gray-600">
-                      {item.label}: <span className="text-gray-900">{item.value}{' '}{t("صفحة")}</span>
+                      {item.label}: <span className="text-gray-900">{formatThumn(item.value)}</span>
                     </span>
                   </div>
                 ))}

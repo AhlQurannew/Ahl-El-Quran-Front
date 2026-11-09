@@ -41,7 +41,7 @@ export interface StatsSummary {
     total_teachers: number;
     total_supervisors: number;
     present_today: number;
-    total_pages_memorized: number;
+    total_thumn_memorized: number;
     total_lectures: number;
 }
 
@@ -55,7 +55,7 @@ export interface AttendanceRecord {
 
 export interface MemorizationRecord {
     student: string;
-    pages: number;
+    thumn: number;
     rank: number;
 }
 
@@ -119,7 +119,7 @@ const getHalqaBreakdown = async (params: {
     lecture_id: number;
     start_date?: string;
     end_date?: string;
-}): Promise<Array<{ student: string; pages: number }>> => {
+}): Promise<Array<{ student: string; thumn: number }>> => {
     const client = getAxiosClient();
     const res = await client.get("/statistics/halqa-breakdown", { params });
     return res.data;

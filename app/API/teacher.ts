@@ -345,7 +345,7 @@ const getTeacherHalqaBreakdown = async (params: {
     lecture_id: number;
     start_date?: string;
     end_date?: string;
-}): Promise<Array<{ student: string; pages: number }>> => {
+}): Promise<Array<{ student: string; thumn: number }>> => {
     const res = await axiosGlobal.get("/statistics/halqa-breakdown", { params });
     return res.data;
 };

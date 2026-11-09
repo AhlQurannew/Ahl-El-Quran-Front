@@ -1,5 +1,6 @@
 'use client';
 
+import { formatThumn } from '@/utils/thumn';
 import { useState } from 'react';
 import { Award } from 'lucide-react';
 import type { SchoolTopStudents, TopStudent } from '@/app/API/analytics';
@@ -79,7 +80,7 @@ export function TopStudents({ schools, lang, onSelect }: {
                                 <span className="block truncate text-sm font-semibold text-gray-900">{entityName(s, lang)}</span>
                                 <span className="block truncate text-[11px] text-gray-500">
                                   {t('حضور {rate}', { rate: formatPercent(s.attendance_rate) })}
-                                  {' · '}{t('{pages} صفحة', { pages: formatNumber(s.pages, 0) })}
+                                  {' · '}{formatThumn(s.thumn)}
                                   {' · '}{s.exam_average == null ? t('بدون امتحانات') : t('امتحانات {avg}', { avg: formatPercent(s.exam_average) })}
                                 </span>
                               </span>

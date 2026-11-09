@@ -1,4 +1,5 @@
 /** Turns an AnalyticsData payload into chart inputs and table views (shared by dashboard and report). */
+import { formatThumn } from '@/utils/thumn';
 import React from 'react';
 import { CircleAlert, CircleCheck, CircleMinus, CircleX } from 'lucide-react';
 import type { AnalyticsData, AttendanceStatusKey, BreakdownRow } from '@/app/API/analytics';
@@ -18,7 +19,7 @@ export function attendancePoints(data: AnalyticsData): LinePoint[] {
   }));
 }
 
-export function pagesColumns(data: AnalyticsData): { labels: string[]; longLabels: string[]; series: ColumnSeries[] } {
+export function thumnColumns(data: AnalyticsData): { labels: string[]; longLabels: string[]; series: ColumnSeries[] } {
   return {
     labels: data.series.map((p) => formatBucket(p.bucket, data.period.granularity)),
     longLabels: data.series.map((p) => formatBucket(p.bucket, data.period.granularity, true)),
@@ -26,7 +27,7 @@ export function pagesColumns(data: AnalyticsData): { labels: string[]; longLabel
       key: kind,
       label: t(ACHIEVEMENT_LABELS[kind]),
       color: ACHIEVEMENT_COLORS[kind],
-      values: data.series.map((p) => p[`pages_${kind}` as const]),
+      values: data.series.map((p) => p[`thumn_${kind}` as const]),
     })),
   };
 }
@@ -60,13 +61,13 @@ export function attendanceTable(data: AnalyticsData): TableView {
   };
 }
 
-export function pagesTable(data: AnalyticsData): TableView {
+export function thumnTable(data: AnalyticsData): TableView {
   return {
-    columns: [t('الفترة'), t('مجموع الصفحات'), ...ACHIEVEMENT_ORDER.map((k) => t(ACHIEVEMENT_LABELS[k]))],
+    columns: [t('الفترة'), t('المجموع'), ...ACHIEVEMENT_ORDER.map((k) => t(ACHIEVEMENT_LABELS[k]))],
     rows: data.series.map((p) => [
       formatBucket(p.bucket, data.period.granularity, true),
-      formatNumber(p.pages, 1),
-      ...ACHIEVEMENT_ORDER.map((k) => formatNumber(p[`pages_${k}` as const], 1)),
+      formatThumn(p.thumn),
+      ...ACHIEVEMENT_ORDER.map((k) => formatThumn(p[`thumn_${k}` as const])),
     ]),
   };
 }
@@ -86,13 +87,13 @@ export const BREAKDOWN_TITLES: Record<'school' | 'lecture' | 'student', string> 
 };
 
 export function breakdownTable(rows: BreakdownRow[], lang: string, level: 'school' | 'lecture' | 'student'): TableView {
-  const columns = [t('الاسم'), t('الحالة'), t('نسبة الحضور'), t('الصفحات'), t('الإنجازات')];
+  const columns = [t('الاسم'), t('الحالة'), t('نسبة الحضور'), t('المقدار'), t('الإنجازات')];
   if (level !== 'student') columns.push(t('الطلاب'), t('النشطون'));
   columns.push(t('آخر نشاط'));
   return {
     columns,
     rows: rows.map((r) => {
-      const row: (string | number)[] = [entityName(r, lang), t(HEALTH_LABELS[r.health]), formatPercent(r.attendance_rate), formatNumber(r.pages, 1), formatNumber(r.achievements)];
+      const row: (string | number)[] = [entityName(r, lang), t(HEALTH_LABELS[r.health]), formatPercent(r.attendance_rate), formatThumn(r.thumn), formatNumber(r.achievements)];
       if (level !== 'student') row.push(formatNumber(r.students), formatNumber(r.active_students));
       row.push(formatDay(r.last_activity));
       return row;

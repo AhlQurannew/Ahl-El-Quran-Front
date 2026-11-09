@@ -64,7 +64,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ البَقَرَةِ",
     englishName: "Al-Baqara",
     englishNameTranslation: "The Cow",
-    numberOfAyahs: 286,
+    numberOfAyahs: 285,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -80,7 +80,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ النِّسَاءِ",
     englishName: "An-Nisaa",
     englishNameTranslation: "The Women",
-    numberOfAyahs: 176,
+    numberOfAyahs: 175,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -88,7 +88,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ المَائـِدَةِ",
     englishName: "Al-Maaida",
     englishNameTranslation: "The Table",
-    numberOfAyahs: 120,
+    numberOfAyahs: 122,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -96,7 +96,7 @@ export const quranSurahs: Surah[] = [
     name: "سُORَةُ الأَنۡعَامِ",
     englishName: "Al-An'aam",
     englishNameTranslation: "The Cattle",
-    numberOfAyahs: 165,
+    numberOfAyahs: 167,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -112,7 +112,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الأَنفَالِ",
     englishName: "Al-Anfaal",
     englishNameTranslation: "The Spoils of War",
-    numberOfAyahs: 75,
+    numberOfAyahs: 76,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -120,7 +120,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ التَّوۡبَةِ",
     englishName: "At-Tawba",
     englishNameTranslation: "The Repentance",
-    numberOfAyahs: 129,
+    numberOfAyahs: 130,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -136,7 +136,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ هُودٍ",
     englishName: "Hud",
     englishNameTranslation: "Hud",
-    numberOfAyahs: 123,
+    numberOfAyahs: 121,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -152,7 +152,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الرَّعۡدِ",
     englishName: "Ar-Ra'd",
     englishNameTranslation: "The Thunder",
-    numberOfAyahs: 43,
+    numberOfAyahs: 44,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -160,7 +160,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ إِبۡرَاهِيمَ",
     englishName: "Ibrahim",
     englishNameTranslation: "Abraham",
-    numberOfAyahs: 52,
+    numberOfAyahs: 54,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -184,7 +184,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الإِسۡرَاءِ",
     englishName: "Al-Israa",
     englishNameTranslation: "The Night Journey",
-    numberOfAyahs: 111,
+    numberOfAyahs: 110,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -192,7 +192,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ KAHF",
     englishName: "Al-Kahf",
     englishNameTranslation: "The Cave",
-    numberOfAyahs: 110,
+    numberOfAyahs: 105,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -200,7 +200,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ مَرۡيَمَ",
     englishName: "Maryam",
     englishNameTranslation: "Mary",
-    numberOfAyahs: 98,
+    numberOfAyahs: 99,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -208,7 +208,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ طه",
     englishName: "Taa-Haa",
     englishNameTranslation: "Taa-Haa",
-    numberOfAyahs: 135,
+    numberOfAyahs: 134,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -216,7 +216,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الأَنبِيَاءِ",
     englishName: "Al-Anbiyaa",
     englishNameTranslation: "The Prophets",
-    numberOfAyahs: 112,
+    numberOfAyahs: 111,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -224,7 +224,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الحَجِّ",
     englishName: "Al-Hajj",
     englishNameTranslation: "The Pilgrimage",
-    numberOfAyahs: 78,
+    numberOfAyahs: 76,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -232,7 +232,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ المُؤۡمِنُونَ",
     englishName: "Al-Muminoon",
     englishNameTranslation: "The Believers",
-    numberOfAyahs: 118,
+    numberOfAyahs: 119,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -240,7 +240,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ النُّورِ",
     englishName: "An-Noor",
     englishNameTranslation: "The Light",
-    numberOfAyahs: 64,
+    numberOfAyahs: 62,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -256,7 +256,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الشُّعَرَاءِ",
     englishName: "Ash-Shu'araa",
     englishNameTranslation: "The Poets",
-    numberOfAyahs: 227,
+    numberOfAyahs: 226,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -264,7 +264,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ النَّمۡلِ",
     englishName: "An-Naml",
     englishNameTranslation: "The Ant",
-    numberOfAyahs: 93,
+    numberOfAyahs: 95,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -288,7 +288,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الرُّومِ",
     englishName: "Ar-Room",
     englishNameTranslation: "The Romans",
-    numberOfAyahs: 60,
+    numberOfAyahs: 59,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -296,7 +296,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ لُقۡمَانَ",
     englishName: "Luqman",
     englishNameTranslation: "Luqman",
-    numberOfAyahs: 34,
+    numberOfAyahs: 33,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -328,7 +328,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ فَاطِرٍ",
     englishName: "Faatir",
     englishNameTranslation: "Originator",
-    numberOfAyahs: 45,
+    numberOfAyahs: 46,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -336,7 +336,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ يسٓ",
     englishName: "Yaseen",
     englishNameTranslation: "Yaseen",
-    numberOfAyahs: 83,
+    numberOfAyahs: 82,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -352,7 +352,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ صٓ",
     englishName: "Saad",
     englishNameTranslation: "The letter Saad",
-    numberOfAyahs: 88,
+    numberOfAyahs: 86,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -360,7 +360,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الزُّمَرِ",
     englishName: "Az-Zumar",
     englishNameTranslation: "The Groups",
-    numberOfAyahs: 75,
+    numberOfAyahs: 72,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -368,7 +368,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ غَافِرٍ",
     englishName: "Ghafir",
     englishNameTranslation: "The Forgiver",
-    numberOfAyahs: 85,
+    numberOfAyahs: 84,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -376,7 +376,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ فُصِّلَتۡ",
     englishName: "Fussilat",
     englishNameTranslation: "Explained in detail",
-    numberOfAyahs: 54,
+    numberOfAyahs: 53,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -384,7 +384,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الشُّورَىٰ",
     englishName: "Ash-Shura",
     englishNameTranslation: "Consultation",
-    numberOfAyahs: 53,
+    numberOfAyahs: 50,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -400,7 +400,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الدُّخَانِ",
     englishName: "Ad-Dukhaan",
     englishNameTranslation: "The Smoke",
-    numberOfAyahs: 59,
+    numberOfAyahs: 56,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -408,7 +408,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الجَاثِيَةِ",
     englishName: "Al-Jaathiya",
     englishNameTranslation: "Crouching",
-    numberOfAyahs: 37,
+    numberOfAyahs: 36,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -416,7 +416,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الأَحۡقَافِ",
     englishName: "Al-Ahqaf",
     englishNameTranslation: "The Dunes",
-    numberOfAyahs: 35,
+    numberOfAyahs: 34,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -424,7 +424,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ مُحَمَّدٍ",
     englishName: "Muhammad",
     englishNameTranslation: "Muhammad",
-    numberOfAyahs: 38,
+    numberOfAyahs: 39,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -464,7 +464,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الطُّورِ",
     englishName: "At-Tur",
     englishNameTranslation: "The Mount",
-    numberOfAyahs: 49,
+    numberOfAyahs: 47,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -472,7 +472,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ النَّجۡmِ",
     englishName: "An-Najm",
     englishNameTranslation: "The Star",
-    numberOfAyahs: 62,
+    numberOfAyahs: 61,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -488,7 +488,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الرَّحۡمَٰن",
     englishName: "Ar-Rahmaan",
     englishNameTranslation: "The Beneficent",
-    numberOfAyahs: 78,
+    numberOfAyahs: 77,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -496,7 +496,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الوَاقِعَةِ",
     englishName: "Al-Waaqia",
     englishNameTranslation: "The Inevitable",
-    numberOfAyahs: 96,
+    numberOfAyahs: 99,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -504,7 +504,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الحَدِيدِ",
     englishName: "Al-Hadid",
     englishNameTranslation: "The Iron",
-    numberOfAyahs: 29,
+    numberOfAyahs: 28,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -512,7 +512,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ المُجَادلَةِ",
     englishName: "Al-Mujaadila",
     englishNameTranslation: "The Pleading Woman",
-    numberOfAyahs: 22,
+    numberOfAyahs: 21,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -584,7 +584,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ MUKK",
     englishName: "Al-Mulk",
     englishNameTranslation: "The Sovereignty",
-    numberOfAyahs: 30,
+    numberOfAyahs: 31,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -616,7 +616,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ نُوحٍ",
     englishName: "Nooh",
     englishNameTranslation: "Noah",
-    numberOfAyahs: 28,
+    numberOfAyahs: 30,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -632,7 +632,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ المُزَّمِّلِ",
     englishName: "Al-Muzzammil",
     englishNameTranslation: "The Enshrouded One",
-    numberOfAyahs: 20,
+    numberOfAyahs: 18,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -640,7 +640,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ المُدَّثِّرِ",
     englishName: "Al-Muddaththir",
     englishNameTranslation: "The Cloaked One",
-    numberOfAyahs: 56,
+    numberOfAyahs: 55,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -648,7 +648,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ القِيَامَةِ",
     englishName: "Al-Qiyaama",
     englishNameTranslation: "The Resurrection",
-    numberOfAyahs: 40,
+    numberOfAyahs: 39,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -680,7 +680,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ النَّازِعَاتِ",
     englishName: "An-Naazi'aat",
     englishNameTranslation: "Those who drag forth",
-    numberOfAyahs: 46,
+    numberOfAyahs: 45,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -760,7 +760,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الفَجۡرِ",
     englishName: "Al-Fajr",
     englishNameTranslation: "The Dawn",
-    numberOfAyahs: 30,
+    numberOfAyahs: 32,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -816,7 +816,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ العَلَقِ",
     englishName: "Al-Alaq",
     englishNameTranslation: "The Clot",
-    numberOfAyahs: 19,
+    numberOfAyahs: 20,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -840,7 +840,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ الزَّلۡزَلَةِ",
     englishName: "Az-Zalzala",
     englishNameTranslation: "The Earthquake",
-    numberOfAyahs: 8,
+    numberOfAyahs: 9,
     revelationType: "Medinan",
   }),
   new Surah({
@@ -856,7 +856,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ القَارِعَةِ",
     englishName: "Al-Qaari'a",
     englishNameTranslation: "The Calamity",
-    numberOfAyahs: 11,
+    numberOfAyahs: 10,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -896,7 +896,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ قُرَيۡشٍ",
     englishName: "Quraish",
     englishNameTranslation: "Quraysh",
-    numberOfAyahs: 4,
+    numberOfAyahs: 5,
     revelationType: "Meccan",
   }),
   new Surah({
@@ -904,7 +904,7 @@ export const quranSurahs: Surah[] = [
     name: "سُورَةُ المَاعُونِ",
     englishName: "Al-Maa'un",
     englishNameTranslation: "Almsgiving",
-    numberOfAyahs: 7,
+    numberOfAyahs: 6,
     revelationType: "Meccan",
   }),
   new Surah({

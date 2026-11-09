@@ -1,5 +1,6 @@
 'use client';
 
+import { formatThumn } from '@/utils/thumn';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -11,7 +12,7 @@ import {
   ChartCard, DataTable, HealthBadge, LineChart, RankedBars, SegmentedBar, StackedColumns, StatTile,
 } from '@/components/analytics/charts';
 import {
-  BREAKDOWN_TITLES, LEVEL_LABELS, attendancePoints, attendanceTable, breakdownTable, pagesColumns, pagesTable,
+  BREAKDOWN_TITLES, LEVEL_LABELS, attendancePoints, attendanceTable, breakdownTable, thumnColumns, thumnTable,
   periodLabel, statusParts, statusTable,
 } from '@/components/analytics/derive';
 import { buildInsights, entityName, Insight } from '@/components/analytics/insights';
@@ -40,7 +41,7 @@ const GRANULARITIES: { key: Granularity | ''; label: string }[] = [
   { key: 'month', label: 'شهري' },
 ];
 
-type SortKey = 'name' | 'attendance_rate' | 'pages' | 'achievements' | 'students' | 'last_activity';
+type SortKey = 'name' | 'attendance_rate' | 'thumn' | 'achievements' | 'students' | 'last_activity';
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -82,7 +83,7 @@ export default function AnalyticsPage() {
   const [reloadToken, setReloadToken] = useState(0);
   const [settled, setSettled] = useState<{ key: string; error: string | null } | null>(null);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'attendance_rate', dir: -1 });
-  const [rankMetric, setRankMetric] = useState<'attendance_rate' | 'pages'>('attendance_rate');
+  const [rankMetric, setRankMetric] = useState<'attendance_rate' | 'thumn'>('attendance_rate');
 
   const queryKey = JSON.stringify(query);
   const requestKey = `${queryKey}#${reloadToken}`;
@@ -139,18 +140,18 @@ export default function AnalyticsPage() {
   const insights: Insight[] = data ? buildInsights(data, lang) : [];
   const k = data?.kpis;
   const rateDelta = k ? delta(k.attendance_rate, k.previous.attendance_rate, 'points') : null;
-  const pagesDelta = k ? delta(k.pages, k.previous.pages, 'percent') : null;
+  const thumnDelta = k ? delta(k.thumn, k.previous.thumn, 'percent') : null;
   const achDelta = k ? delta(k.achievements, k.previous.achievements, 'percent') : null;
   const rankRows = (data?.breakdown.rows ?? [])
-    .filter((r) => (rankMetric === 'pages' ? true : r.attendance_rate !== null))
+    .filter((r) => (rankMetric === 'thumn' ? true : r.attendance_rate !== null))
     .sort((a, b) => ((b[rankMetric] ?? -1) as number) - ((a[rankMetric] ?? -1) as number))
     .slice(0, 10)
     .map((r) => ({
       id: r.id,
       label: entityName(r, lang),
       value: r[rankMetric],
-      display: rankMetric === 'pages' ? formatNumber(r.pages, 0) : formatPercent(r.attendance_rate),
-      hint: rankMetric === 'pages'
+      display: rankMetric === 'thumn' ? formatThumn(r.thumn) : formatPercent(r.attendance_rate),
+      hint: rankMetric === 'thumn'
         ? t('{count} إنجاز', { count: formatNumber(r.achievements) })
         : t('{count} سجل حضور', { count: formatNumber(r.attendance_records) }),
       health: r.health,
@@ -282,9 +283,9 @@ export default function AnalyticsPage() {
                 deltaLabel={rateDelta?.label} deltaDirection={rateDelta?.value} deltaGood={rateDelta ? rateDelta.value >= 0 : null}
                 hint={t('{count} سجل حضور', { count: formatCompact(k.attendance_records) })}
                 trend={data.series.map((p) => p.attendance_rate)} />
-              <StatTile label={t('الصفحات المنجزة')} value={formatCompact(k.pages)}
-                deltaLabel={pagesDelta?.label} deltaDirection={pagesDelta?.value} deltaGood={pagesDelta ? pagesDelta.value >= 0 : null}
-                trend={data.series.map((p) => p.pages)} />
+              <StatTile label={t('المقدار المنجز')} value={formatThumn(k.thumn)}
+                deltaLabel={thumnDelta?.label} deltaDirection={thumnDelta?.value} deltaGood={thumnDelta ? thumnDelta.value >= 0 : null}
+                trend={data.series.map((p) => p.thumn)} />
               <StatTile label={t('الإنجازات المسجلة')} value={formatCompact(k.achievements)}
                 deltaLabel={achDelta?.label} deltaDirection={achDelta?.value} deltaGood={achDelta ? achDelta.value >= 0 : null}
                 trend={data.series.map((p) => p.achievements)} />
@@ -330,12 +331,12 @@ export default function AnalyticsPage() {
 
             {/* Pages over time + ranking */}
             <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
-              <ChartCard title={t('الصفحات المنجزة حسب النوع')} subtitle={t('{count} صفحة خلال الفترة', { count: formatNumber(k.pages) })}
-                table={pagesTable(data)}>
+              <ChartCard title={t('المقدار المنجز حسب النوع')} subtitle={t('{amount} خلال الفترة', { amount: formatThumn(k.thumn) })}
+                table={thumnTable(data)}>
                 {(() => {
-                  const cols = pagesColumns(data);
+                  const cols = thumnColumns(data);
                   return <StackedColumns labels={cols.labels} longLabels={cols.longLabels} series={cols.series}
-                    formatValue={(v) => t('{count} صفحة', { count: formatNumber(v, 1) })} totalLabel={t('مجموع الصفحات')} />;
+                    formatValue={(v) => formatThumn(v)} totalLabel={t('المجموع')} />;
                 })()}
               </ChartCard>
 
@@ -345,10 +346,10 @@ export default function AnalyticsPage() {
                   subtitle={t('انقر على عنصر للتعمق في تفاصيله')}
                   table={breakdownTable(data.breakdown.rows, lang, data.breakdown.level)}
                   actions={
-                    <select value={rankMetric} onChange={(e) => setRankMetric(e.target.value as 'attendance_rate' | 'pages')}
+                    <select value={rankMetric} onChange={(e) => setRankMetric(e.target.value as 'attendance_rate' | 'thumn')}
                       aria-label={t('المؤشر')} className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700">
                       <option value="attendance_rate">{t('نسبة الحضور')}</option>
-                      <option value="pages">{t('الصفحات')}</option>
+                      <option value="thumn">{t('المقدار')}</option>
                     </select>
                   }
                 >
@@ -358,11 +359,11 @@ export default function AnalyticsPage() {
               )}
 
               {data.level === 'student' && data.student && (
-                <ChartCard title={t('التقدم التراكمي في الحفظ')} subtitle={t('مجموع الصفحات المنجزة منذ بداية الفترة')}
-                  table={{ columns: [t('التاريخ'), t('مجموع الصفحات')], rows: data.student.cumulative_pages.map((p) => [formatDay(p.day, 'long'), formatNumber(p.pages, 1)]) }}>
+                <ChartCard title={t('التقدم التراكمي في الحفظ')} subtitle={t('مجموع المقدار المنجز منذ بداية الفترة')}
+                  table={{ columns: [t('التاريخ'), t('المجموع')], rows: data.student.cumulative_thumn.map((p) => [formatDay(p.day, 'long'), formatThumn(p.thumn)]) }}>
                   <LineChart
-                    points={data.student.cumulative_pages.map((p) => ({ label: formatDay(p.day), longLabel: formatDay(p.day, 'long'), value: p.pages }))}
-                    seriesLabel={t('مجموع الصفحات')} formatValue={(v) => t('{count} صفحة', { count: formatNumber(v, 1) })} />
+                    points={data.student.cumulative_thumn.map((p) => ({ label: formatDay(p.day), longLabel: formatDay(p.day, 'long'), value: p.thumn }))}
+                    seriesLabel={t('المجموع')} formatValue={(v) => formatThumn(v)} />
                 </ChartCard>
               )}
             </div>
@@ -384,7 +385,7 @@ export default function AnalyticsPage() {
                         {header('name', t('الاسم'))}
                         <th scope="col" className="px-3 py-2 text-start font-semibold">{t('الحالة')}</th>
                         {header('attendance_rate', t('نسبة الحضور'))}
-                        {header('pages', t('الصفحات'))}
+                        {header('thumn', t('المقدار'))}
                         {header('achievements', t('الإنجازات'))}
                         {data.breakdown.level !== 'student' && header('students', t('الطلاب'))}
                         {header('last_activity', t('آخر نشاط'))}
@@ -404,7 +405,7 @@ export default function AnalyticsPage() {
                               </span>
                             </span>
                           </td>
-                          <td className="px-3 py-2.5">{formatNumber(row.pages, 0)}</td>
+                          <td className="px-3 py-2.5">{formatThumn(row.thumn)}</td>
                           <td className="px-3 py-2.5">{formatNumber(row.achievements)}</td>
                           {data.breakdown.level !== 'student' && (
                             <td className="px-3 py-2.5">{formatNumber(row.active_students)} / {formatNumber(row.students)}</td>
@@ -444,8 +445,8 @@ export default function AnalyticsPage() {
                 <ChartCard title={t('سجل الإنجازات')} subtitle={t('{count} إنجاز', { count: formatNumber(data.student.achievements.length) })}>
                   <div className="max-h-80 overflow-y-auto">
                     <DataTable dense table={{
-                      columns: [t('التاريخ'), t('النوع'), t('الصفحات')],
-                      rows: data.student.achievements.map((a) => [formatDay(a.day, 'long'), t(ACHIEVEMENT_LABELS[a.type]), formatNumber(a.pages, 1)]),
+                      columns: [t('التاريخ'), t('النوع'), t('المقدار')],
+                      rows: data.student.achievements.map((a) => [formatDay(a.day, 'long'), t(ACHIEVEMENT_LABELS[a.type]), formatThumn(a.thumn)]),
                     }} />
                   </div>
                 </ChartCard>

@@ -5,6 +5,7 @@
  * The browser's print engine produces the PDF: vector text, correct Arabic shaping and
  * RTL, real page breaks. `?autoprint=0` disables the automatic print dialog.
  */
+import { formatThumn } from '@/utils/thumn';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -12,7 +13,7 @@ import { Loader2, Printer, X } from 'lucide-react';
 import analyticsAPI, { AnalyticsData, AnalyticsQuery, Granularity } from '@/app/API/analytics';
 import { DataTable, HealthBadge, LineChart, SegmentedBar, StackedColumns } from '@/components/analytics/charts';
 import {
-  BREAKDOWN_TITLES, LEVEL_LABELS, attendancePoints, pagesColumns, periodLabel, scopeTitle, statusParts, statusTable,
+  BREAKDOWN_TITLES, LEVEL_LABELS, attendancePoints, thumnColumns, periodLabel, scopeTitle, statusParts, statusTable,
 } from '@/components/analytics/derive';
 import { buildInsights, entityName } from '@/components/analytics/insights';
 import { InsightList } from '@/components/analytics/InsightList';
@@ -97,9 +98,9 @@ export default function AnalyticsReportPage() {
 
   const k = data.kpis;
   const insights = buildInsights(data, lang);
-  const cols = pagesColumns(data);
+  const cols = thumnColumns(data);
   const rateDelta = delta(k.attendance_rate, k.previous.attendance_rate, 'points');
-  const pagesDelta = delta(k.pages, k.previous.pages, 'percent');
+  const thumnDelta = delta(k.thumn, k.previous.thumn, 'percent');
   const generated = new Intl.DateTimeFormat(lang === 'ar' ? 'ar-DZ' : lang === 'fr' ? 'fr-FR' : 'en-GB', { dateStyle: 'long', timeStyle: 'short' }).format(new Date());
   let section = 0;
 
@@ -167,7 +168,7 @@ export default function AnalyticsReportPage() {
             <InsightList insights={insights} columns={1} />
             <div className="grid grid-cols-3 gap-2">
               <Kpi label={t('نسبة الحضور')} value={formatPercent(k.attendance_rate)} note={rateDelta && `${rateDelta.label} ${t('مقارنة بالفترة السابقة')}`} />
-              <Kpi label={t('الصفحات المنجزة')} value={formatNumber(k.pages)} note={pagesDelta && `${pagesDelta.label} ${t('مقارنة بالفترة السابقة')}`} />
+              <Kpi label={t('المقدار المنجز')} value={formatThumn(k.thumn)} note={thumnDelta && `${thumnDelta.label} ${t('مقارنة بالفترة السابقة')}`} />
               <Kpi label={t('الإنجازات المسجلة')} value={formatNumber(k.achievements)} />
               {data.level !== 'student' ? (
                 <>
@@ -203,16 +204,16 @@ export default function AnalyticsReportPage() {
 
           <Section number={++section} title={t('الحفظ والمراجعة')} breakBefore>
             <div className="report-avoid-break">
-              <h3 className="mb-1 text-sm font-semibold text-gray-800">{t('الصفحات المنجزة حسب النوع')}</h3>
-              <p className="mb-2 text-xs text-gray-500">{t('{count} صفحة خلال الفترة', { count: formatNumber(k.pages) })}</p>
+              <h3 className="mb-1 text-sm font-semibold text-gray-800">{t('المقدار المنجز حسب النوع')}</h3>
+              <p className="mb-2 text-xs text-gray-500">{t('{amount} خلال الفترة', { amount: formatThumn(k.thumn) })}</p>
               <StackedColumns labels={cols.labels} longLabels={cols.longLabels} series={cols.series} staticMode fixedWidth={CHART_WIDTH} height={210}
-                formatValue={(v) => t('{count} صفحة', { count: formatNumber(v, 1) })} totalLabel={t('مجموع الصفحات')} />
+                formatValue={(v) => formatThumn(v)} totalLabel={t('المجموع')} />
             </div>
             <DataTable dense table={{
-              columns: [t('النوع'), t('الصفحات'), t('الفترة السابقة'), t('التغير')],
+              columns: [t('النوع'), t('المقدار'), t('الفترة السابقة'), t('التغير')],
               rows: ACHIEVEMENT_ORDER.map((kind) => {
-                const change = delta(k.pages_by_type[kind], k.previous.pages_by_type[kind], 'percent');
-                return [t(ACHIEVEMENT_LABELS[kind]), formatNumber(k.pages_by_type[kind], 1), formatNumber(k.previous.pages_by_type[kind], 1), change?.label ?? '—'];
+                const change = delta(k.thumn_by_type[kind], k.previous.thumn_by_type[kind], 'percent');
+                return [t(ACHIEVEMENT_LABELS[kind]), formatThumn(k.thumn_by_type[kind]), formatThumn(k.previous.thumn_by_type[kind]), change?.label ?? '—'];
               }),
             }} />
           </Section>
@@ -225,7 +226,7 @@ export default function AnalyticsReportPage() {
                     <th className="px-1.5 py-1.5 text-start">{t('الاسم')}</th>
                     <th className="px-1.5 py-1.5 text-start">{t('الحالة')}</th>
                     <th className="px-1.5 py-1.5 text-start">{t('نسبة الحضور')}</th>
-                    <th className="px-1.5 py-1.5 text-start">{t('الصفحات')}</th>
+                    <th className="px-1.5 py-1.5 text-start">{t('المقدار')}</th>
                     <th className="px-1.5 py-1.5 text-start">{t('الإنجازات')}</th>
                     {data.breakdown.level !== 'student' && <th className="px-1.5 py-1.5 text-start">{t('النشطون')}</th>}
                     <th className="px-1.5 py-1.5 text-start">{t('آخر نشاط')}</th>
@@ -239,7 +240,7 @@ export default function AnalyticsReportPage() {
                         <td className="px-1.5 py-1.5 font-medium text-gray-900">{entityName(row, lang)}</td>
                         <td className="px-1.5 py-1.5"><HealthBadge health={row.health} /></td>
                         <td className="px-1.5 py-1.5">{formatPercent(row.attendance_rate)}</td>
-                        <td className="px-1.5 py-1.5">{formatNumber(row.pages, 0)}</td>
+                        <td className="px-1.5 py-1.5">{formatThumn(row.thumn)}</td>
                         <td className="px-1.5 py-1.5">{formatNumber(row.achievements)}</td>
                         {data.breakdown.level !== 'student' && <td className="px-1.5 py-1.5">{formatNumber(row.active_students)} / {formatNumber(row.students)}</td>}
                         <td className="px-1.5 py-1.5 text-gray-600">{formatDay(row.last_activity)}</td>
@@ -254,7 +255,7 @@ export default function AnalyticsReportPage() {
             <Section number={++section} title={t('الطلبة المتميزون')}>
               <p className="text-xs text-gray-500">{t('أفضل 5 طلبة في كل مدرسة حسب نظام الدراسة. النتيجة = 35% الحضور + 35% الحفظ (مقارنة بأفضل طالب في نفس الفئة) + 30% معدل الامتحانات، خلال الفترة المحددة.')}</p>
               <DataTable dense table={{
-                columns: [t('المدرسة'), t('نظام الدراسة'), t('الترتيب'), t('الطالب'), t('النتيجة'), t('نسبة الحضور'), t('الصفحات'), t('معدل الامتحانات')],
+                columns: [t('المدرسة'), t('نظام الدراسة'), t('الترتيب'), t('الطالب'), t('النتيجة'), t('نسبة الحضور'), t('المقدار'), t('معدل الامتحانات')],
                 rows: data.top_students.flatMap((school) => (['internal', 'external'] as const).flatMap((mode) => school[mode].map((s) => [
                   school.school ?? '—',
                   mode === 'internal' ? t('داخلي (دوام كامل)') : t('خارجي (دوام جزئي)'),
@@ -262,7 +263,7 @@ export default function AnalyticsReportPage() {
                   entityName(s, lang),
                   formatNumber(s.score, 1),
                   formatPercent(s.attendance_rate),
-                  formatNumber(s.pages, 0),
+                  formatThumn(s.thumn),
                   formatPercent(s.exam_average),
                 ]))),
               }} />
@@ -282,8 +283,8 @@ export default function AnalyticsReportPage() {
                 <div>
                   <h3 className="mb-2 text-sm font-semibold text-gray-800">{t('سجل الإنجازات')}</h3>
                   <DataTable dense table={{
-                    columns: [t('التاريخ'), t('النوع'), t('الصفحات')],
-                    rows: data.student.achievements.slice(0, 40).map((a) => [formatDay(a.day, 'long'), t(ACHIEVEMENT_LABELS[a.type]), formatNumber(a.pages, 1)]),
+                    columns: [t('التاريخ'), t('النوع'), t('المقدار')],
+                    rows: data.student.achievements.slice(0, 40).map((a) => [formatDay(a.day, 'long'), t(ACHIEVEMENT_LABELS[a.type]), formatThumn(a.thumn)]),
                   }} />
                 </div>
               </div>
@@ -293,7 +294,7 @@ export default function AnalyticsReportPage() {
           <Section number={++section} title={t('المنهجية والتعريفات')}>
             <ul className="list-disc space-y-1.5 ps-5 text-xs leading-6 text-gray-700">
               <li>{t('نسبة الحضور = (الحاضرون + المتأخرون) ÷ مجموع سجلات الحضور خلال الفترة.')}</li>
-              <li>{t('تُحسب الصفحات حسب مصحف المدينة (604 صفحات) انطلاقاً من السورة والآية المسجلتين في كل إنجاز.')}</li>
+              <li>{t('تُحسب الأثمان حسب تقسيم المصحف المحمدي برواية ورش (60 حزباً، 480 ثمناً) انطلاقاً من السورة والآية المسجلتين في كل إنجاز. مصدر التقسيم: nuralhifz-data، برخصة CC BY 4.0.')}</li>
               <li>{t('الطالب النشط هو من سُجل له حضور أو إنجاز واحد على الأقل خلال الفترة.')}</li>
               <li>{t('الحالة: جيد ≥ 85%، يحتاج متابعة بين 70% و85%، حرج أقل من 70%، وبيانات غير كافية إذا كانت السجلات أقل من 3.')}</li>
               <li>{t('فترة المقارنة هي الفترة السابقة مباشرة وبالمدة نفسها.')}</li>

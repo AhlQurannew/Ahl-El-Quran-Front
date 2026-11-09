@@ -556,8 +556,8 @@ export function StatTile({ label, value, deltaLabel, deltaGood, deltaDirection =
   return (
     <div className="min-w-0 rounded-2xl border border-gray-200 bg-[#fcfcfb] p-4 shadow-sm">
       <p className="truncate text-xs font-medium text-gray-500">{label}</p>
-      <div className="mt-1 flex items-end justify-between gap-2">
-        <p className="min-w-0 truncate text-2xl font-semibold text-gray-900 sm:text-[28px]">{value}</p>
+      <div className="mt-1 flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
+        <p className="max-w-full break-words text-2xl font-semibold leading-tight text-gray-900 sm:text-[28px]">{value}</p>
         {spark.length > 1 && (
           <svg width={64} height={20} viewBox={`0 0 64 20`} style={{ direction: 'ltr' }} aria-hidden="true" className="shrink-0">
             <polyline

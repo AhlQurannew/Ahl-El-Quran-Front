@@ -37,7 +37,7 @@ interface StatsSummary {
   total_teachers: number;
   total_supervisors: number;
   present_today: number;
-  total_pages_memorized: number;
+  total_thumn_memorized: number;
   total_lectures: number;
 }
 

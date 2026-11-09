@@ -1,3 +1,4 @@
+import { formatThumn } from '@/utils/thumn';
 import type { AnalyticsData, BreakdownRow, Health } from '@/app/API/analytics';
 import { t } from '@/i18n';
 import { formatNumber, formatPercent } from './theme';
@@ -35,17 +36,17 @@ export function buildInsights(data: AnalyticsData, lang: string): Insight[] {
     insights.push({ tone: 'insufficient', text: t('لم يتم تسجيل أي حضور خلال هذه الفترة.') });
   }
 
-  if (kpis.pages > 0 || prev.pages > 0) {
-    if (prev.pages > 0) {
-      const change = ((kpis.pages - prev.pages) / prev.pages) * 100;
+  if (kpis.thumn > 0 || prev.thumn > 0) {
+    if (prev.thumn > 0) {
+      const change = ((kpis.thumn - prev.thumn) / prev.thumn) * 100;
       insights.push({
         tone: change >= 0 ? 'good' : 'warning',
         text: change >= 0
-          ? t('تم إنجاز {pages} صفحة، بزيادة {change}% عن الفترة السابقة.', { pages: formatNumber(kpis.pages), change: formatNumber(change, 0) })
-          : t('تم إنجاز {pages} صفحة، بانخفاض {change}% عن الفترة السابقة.', { pages: formatNumber(kpis.pages), change: formatNumber(-change, 0) }),
+          ? t('تم إنجاز {amount}، بزيادة {change}% عن الفترة السابقة.', { amount: formatThumn(kpis.thumn), change: formatNumber(change, 0) })
+          : t('تم إنجاز {amount}، بانخفاض {change}% عن الفترة السابقة.', { amount: formatThumn(kpis.thumn), change: formatNumber(-change, 0) }),
       });
     } else {
-      insights.push({ tone: 'good', text: t('تم إنجاز {pages} صفحة خلال الفترة.', { pages: formatNumber(kpis.pages) }) });
+      insights.push({ tone: 'good', text: t('تم إنجاز {amount} خلال الفترة.', { amount: formatThumn(kpis.thumn) }) });
     }
   }
 
