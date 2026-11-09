@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { addressed } from '@/utils/address';
 import { describeError } from '@/utils/errorMessages';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -52,7 +53,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const loginId = (role === 'ADMIN' || role === 'PRESIDENT') ? (username || email) : email;
-    if (!loginId || !password) { showToast(t("يرجى ملء جميع الحقول"), 'error'); return; }
+    if (!loginId || !password) { showToast(addressed(t("يرجى ملء جميع الحقول")), 'error'); return; }
     setIsLoading(true);
     try {
       let res: any;

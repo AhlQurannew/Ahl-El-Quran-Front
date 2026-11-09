@@ -1521,6 +1521,15 @@ const en: Record<string, string> = {
   "تم إنجاز {amount} خلال الفترة.": "{amount} completed during the period.",
   "تُحسب الأثمان حسب تقسيم المصحف المحمدي برواية ورش (60 حزباً، 480 ثمناً) انطلاقاً من السورة والآية المسجلتين في كل إنجاز. مصدر التقسيم: nuralhifz-data، برخصة CC BY 4.0.": "Thumn are calculated from the Muhammadi Mushaf division in the Warsh reading (60 Hizb, 480 Thumn), using the surah and verse recorded for each achievement. Division source: nuralhifz-data, CC BY 4.0.",
   "منحنى تطور الإنجاز (بالأثمان)": "Progress curve (in Thumn)",
+  "الحزب *": "Hizb *",
+  "الثمن *": "Thumn *",
+  "الحزب {n}": "Hizb {n}",
+  "الثمن {n}": "Thumn {n}",
+  "من {from} آية {fromVerse} إلى {to} آية {toVerse}": "From {from} verse {fromVerse} to {to} verse {toVerse}",
+  "هذا السجل القديم مسجل بالآيات. اختيار ثمن آخر يستبدل هذا المدى.": "This older record was entered by verses. Choosing another Thumn replaces this range.",
+  "سيدي، {message}": "Sidi, {message}",
+  "مرحباً بكم سيدنا الشيخ في لوحة التحكم": "Welcome, Sidi Sheikh, to the dashboard",
+  "سيدي، يرجى اختيار صورة بصيغة PNG أو JPG أو WebP": "Sidi, please choose a PNG, JPG or WebP image",
 };
 
 export default en;

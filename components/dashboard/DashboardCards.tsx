@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import { logout } from '@/utils/auth';
 import { useState, useEffect } from 'react';
 import { 
@@ -154,9 +155,9 @@ export function DashboardCards() {
     <div className="space-y-6">
       {/* Welcome Banner */}
       <div className={`bg-gradient-to-l ${bannerGradient} rounded-xl p-6 shadow-md`}>
-        <h2 className="text-white text-xl font-bold mb-2">{t("مرحبا بكم في نظام أهل القرآن")}</h2>
+        <h2 className="text-white text-xl font-bold mb-2">{addressed(t("مرحبا بكم في نظام أهل القرآن"))}</h2>
         <p className="text-white/90 text-sm">
-          {t("مرحبا بك في نظام المتابعة، نتمنى لك أيام مديدة ومقبولة لك عند الله إيمانا واحتسابا")}
+          {addressed(t("مرحبا بك في نظام المتابعة، نتمنى لك أيام مديدة ومقبولة لك عند الله إيمانا واحتسابا"))}
         </p>
       </div>
 

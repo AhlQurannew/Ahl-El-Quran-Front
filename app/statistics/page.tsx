@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import React from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -54,7 +55,7 @@ export default function StatisticsPage() {
           <div className="relative z-10 max-w-2xl">
             <h1 className="text-3xl font-bold text-white mb-3">{t("لوحة الإحصاءات والتقارير")}</h1>
             <p className="text-emerald-100 text-base leading-relaxed">
-              {t("مرحباً بك في مركز التحليل الشامل لبيانات نظام أهل القرآن. هنا يمكنك استعراض التقارير الدقيقة ومتابعة تطور أداء الطلاب والحلقات لاتخاذ قرارات أفضل مبنية على البيانات.")}
+              {addressed(t("مرحباً بك في مركز التحليل الشامل لبيانات نظام أهل القرآن. هنا يمكنك استعراض التقارير الدقيقة ومتابعة تطور أداء الطلاب والحلقات لاتخاذ قرارات أفضل مبنية على البيانات."))}
             </p>
           </div>
           <div className="hidden lg:block relative z-10 opacity-20">

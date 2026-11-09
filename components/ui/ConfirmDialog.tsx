@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import React from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { Modal } from './Modal';
@@ -58,7 +59,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </div>
         <div>
           <h3 className="font-bold text-gray-900 mb-1">{title}</h3>
-          <p className="text-sm text-gray-600 leading-relaxed">{message}</p>
+          <p className="text-sm text-gray-600 leading-relaxed">{addressed(message)}</p>
         </div>
       </div>
     </Modal>

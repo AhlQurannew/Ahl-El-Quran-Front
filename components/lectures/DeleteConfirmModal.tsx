@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import React from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { t } from '@/i18n';
@@ -34,7 +35,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         <div className="space-y-1">
           <h3 className="text-lg font-bold text-gray-900">{t("تأكيد حذف الحلقات")}</h3>
           <p className="text-sm text-gray-500">
-            {t("هل أنت متأكد من حذف عدد")}{' '}<span className="font-bold text-red-600">{count}</span>{' '}{t("حلقة من السجلات؟ لا يمكن التراجع عن هذا الإجراء.")}
+            {addressed(t("هل أنت متأكد من حذف عدد"))}{' '}<span className="font-bold text-red-600">{count}</span>{' '}{t("حلقة من السجلات؟ لا يمكن التراجع عن هذا الإجراء.")}
           </p>
         </div>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ImagePlus, Images, Loader2, Trash2, RotateCcw, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -38,7 +39,7 @@ export default function LoginSlidesPage() {
     event.target.value = '';
     if (!file) return;
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      showToast('error', t('يرجى اختيار صورة بصيغة PNG أو JPG أو WebP'));
+      showToast('error', addressed(t('يرجى اختيار صورة بصيغة PNG أو JPG أو WebP')));
       return;
     }
     if (file.size > MAX_BYTES) {

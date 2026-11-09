@@ -1,11 +1,11 @@
 "use client";
 
+import { addressed } from '@/utils/address';
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SchoolCard } from "@/components/SchoolCard";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import {
-  Users,
   Shield,
   School,
   Loader2,
@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import adminAPI, { PlatformStatistics } from "@/app/API/admin";
+import authAPI from "@/app/API/auth";
 import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
 import { AcademicsOverview } from "@/components/dashboard/AcademicsOverview";
 import { t } from '@/i18n';
@@ -55,6 +56,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string>("");
   const [platformStats, setPlatformStats] = useState<PlatformStatistics | null>(null);
   const [isLoadingPlatform, setIsLoadingPlatform] = useState(true);
+  const [isMainAdmin, setIsMainAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchStatistics = async () => {
@@ -88,9 +90,18 @@ export default function AdminDashboard() {
       .then(setPlatformStats)
       .catch((err: unknown) => console.error("Error fetching platform statistics:", err))
       .finally(() => setIsLoadingPlatform(false));
+    authAPI.getCurrentAdmin()
+      .then((me: { is_main?: boolean }) => setIsMainAdmin(!!me.is_main))
+      .catch(() => setIsMainAdmin(false));
   }, []);
 
   const theme = useAdminTheme();
+  // Stays blank until the account is known, so the main admin never sees the other greeting first.
+  const greeting = isMainAdmin === null
+    ? '\u00a0'
+    : isMainAdmin
+      ? t("مرحباً بكم سيدنا الشيخ في لوحة التحكم")
+      : addressed(theme.isInspector ? t("مرحباً بك في لوحة المفتش") : t("مرحباً بك في لوحة المسؤول"));
   const quickLinks: { href: string; label: string; hint: string; icon: React.ReactNode }[] = [
     {
       href: "/dashboard/analytics",
@@ -156,7 +167,7 @@ export default function AdminDashboard() {
           style={{ background: `linear-gradient(to right, ${theme.primary}, ${theme.dark})` }}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-2">{theme.isInspector ? t("مرحباً بك في لوحة المفتش") : t("مرحباً بك في لوحة المسؤول")}</h2>
+              <h2 className="text-2xl font-bold mb-2">{greeting}</h2>
               <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{t("إدارة المنصة والإشراف على المدارس")}</p>
             </div>
             <div className="hidden md:block">
@@ -173,42 +184,6 @@ export default function AdminDashboard() {
             {error}
           </div>
         )}
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Total Schools */}
-          <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                <School size={24} className="text-blue-600" />
-              </div>
-              {isLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-              ) : (
-                <span className="text-2xl font-bold text-gray-900">{stats?.total_schools || 0}</span>
-              )}
-            </div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">{t("إجمالي المدارس")}</h3>
-            <p className="text-xs text-gray-400">{t("عدد المدارس المسجلة")}</p>
-          </div>
-
-          {/* Total Presidents */}
-          <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
-                <Users size={24} className="text-purple-600" />
-              </div>
-              {isLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-              ) : (
-                <span className="text-2xl font-bold text-gray-900">{stats?.total_presidents || 0}</span>
-              )}
-            </div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">{t("عدد الرؤساء")}</h3>
-            <p className="text-xs text-gray-400">{t("الرؤساء المعتمدين")}</p>
-          </div>
-
-        </div>
 
         {/* Schools Distribution Section */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
@@ -254,7 +229,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Platform at a glance */}
-        <PlatformOverview stats={platformStats} isLoading={isLoadingPlatform} />
+        <PlatformOverview stats={platformStats} totals={stats} isLoading={isLoadingPlatform || isLoading} />
 
         {/* Specialities & exams across schools */}
         <AcademicsOverview />

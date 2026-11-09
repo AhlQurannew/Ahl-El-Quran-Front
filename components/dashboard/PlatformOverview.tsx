@@ -20,6 +20,7 @@ import { getLocale, t } from '@/i18n';
 
 interface PlatformOverviewProps {
   stats: PlatformStatistics | null;
+  totals: { total_schools: number; total_presidents: number } | null;
   isLoading: boolean;
 }
 
@@ -32,11 +33,17 @@ interface Indicator {
 }
 
 /** Platform-wide indicators an administrator checks first: reach, engagement and activity. */
-export const PlatformOverview: React.FC<PlatformOverviewProps> = ({ stats, isLoading }) => {
+export const PlatformOverview: React.FC<PlatformOverviewProps> = ({ stats, totals, isLoading }) => {
   const number = (value: number) => value.toLocaleString(getLocale());
 
   const indicators: Indicator[] = stats
     ? [
+        ...(totals
+          ? [
+              { label: t('إجمالي المدارس'), value: number(totals.total_schools), icon: <School size={18} />, tone: 'bg-blue-50 text-blue-700' },
+              { label: t('عدد الرؤساء'), value: number(totals.total_presidents), icon: <UserCheck size={18} />, tone: 'bg-purple-50 text-purple-700' },
+            ]
+          : []),
         { label: t('الطلاب'), value: number(stats.students), icon: <Users size={18} />, tone: 'bg-emerald-50 text-emerald-700' },
         { label: t('المعلمين'), value: number(stats.teachers), icon: <GraduationCap size={18} />, tone: 'bg-sky-50 text-sky-700' },
         { label: t('المشرفين'), value: number(stats.supervisors), icon: <UserCheck size={18} />, tone: 'bg-rose-50 text-rose-700' },
@@ -87,7 +94,7 @@ export const PlatformOverview: React.FC<PlatformOverviewProps> = ({ stats, isLoa
       ) : !stats ? (
         <p className="py-6 text-center text-sm text-gray-400">{t('تعذر تحميل الإحصاءات')}</p>
       ) : (
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {indicators.map((item) => (
             <div key={item.label} className="rounded-xl border border-gray-100 p-4">
               <dt className="flex items-center gap-2 text-xs font-medium text-gray-500">

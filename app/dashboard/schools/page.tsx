@@ -1,5 +1,6 @@
 "use client";
 
+import { addressed } from '@/utils/address';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSearchParams } from "next/navigation";
@@ -121,7 +122,7 @@ export default function SchoolsManagementPage() {
   const handleCreate = async () => {
     if (!formData.school_name.trim() || !formData.chief_supervisor_firstname.trim() || !formData.chief_supervisor_lastname.trim() ||
         !formData.email.trim() || !formData.password) {
-      setCreateError(t("يرجى ملء جميع الحقول المطلوبة"));
+      setCreateError(addressed(t("يرجى ملء جميع الحقول المطلوبة")));
       return;
     }
 
@@ -562,7 +563,7 @@ export default function SchoolsManagementPage() {
               )}
 
               <p className="text-gray-600 mb-6">
-                {t("هل أنت متأكد من حذف مدرسة")}{' '}<strong>{selectedSchool.school_name}</strong>{t("؟ سيتم حذف جميع البيانات المرتبطة بها (المعلمين، الطلاب، إلخ). هذا الإجراء لا يمكن التراجع عنه.")}
+                {addressed(t("هل أنت متأكد من حذف مدرسة"))}{' '}<strong>{selectedSchool.school_name}</strong>{t("؟ سيتم حذف جميع البيانات المرتبطة بها (المعلمين، الطلاب، إلخ). هذا الإجراء لا يمكن التراجع عنه.")}
               </p>
 
               <div className="flex gap-3">

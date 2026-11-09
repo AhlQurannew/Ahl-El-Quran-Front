@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import { sameValues } from '@/utils/formChanges';
 import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
@@ -219,13 +220,13 @@ export default function AddLectureModal({
     
     const newErrors: typeof errors = {};
     if (!lectureNameAr.trim()) {
-      newErrors.lectureNameAr = tr("يرجى إدخال اسم الحصة بالعربية");
+      newErrors.lectureNameAr = addressed(tr("يرجى إدخال اسم الحصة بالعربية"));
     }
     if (!lectureNameEn.trim()) {
-      newErrors.lectureNameEn = tr("يرجى إدخال اسم الحصة بالإنجليزية");
+      newErrors.lectureNameEn = addressed(tr("يرجى إدخال اسم الحصة بالإنجليزية"));
     }
     if (schedules.length === 0) {
-      newErrors.schedules = tr("يرجى إضافة وقت واحد على الأقل إلى الجدول");
+      newErrors.schedules = addressed(tr("يرجى إضافة وقت واحد على الأقل إلى الجدول"));
     }
 
     if (Object.keys(newErrors).length > 0) {

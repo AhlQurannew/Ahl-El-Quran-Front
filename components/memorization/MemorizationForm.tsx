@@ -7,7 +7,8 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import type { ApiStudent } from '@/app/memorization/page';
 import { studentDisplayName } from '@/app/memorization/page';
-import { quranSurahs } from '@/data/quran_data';
+import { thumnRange } from '@/data/quran_thumn';
+import { ThumnPicker } from '@/components/memorization/ThumnPicker';
 import { t } from '@/i18n';
 
 export interface AchievementFormValues {
@@ -46,10 +47,7 @@ function emptyForm(defaultStudentId?: number | null, defaultDate?: string): Achi
 
   return {
     studentId: defaultStudentId ?? 0,
-    fromSurah: 1,
-    toSurah: 1,
-    fromVerse: 1,
-    toVerse: 1,
+    ...thumnRange(1, 1),
     note: '',
     achievementType: 'normal',
     date: defaultDate || localToday,
@@ -71,10 +69,6 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
   const [errors, setErrors] = React.useState<Partial<Record<keyof AchievementFormValues, string>>>({});
 
   const isEditing = !!editingAchievement;
-
-  // Get max verses for selected surahs
-  const fromSurahData = quranSurahs.find((s) => s.number === form.fromSurah);
-  const toSurahData = quranSurahs.find((s) => s.number === form.toSurah);
 
   useEffect(() => {
     if (editingAchievement) {
@@ -105,43 +99,6 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
     // Check student selection
     if (!form.studentId) newErrors.studentId = t("اختيار الطالب مطلوب");
     
-    // Check surah validity
-    if (!form.fromSurah || form.fromSurah < 1 || form.fromSurah > 114) {
-      newErrors.fromSurah = t("اختيار السورة مطلوب");
-    }
-    if (!form.toSurah || form.toSurah < 1 || form.toSurah > 114) {
-      newErrors.toSurah = t("اختيار السورة مطلوب");
-    }
-    
-    // Check verse validity based on selected surahs
-    const fromSurahData = quranSurahs.find((s) => s.number === form.fromSurah);
-    const toSurahData = quranSurahs.find((s) => s.number === form.toSurah);
-    
-    if (!form.fromVerse || form.fromVerse < 1) {
-      newErrors.fromVerse = t("رقم آية غير صالح");
-    } else if (fromSurahData && form.fromVerse > fromSurahData.numberOfAyahs) {
-      newErrors.fromVerse = t("الحد الأقصى: {numberOfAyahs} آية", { numberOfAyahs: fromSurahData.numberOfAyahs });
-    }
-    
-    if (!form.toVerse || form.toVerse < 1) {
-      newErrors.toVerse = t("رقم آية غير صالح");
-    } else if (toSurahData && form.toVerse > toSurahData.numberOfAyahs) {
-      newErrors.toVerse = t("الحد الأقصى: {numberOfAyahs} آية", { numberOfAyahs: toSurahData.numberOfAyahs });
-    }
-    
-    // Check logical sequence (Quran memorization goes forward: from lower to higher)
-    if (form.fromSurah === form.toSurah) {
-      // Same surah: from verse must be <= to verse (e.g., from verse 1 to verse 20)
-      if (form.fromVerse > form.toVerse) {
-        newErrors.fromVerse = t("يجب أن تكون الآية \"من\" أقل من أو تساوي الآية \"إلى\"");
-      }
-    } else {
-      // Different surahs: from surah must be <= to surah (e.g., from Surah 1 to Surah 3)
-      if (form.fromSurah > form.toSurah) {
-        newErrors.fromSurah = t("يجب أن تكون السورة \"من\" أقل من أو تساوي السورة \"إلى\"");
-      }
-    }
-    
     // Check date
     if (!form.date) {
       newErrors.date = t("التاريخ مطلوب");
@@ -158,46 +115,7 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
   };
 
   // Check if form can be submitted
-  const canSubmit = (): boolean => {
-    // All fields must have values
-    if (!form.studentId || !form.fromSurah || !form.toSurah || !form.fromVerse || !form.toVerse || !form.date) {
-      return false;
-    }
-    
-    // Surahs must be valid
-    if (form.fromSurah < 1 || form.fromSurah > 114 || form.toSurah < 1 || form.toSurah > 114) {
-      return false;
-    }
-    
-    // Verses must be valid and within range
-    const fromSurahData = quranSurahs.find((s) => s.number === form.fromSurah);
-    const toSurahData = quranSurahs.find((s) => s.number === form.toSurah);
-    
-    if (form.fromVerse < 1 || form.toVerse < 1) {
-      return false;
-    }
-    
-    if (fromSurahData && form.fromVerse > fromSurahData.numberOfAyahs) {
-      return false;
-    }
-    
-    if (toSurahData && form.toVerse > toSurahData.numberOfAyahs) {
-      return false;
-    }
-    
-    // Check logical sequence
-    if (form.fromSurah === form.toSurah) {
-      if (form.fromVerse > form.toVerse) {
-        return false;
-      }
-    } else {
-      if (form.fromSurah > form.toSurah) {
-        return false;
-      }
-    }
-    
-    return true;
-  };
+  const canSubmit = (): boolean => !!form.studentId && !!form.date;
 
   return (
     <Modal
@@ -230,71 +148,7 @@ export const MemorizationForm: React.FC<MemorizationFormProps> = ({
           ]}
         />
 
-        {/* Surah range */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Select
-            label={t("من سورة *")}
-            value={form.fromSurah}
-            onChange={(e) => set('fromSurah', Number(e.target.value))}
-            error={errors.fromSurah}
-            options={[
-              { value: '', label: t("اختر السورة") },
-              ...quranSurahs.map((surah) => ({
-                value: String(surah.number),
-                label: `${surah.number}. ${surah.name}`,
-              })),
-            ]}
-          />
-          <Select
-            label={t("إلى سورة *")}
-            value={form.toSurah}
-            onChange={(e) => set('toSurah', Number(e.target.value))}
-            error={errors.toSurah}
-            options={[
-              { value: '', label: t("اختر السورة") },
-              ...quranSurahs.map((surah) => ({
-                value: String(surah.number),
-                label: `${surah.number}. ${surah.name}`,
-              })),
-            ]}
-          />
-        </div>
-
-        {/* Verse range */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Input
-              label={t("من آية *")}
-              type="number"
-              min={1}
-              max={fromSurahData?.numberOfAyahs || 286}
-              value={form.fromVerse}
-              onChange={(e) => set('fromVerse', Number(e.target.value))}
-              error={errors.fromVerse}
-            />
-            {fromSurahData && (
-              <p className="text-xs text-gray-500 mt-1">
-                {t("الحد الأقصى:")}{' '}{fromSurahData.numberOfAyahs}{' '}{t("آية")}
-              </p>
-            )}
-          </div>
-          <div>
-            <Input
-              label={t("إلى آية *")}
-              type="number"
-              min={1}
-              max={toSurahData?.numberOfAyahs || 286}
-              value={form.toVerse}
-              onChange={(e) => set('toVerse', Number(e.target.value))}
-              error={errors.toVerse}
-            />
-            {toSurahData && (
-              <p className="text-xs text-gray-500 mt-1">
-                {t("الحد الأقصى:")}{' '}{toSurahData.numberOfAyahs}{' '}{t("آية")}
-              </p>
-            )}
-          </div>
-        </div>
+        <ThumnPicker value={form} onChange={(range) => setForm((f) => ({ ...f, ...range }))} />
 
         {/* Type + Date */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

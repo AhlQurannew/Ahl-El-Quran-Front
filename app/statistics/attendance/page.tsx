@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -126,7 +127,7 @@ export default function AttendanceStatsPage() {
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!halqa && !student) {
-      alert(t("يرجى اختيار حلقة أو طالب على الأقل"));
+      alert(addressed(t("يرجى اختيار حلقة أو طالب على الأقل")));
       return;
     }
     try {

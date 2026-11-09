@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import { useEffect, useRef, useState } from 'react';
 import { ImagePlus, School, Trash2 } from 'lucide-react';
 import { t } from '@/i18n';
@@ -39,7 +40,7 @@ export function SchoolImagePicker({ currentUrl, value, onChange }: {
   const pick = (file: File | undefined) => {
     setError('');
     if (!file) return;
-    if (!ACCEPTED.includes(file.type)) return setError(t('يرجى اختيار صورة بصيغة PNG أو JPG أو WebP'));
+    if (!ACCEPTED.includes(file.type)) return setError(addressed(t('يرجى اختيار صورة بصيغة PNG أو JPG أو WebP')));
     if (file.size > MAX_BYTES) return setError(t('يجب ألا يتجاوز حجم الصورة 5 ميغابايت'));
     onChange({ file, remove: false });
   };

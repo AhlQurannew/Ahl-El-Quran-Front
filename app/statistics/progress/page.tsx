@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -111,7 +112,7 @@ export default function ProgressStatsPage() {
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!student) {
-      alert(t("يرجى اختيار الطالب"));
+      alert(addressed(t("يرجى اختيار الطالب")));
       return;
     }
     try {

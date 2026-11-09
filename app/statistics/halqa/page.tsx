@@ -1,5 +1,6 @@
 'use client';
 
+import { addressed } from '@/utils/address';
 import { formatThumn } from '@/utils/thumn';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -60,7 +61,7 @@ export default function HalqaStatsPage() {
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!halqa) {
-      alert(t("يرجى اختيار الحلقة"));
+      alert(addressed(t("يرجى اختيار الحلقة")));
       return;
     }
     try {
