@@ -19,6 +19,7 @@ import accountSettingsAPI, { AdminAccountSettings } from '@/app/API/accountSetti
 import { useAuthStore } from '@/store/authStore';
 import { ProfilePhotoCard } from '@/components/profile/ProfilePhotoCard';
 import { HonorificCard } from '@/components/profile/HonorificCard';
+import { BackupCard } from '@/components/settings/BackupCard';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 import { t } from '@/i18n';
 
@@ -267,6 +268,8 @@ export default function AdminSettingsPage() {
                 </button>
               </form>
             </section>
+
+            <BackupCard onNotice={setNotice} />
           </>
         )}
       </div>

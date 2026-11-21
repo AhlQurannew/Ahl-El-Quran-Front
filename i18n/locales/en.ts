@@ -1539,6 +1539,21 @@ const en: Record<string, string> = {
   "هذا الإجراء مخصص للمشرف العام": "This action is reserved for the chief supervisor",
   "هذا السجل موجود بالفعل أو ما زال مستخدماً": "This record already exists or is still in use",
   "لا يمكن اختيار تاريخ في المستقبل": "The date cannot be in the future",
+  "النسخ الاحتياطي والاستعادة": "Backup and restore",
+  "نزّل نسخة كاملة من بيانات المنصة (المدارس، الحسابات، الحضور، الحفظ، الصور) لاستعادتها عند فقدان البيانات.": "Download a complete copy of the platform data (schools, accounts, attendance, memorization, images) to restore it if data is lost.",
+  "يحتوي الملف على جميع البيانات وكلمات المرور المشفرة: احفظه في مكان آمن ولا تشاركه.": "The file contains all data and the encrypted passwords: keep it somewhere safe and do not share it.",
+  "تنزيل نسخة احتياطية": "Download a backup",
+  "جارٍ تحضير النسخة…": "Preparing the backup…",
+  "استعادة من ملف": "Restore from a file",
+  "جارٍ الاستعادة…": "Restoring…",
+  "تم تنزيل النسخة الاحتياطية. احفظها في مكان آمن.": "Backup downloaded. Keep it somewhere safe.",
+  "تعذر تنزيل النسخة الاحتياطية": "Could not download the backup",
+  "استعادة نسخة احتياطية": "Restore a backup",
+  "سيتم حذف جميع البيانات الحالية واستبدالها بمحتوى الملف «{name}». سيتم أولاً تنزيل نسخة من البيانات الحالية. هل تريد المتابعة؟": "All current data will be deleted and replaced with the content of “{name}”. A copy of the current data will be downloaded first. Continue?",
+  "تمت الاستعادة: {rows} سجل و{files} ملف. سيتم تحديث الصفحة.": "Restored: {rows} records and {files} files. The page will refresh.",
+  "تعذرت استعادة النسخة الاحتياطية. لم يتم تغيير أي بيانات.": "Could not restore the backup. No data was changed.",
+  "هذا الملف ليس نسخة احتياطية صالحة": "This file is not a valid backup",
+  "هذه النسخة صُنعت بإصدار مختلف من قاعدة البيانات": "This backup was made with a different database version",
 };
 
 export default en;

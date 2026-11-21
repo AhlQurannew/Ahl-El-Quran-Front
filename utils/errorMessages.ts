@@ -5,6 +5,9 @@ import { t } from '@/i18n';
  * Map API error messages to user-friendly Arabic messages (translated via t()).
  */
 export const errorMessages: Record<string, string> = {
+  'not a valid backup': 'هذا الملف ليس نسخة احتياطية صالحة',
+  'backup format is not supported': 'هذا الملف ليس نسخة احتياطية صالحة',
+  'backup was made with database version': 'هذه النسخة صُنعت بإصدار مختلف من قاعدة البيانات',
   'already exists or is still in use': 'هذا السجل موجود بالفعل أو ما زال مستخدماً',
   'cannot be in the future': 'لا يمكن اختيار تاريخ في المستقبل',
   'requires president or chief supervisor privileges': 'هذا الإجراء مخصص للمشرف العام',

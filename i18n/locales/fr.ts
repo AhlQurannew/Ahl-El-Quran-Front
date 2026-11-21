@@ -1539,6 +1539,21 @@ const fr: Record<string, string> = {
   "هذا الإجراء مخصص للمشرف العام": "Cette action est réservée au superviseur général",
   "هذا السجل موجود بالفعل أو ما زال مستخدماً": "Cet enregistrement existe déjà ou est encore utilisé",
   "لا يمكن اختيار تاريخ في المستقبل": "La date ne peut pas être dans le futur",
+  "النسخ الاحتياطي والاستعادة": "Sauvegarde et restauration",
+  "نزّل نسخة كاملة من بيانات المنصة (المدارس، الحسابات، الحضور، الحفظ، الصور) لاستعادتها عند فقدان البيانات.": "Téléchargez une copie complète des données de la plateforme (écoles, comptes, présences, mémorisation, images) pour la restaurer en cas de perte.",
+  "يحتوي الملف على جميع البيانات وكلمات المرور المشفرة: احفظه في مكان آمن ولا تشاركه.": "Le fichier contient toutes les données et les mots de passe chiffrés : conservez-le en lieu sûr et ne le partagez pas.",
+  "تنزيل نسخة احتياطية": "Télécharger une sauvegarde",
+  "جارٍ تحضير النسخة…": "Préparation de la sauvegarde…",
+  "استعادة من ملف": "Restaurer depuis un fichier",
+  "جارٍ الاستعادة…": "Restauration…",
+  "تم تنزيل النسخة الاحتياطية. احفظها في مكان آمن.": "Sauvegarde téléchargée. Conservez-la en lieu sûr.",
+  "تعذر تنزيل النسخة الاحتياطية": "Impossible de télécharger la sauvegarde",
+  "استعادة نسخة احتياطية": "Restaurer une sauvegarde",
+  "سيتم حذف جميع البيانات الحالية واستبدالها بمحتوى الملف «{name}». سيتم أولاً تنزيل نسخة من البيانات الحالية. هل تريد المتابعة؟": "Toutes les données actuelles seront supprimées et remplacées par le contenu de « {name} ». Une copie des données actuelles sera d’abord téléchargée. Continuer ?",
+  "تمت الاستعادة: {rows} سجل و{files} ملف. سيتم تحديث الصفحة.": "Restauration terminée : {rows} enregistrements et {files} fichiers. La page va se rafraîchir.",
+  "تعذرت استعادة النسخة الاحتياطية. لم يتم تغيير أي بيانات.": "Impossible de restaurer la sauvegarde. Aucune donnée n’a été modifiée.",
+  "هذا الملف ليس نسخة احتياطية صالحة": "Ce fichier n’est pas une sauvegarde valide",
+  "هذه النسخة صُنعت بإصدار مختلف من قاعدة البيانات": "Cette sauvegarde a été faite avec une autre version de la base de données",
 };
 
 export default fr;
