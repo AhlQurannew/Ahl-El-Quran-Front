@@ -1537,6 +1537,8 @@ const en: Record<string, string> = {
   "هل أنت متأكد من تغيير صيغة المخاطبة؟": "Are you sure you want to change your form of address?",
   "تعذر حفظ صيغة المخاطبة": "Could not save the form of address",
   "هذا الإجراء مخصص للمشرف العام": "This action is reserved for the chief supervisor",
+  "هذا السجل موجود بالفعل أو ما زال مستخدماً": "This record already exists or is still in use",
+  "لا يمكن اختيار تاريخ في المستقبل": "The date cannot be in the future",
 };
 
 export default en;

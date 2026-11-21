@@ -7,6 +7,7 @@ import { StudentPhoto } from '@/components/students/StudentPhoto';
 import type { Student } from '@/types/student';
 import { Mail, Calendar, MapPin, Flag, IdCard, BookOpen, Hash, School, HeartPulse, type LucideIcon } from 'lucide-react';
 import guardianAPI from '@/app/API/guardian';
+import { useAuthStore } from '@/store/authStore';
 import type { Guardian } from '@/types/guardian';
 import { t } from '@/i18n';
 
@@ -39,9 +40,11 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
 }) => {
   const [guardianLoadResult, setGuardianLoadResult] = useState<GuardianLoadResult | null>(null);
   const guardianId = student?.guardianId;
+  // Teachers only see what comes with the student; the guardian record is reserved for school management.
+  const canReadGuardian = useAuthStore((state) => state.user?.role) !== 'TEACHER';
 
   useEffect(() => {
-    if (!isOpen || !guardianId) return;
+    if (!isOpen || !guardianId || !canReadGuardian) return;
     let active = true;
     guardianAPI.getGuardian(guardianId)
       .then((guardian) => {
@@ -51,7 +54,7 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
         if (active) setGuardianLoadResult({ guardianId, error: true });
       });
     return () => { active = false; };
-  }, [isOpen, guardianId]);
+  }, [isOpen, guardianId, canReadGuardian]);
 
   if (!student) return null;
   const guardianResult = guardianId && guardianLoadResult?.guardianId === guardianId
@@ -144,7 +147,7 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
           <h4 className="mb-3 text-sm font-bold text-gray-800">{t("ولي الأمر المرتبط")}</h4>
           {!guardianId ? (
             <p className="text-sm text-gray-500">{t("لا يوجد ولي أمر مرتبط بهذا الطالب.")}</p>
-          ) : !guardianResult ? (
+          ) : canReadGuardian && !guardianResult ? (
             <p className="text-sm text-gray-500">{t("جاري تحميل بيانات ولي الأمر...")}</p>
           ) : linkedGuardian ? (
             <div className="space-y-2 text-sm">
@@ -160,11 +163,13 @@ export const StudentDetailsDialog: React.FC<StudentDetailsDialogProps> = ({
                 {student.guardianName || t("ولي أمر")}
               </p>
               {student.guardianEmail && <p className="text-gray-600">{t("بريد التواصل:")}{' '}{student.guardianEmail}</p>}
-              <p className="text-xs text-gray-500">
-                {student.guardianName || student.guardianEmail
-                  ? t("تعذر تحميل بقية بيانات ولي الأمر.")
-                  : t("تعذر تحميل بيانات ولي الأمر.")}
-              </p>
+              {canReadGuardian && (
+                <p className="text-xs text-gray-500">
+                  {student.guardianName || student.guardianEmail
+                    ? t("تعذر تحميل بقية بيانات ولي الأمر.")
+                    : t("تعذر تحميل بيانات ولي الأمر.")}
+                </p>
+              )}
             </div>
           )}
         </section>

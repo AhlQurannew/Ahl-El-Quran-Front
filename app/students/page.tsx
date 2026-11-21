@@ -415,7 +415,7 @@ export default function StudentsPage() {
                 type="text"
                 placeholder={tr("البحث عن طالب بالاسم، الكنية، اسم المستخدم...")}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => { setQuery(e.target.value); setSelectedIds([]); }}
                 className="w-full rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all shadow-sm"
               />
             </div>
@@ -437,7 +437,7 @@ export default function StudentsPage() {
         ) : (
           <StudentSearch
             query={query}
-            onQueryChange={setQuery}
+            onQueryChange={(value) => { setQuery(value); setSelectedIds([]); }}
             selectedCount={selectedIds.length}
             onAdd={handleAdd}
             onEdit={handleEdit}

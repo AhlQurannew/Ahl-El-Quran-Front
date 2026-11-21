@@ -217,7 +217,7 @@ export default function GuardiansPage() {
         <GuardianStats guardians={guardians} />
         <GuardianSearch
           query={query}
-          onQueryChange={setQuery}
+          onQueryChange={(value) => { setQuery(value); setSelectedIds([]); }}
           selectedCount={selectedIds.length}
           onAdd={openAddForm}
           onEdit={openEditForm}

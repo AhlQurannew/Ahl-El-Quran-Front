@@ -134,6 +134,9 @@ export default function TeachersPage() {
     } catch (err: unknown) {
       console.error('Error deleting teachers:', err);
       showToast('error', getErrorMessage(err, tr("فشل حذف المعلمين")));
+      setSelectedIds([]);
+      setIsConfirmOpen(false);
+      await loadTeachers();
     }
   };
 
@@ -311,7 +314,7 @@ export default function TeachersPage() {
                 />
               ) : undefined}
               query={query}
-              onQueryChange={setQuery}
+              onQueryChange={(value) => { setQuery(value); setSelectedIds([]); }}
               selectedCount={selectedIds.length}
               onAdd={handleAdd}
               onEdit={handleEdit}

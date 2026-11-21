@@ -120,6 +120,9 @@ export default function SupervisorsPage() {
     } catch (err: any) {
       console.error('Error deleting supervisors:', err);
       showToast('error', describeError(err, tr("فشل حذف المشرفين")));
+      setSelectedIds([]);
+      setIsConfirmOpen(false);
+      await loadSupervisors();
     }
   };
 
@@ -276,7 +279,7 @@ export default function SupervisorsPage() {
                 />
               ) : undefined}
               query={query}
-              onQueryChange={setQuery}
+              onQueryChange={(value) => { setQuery(value); setSelectedIds([]); }}
               selectedCount={selectedIds.length}
               onAdd={handleAdd}
               onEdit={handleEdit}

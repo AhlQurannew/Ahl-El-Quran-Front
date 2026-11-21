@@ -1537,6 +1537,8 @@ const fr: Record<string, string> = {
   "هل أنت متأكد من تغيير صيغة المخاطبة؟": "Êtes-vous sûr de vouloir changer votre formule d’adresse ?",
   "تعذر حفظ صيغة المخاطبة": "Impossible d'enregistrer la formule d'adresse",
   "هذا الإجراء مخصص للمشرف العام": "Cette action est réservée au superviseur général",
+  "هذا السجل موجود بالفعل أو ما زال مستخدماً": "Cet enregistrement existe déjà ou est encore utilisé",
+  "لا يمكن اختيار تاريخ في المستقبل": "La date ne peut pas être dans le futur",
 };
 
 export default fr;

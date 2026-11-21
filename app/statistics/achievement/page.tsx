@@ -20,6 +20,7 @@ import { t } from '@/i18n';
 export default function AchievementStatsPage() {
   const user = useAuthStore((s) => s.user);
   const isTeacher = user?.role === 'TEACHER';
+  const [notice, setNotice] = useState('');
 
   const [halqaList, setHalqaList] = useState<{ label: string; value: string }[]>([
     { label: t("اختر الحلقة"), value: '' },
@@ -119,8 +120,9 @@ export default function AchievementStatsPage() {
 
   const handleShowStats = async (e: React.FormEvent) => {
     e.preventDefault();
+    setNotice('');
     if (!halqa && !student) {
-      alert(addressed(t("يرجى اختيار حلقة أو طالب على الأقل")));
+      setNotice(addressed(t("يرجى اختيار حلقة أو طالب على الأقل")));
       return;
     }
     try {
@@ -140,7 +142,7 @@ export default function AchievementStatsPage() {
       setIsShowingStats(true);
     } catch (err) {
       console.error('Error fetching achievement stats:', err);
-      alert(t("حدث خطأ أثناء جلب بيانات الإنجاز"));
+      setNotice(t("حدث خطأ أثناء جلب بيانات الإنجاز"));
     } finally {
       setLoading(false);
     }
@@ -217,6 +219,7 @@ export default function AchievementStatsPage() {
                 </div>
               </div>
 
+              {notice && <p role="alert" className="rounded-lg bg-amber-50 px-3 py-2 text-center text-sm text-amber-800">{notice}</p>}
               <div className="pt-4 flex justify-center">
                 <Button type="submit" size="lg" disabled={loading} className="px-12 rounded-xl text-base shadow-emerald-500/30 shadow-lg">
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("عرض الإحصائيات")}

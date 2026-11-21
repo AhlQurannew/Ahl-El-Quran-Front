@@ -5,6 +5,8 @@ import { t } from '@/i18n';
  * Map API error messages to user-friendly Arabic messages (translated via t()).
  */
 export const errorMessages: Record<string, string> = {
+  'already exists or is still in use': 'هذا السجل موجود بالفعل أو ما زال مستخدماً',
+  'cannot be in the future': 'لا يمكن اختيار تاريخ في المستقبل',
   'requires president or chief supervisor privileges': 'هذا الإجراء مخصص للمشرف العام',
   // Auth errors
   'Invalid email or password': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',

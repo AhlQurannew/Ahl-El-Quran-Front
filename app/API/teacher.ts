@@ -157,12 +157,6 @@ const getMyLectures = async () => {
 };
 
 
-const createSession = async () => {
-    const res = await axiosGlobal.post("/session_creation");
-    return res.data;
-};
-
-
 
 
 const createStudentAttendance = async (
@@ -373,7 +367,6 @@ const teacherAPI = {
     getMyStudents,
     getMyStudentDetail,
     getMyLectures,
-    createSession,
 
     // student attendance (by teacher)
     createStudentAttendance,
