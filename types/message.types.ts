@@ -7,7 +7,7 @@ export type SenderRole = 'teacher' | 'supervisor' | 'president';
 export const SenderRoleDetails: Record<SenderRole, { displayName: string; color: string }> = {
   teacher: { displayName: 'معلم', color: '#4CAF50' },
   supervisor: { displayName: 'مشرف عام', color: '#2196F3' },
-  president: { displayName: 'الرئيس', color: '#E53935' },
+  president: { displayName: 'المدير', color: '#E53935' },
 };
 
 export const getSenderRoleFromString = (role: string): SenderRole => {

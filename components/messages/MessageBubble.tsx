@@ -120,7 +120,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, on
   const isSenderAdmin =
     message.sender_role === 'president' ||
     (message.sender_role as string) === 'admin' ||
-    message.sender_name?.trim() === 'الرئيس' ||
+    ['المدير', 'الرئيس'].includes(message.sender_name?.trim() ?? '') ||
     message.sender_name?.toLowerCase() === 'admin' ||
     message.sender_name === 'مسؤول النظام';
 
@@ -141,7 +141,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, on
   const roleLabel = (message.sender_role as string) === 'admin'
     ? t("مدير النظام")
     : isSenderAdmin
-      ? t("الرئيس")
+      ? t("المدير")
     : isSenderChiefSupervisor
       ? t("مشرف عام")
       : isSenderSupervisor

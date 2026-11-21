@@ -41,7 +41,7 @@ export const PlatformOverview: React.FC<PlatformOverviewProps> = ({ stats, total
         ...(totals
           ? [
               { label: t('إجمالي المدارس'), value: number(totals.total_schools), icon: <School size={18} />, tone: 'bg-blue-50 text-blue-700' },
-              { label: t('عدد الرؤساء'), value: number(totals.total_presidents), icon: <UserCheck size={18} />, tone: 'bg-purple-50 text-purple-700' },
+              { label: t('عدد المديرين'), value: number(totals.total_presidents), icon: <UserCheck size={18} />, tone: 'bg-purple-50 text-purple-700' },
             ]
           : []),
         { label: t('الطلاب'), value: number(stats.students), icon: <Users size={18} />, tone: 'bg-emerald-50 text-emerald-700' },

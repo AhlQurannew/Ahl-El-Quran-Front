@@ -78,7 +78,7 @@ export default function ComponentShowcase() {
             label={tr("الدور")}
             placeholder={tr("اختر دوراً...")}
             options={[
-              { value: 'president', label: tr("رئيس") },
+              { value: 'president', label: tr("مدير") },
               { value: 'teacher', label: tr("معلم") },
               { value: 'student', label: tr("طالب") },
             ]}

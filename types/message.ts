@@ -75,7 +75,7 @@ export const getSenderRoleLabel = (role: SenderRole | string): string => {
       return t("مشرف عام");
     case 'president':
     case 'admin':
-      return t("الرئيس");
+      return t("المدير");
     default:
       return role || t("عضو");
   }

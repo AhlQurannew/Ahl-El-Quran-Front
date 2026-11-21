@@ -47,7 +47,7 @@ export const SchoolCard: React.FC<SchoolCardProps> = ({
           </div>
 
           <div className="text-xs text-gray-500">
-            <span className="font-medium">{t("الرئيس:")}</span> {presidentName}
+            <span className="font-medium">{t("المدير:")}</span> {presidentName}
           </div>
         </div>
       </div>

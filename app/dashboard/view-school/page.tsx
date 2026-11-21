@@ -114,7 +114,7 @@ export default function ViewSchoolSelectionPage() {
             <Search className="absolute inset-s-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder={t("ابحث عن مدرسة أو رئيس...")}
+              placeholder={t("ابحث عن مدرسة أو مدير...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full ps-10 pe-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 text-start transition-all"

@@ -131,7 +131,7 @@ export const AdminViewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [syncSchoolView]);
 
   // Sessions opened before the admin login returned a real profile still hold an invented one
-  // (role PRESIDENT, «الرئيس»): refresh it once so labels, colours and inspector limits are right.
+  // (role PRESIDENT, «المدير»): refresh it once so labels, colours and inspector limits are right.
   const storedRole = user?.role?.toUpperCase();
   useEffect(() => {
     if (!isAdminSession || !user || storedRole === 'ADMIN' || storedRole === 'INSPECTOR') return;

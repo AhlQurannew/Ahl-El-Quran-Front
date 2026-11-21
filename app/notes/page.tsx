@@ -41,7 +41,10 @@ export default function TeacherNotesPage() {
     if (user && user.role !== 'TEACHER') router.replace('/');
   }, [router, user]);
 
+  const isTeacher = user?.role === 'TEACHER';
   useEffect(() => {
+    // Other roles are being redirected: do not ask for notes they cannot read.
+    if (!isTeacher) return;
     notesAPI.listNotes()
       .then((data) => {
         setNotes(sortNotes(data));
@@ -49,7 +52,7 @@ export default function TeacherNotesPage() {
       })
       .catch((error) => showToast('error', describeError(error, t('تعذر تحميل الملاحظات'))))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [isTeacher]);
 
   /** Send whatever is queued for the note being edited. */
   const flush = useCallback(async () => {

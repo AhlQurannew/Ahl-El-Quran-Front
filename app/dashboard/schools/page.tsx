@@ -337,7 +337,7 @@ export default function SchoolsManagementPage() {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("اسم المدرسة")}</th>
-                  <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("الرئيس")}</th>
+                  <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("المدير")}</th>
                   <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("البريد الإلكتروني")}</th>
                   <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("رقم الهاتف")}</th>
                   <th className="px-3 py-3 text-start text-xs font-semibold text-gray-600">{t("الطلاب")}</th>

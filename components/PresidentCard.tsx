@@ -39,7 +39,7 @@ export default function PresidentCard({
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-bold text-gray-800 truncate">{president.name}</h2>
-          <Badge variant="warning">{t("رئيس")}</Badge>
+          <Badge variant="warning">{t("مدير")}</Badge>
         </div>
       </div>
 

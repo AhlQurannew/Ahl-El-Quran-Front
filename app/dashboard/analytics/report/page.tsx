@@ -147,9 +147,9 @@ export default function AnalyticsReportPage() {
               {user && (
                 <>
                   <dt className="text-gray-500">{t('أعده')}</dt>
-                  {/* Admin sessions store the placeholder name "الرئيس" at login; show the role instead. */}
+                  {/* Admin sessions store the placeholder name "المدير" at login; show the role instead. */}
                   <dd className="font-medium text-gray-900">
-                    {user.firstname === 'الرئيس' || !`${user.firstname ?? ''}${user.lastname ?? ''}`.trim()
+                    {['المدير', 'الرئيس'].includes(user.firstname ?? '') || !`${user.firstname ?? ''}${user.lastname ?? ''}`.trim()
                       ? t('المسؤول')
                       : `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim()}
                   </dd>

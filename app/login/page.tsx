@@ -75,7 +75,7 @@ export default function LoginPage() {
         const loggedUser = res.user || {
           id: (role === 'ADMIN' || role === 'PRESIDENT') ? 1 : 0,
           email: loginId,
-          firstname: (role === 'ADMIN' || role === 'PRESIDENT') ? 'الرئيس' : '',
+          firstname: (role === 'ADMIN' || role === 'PRESIDENT') ? 'المدير' : '',
           lastname: '',
           role: role,
           is_active: true
