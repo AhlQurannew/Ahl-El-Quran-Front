@@ -328,8 +328,9 @@ export const Sidebar: React.FC = () => {
     </nav>
   );
 
-  const renderAccountFooter = (isCollapsed = false) => (
-    <div className={cn('space-y-1 border-t border-white/10 px-3 py-3', isCollapsed && 'px-2')}>
+  // Who is signed in: at the top, right under the title.
+  const renderAccountCard = (isCollapsed = false) => (
+    <div className={cn('border-b border-white/10 px-3 py-3', isCollapsed && 'px-2')}>
       <Link
         href={profileHref}
         onClick={() => setMobileOpen(false)}
@@ -345,6 +346,11 @@ export const Sidebar: React.FC = () => {
           <p className="truncate text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{userRole}</p>
         </div>
       </Link>
+    </div>
+  );
+
+  const renderLogout = (isCollapsed = false) => (
+    <div className={cn('border-t border-white/10 px-3 py-3', isCollapsed && 'px-2')}>
       <button
         type="button"
         onClick={() => logout()}
@@ -428,10 +434,9 @@ export const Sidebar: React.FC = () => {
           </button>
         </div>
 
+        {renderAccountCard(collapsed)}
         {renderNavContent(collapsed)}
-
-        {/* Account: profile + sign out, at the bottom for every role */}
-        {renderAccountFooter(collapsed)}
+        {renderLogout(collapsed)}
       </aside>
 
       {/* Mobile: hamburger button */}
@@ -466,8 +471,9 @@ export const Sidebar: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
+            {renderAccountCard()}
             {renderNavContent()}
-            {renderAccountFooter()}
+            {renderLogout()}
           </aside>
         </>
       )}
