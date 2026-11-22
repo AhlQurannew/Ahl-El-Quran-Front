@@ -1,5 +1,6 @@
 'use client';
 
+import { generatePassword, MIN_ACCOUNT_PASSWORD } from '@/utils/password';
 import { sameValues } from '@/utils/formChanges';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, RefreshCw } from 'lucide-react';
@@ -70,13 +71,6 @@ function studentLabel(student: GuardianStudentOption): string {
   return student.username ? `${fullName} (${student.username})` : fullName;
 }
 
-/** 10-character password without look-alike characters (0/O, 1/l/I). */
-function generatePassword(length = 10): string {
-  const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  const values = new Uint32Array(length);
-  crypto.getRandomValues(values);
-  return Array.from(values, (v) => alphabet[v % alphabet.length]).join('');
-}
 
 export const GuardianForm: React.FC<GuardianFormProps> = ({
   isOpen,
@@ -185,6 +179,7 @@ ${t('كلمة المرور')}: ${form.password}`);
     if (!form.username.trim()) nextErrors.username = t("اسم مستخدم الحساب مطلوب");
     else if (/\s/.test(form.username.trim())) nextErrors.username = t("لا يمكن أن يحتوي اسم المستخدم على مسافات");
     if (!isEditing && !form.password.trim()) nextErrors.password = t("كلمة المرور مطلوبة لإنشاء الحساب");
+    else if (form.password.trim() && form.password.length < MIN_ACCOUNT_PASSWORD) nextErrors.password = t("كلمة المرور يجب أن تكون {n} أحرف على الأقل", { n: MIN_ACCOUNT_PASSWORD });
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       nextErrors.email = t("البريد الإلكتروني غير صحيح");
     }

@@ -136,7 +136,15 @@ const getProgressTimeline = async (params: {
     return res.data;
 };
 
+/** Students who have attendance in a circle but have left it (shown as its history). */
+const getLectureFormerStudents = async (lecture_id: number): Promise<{ id: number; firstname: string; lastname: string }[]> => {
+    const client = getAxiosClient();
+    const res = await client.get("/statistics/lecture-former-students", { params: { lecture_id } });
+    return res.data;
+};
+
 const reportsAPI = {
+    getLectureFormerStudents,
     getStatsSummary,
     getAttendanceTrend,
     getTopMemorizers,

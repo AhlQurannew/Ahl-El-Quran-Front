@@ -1554,6 +1554,15 @@ const en: Record<string, string> = {
   "تعذرت استعادة النسخة الاحتياطية. لم يتم تغيير أي بيانات.": "Could not restore the backup. No data was changed.",
   "هذا الملف ليس نسخة احتياطية صالحة": "This file is not a valid backup",
   "هذه النسخة صُنعت بإصدار مختلف من قاعدة البيانات": "This backup was made with a different database version",
+  "كلمة المرور يجب أن تكون {n} أحرف على الأقل": "The password must have at least {n} characters",
+  "هذا الحقل يجب ألا يتجاوز {n} حرفاً": "This field must not exceed {n} characters",
+  "آخر آية قبل أول آية": "The last verse comes before the first verse",
+  "كلمة المرور يجب أن تكون 8 أحرف على الأقل": "The password must have at least 8 characters",
+  "هذا الحقل يجب ألا يتجاوز 50 حرفاً": "This field must not exceed 50 characters",
+  "هذا الحقل يجب ألا يتجاوز 100 حرفاً": "This field must not exceed 100 characters",
+  "(سابق)": "(former)",
+  "حساب مدرستك معطّل. يرجى التواصل مع المسؤول": "Your school account is deactivated. Please contact the administrator",
+  "لا يمكن حذف هذه الحلقة لأن لها امتحانات مُنقَّطة": "This circle cannot be deleted because it has graded exams",
 };
 
 export default en;

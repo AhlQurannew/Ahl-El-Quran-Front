@@ -5,6 +5,12 @@ import { t } from '@/i18n';
  * Map API error messages to user-friendly Arabic messages (translated via t()).
  */
 export const errorMessages: Record<string, string> = {
+  'has graded exams and cannot be deleted': 'لا يمكن حذف هذه الحلقة لأن لها امتحانات مُنقَّطة',
+  'Your school is deactivated': 'حساب مدرستك معطّل. يرجى التواصل مع المسؤول',
+  'The password must have at least 8 characters': 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+  'must not exceed 50 characters': 'هذا الحقل يجب ألا يتجاوز 50 حرفاً',
+  'must not exceed 100 characters': 'هذا الحقل يجب ألا يتجاوز 100 حرفاً',
+  'The last verse comes before the first verse': 'آخر آية قبل أول آية',
   'not a valid backup': 'هذا الملف ليس نسخة احتياطية صالحة',
   'backup format is not supported': 'هذا الملف ليس نسخة احتياطية صالحة',
   'backup was made with database version': 'هذه النسخة صُنعت بإصدار مختلف من قاعدة البيانات',

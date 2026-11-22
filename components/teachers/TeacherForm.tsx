@@ -1,5 +1,6 @@
 'use client';
 
+import { generatePassword, MIN_ACCOUNT_PASSWORD } from '@/utils/password';
 import { sameValues } from '@/utils/formChanges';
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw } from 'lucide-react';
@@ -82,15 +83,6 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const unchanged = !!editingTeacher && sameValues(formData, teacherToForm(editingTeacher));
 
-  // Generate random password
-  const generatePassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-    let password = '';
-    for (let i = 0; i < 8; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-  };
 
   useEffect(() => {
     if (editingTeacher) {
@@ -140,8 +132,8 @@ export const TeacherForm: React.FC<TeacherFormProps> = ({
     // Password is only required in create mode OR if password reset is enabled in edit mode
     if (!editingTeacher && !formData.password?.trim()) {
       newErrors.password = t("كلمة المرور مطلوبة");
-    } else if ((!editingTeacher || showPasswordReset) && formData.password && formData.password.length < 6) {
-      newErrors.password = t("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+    } else if ((!editingTeacher || showPasswordReset) && formData.password && formData.password.length < MIN_ACCOUNT_PASSWORD) {
+      newErrors.password = t("كلمة المرور يجب أن تكون {n} أحرف على الأقل", { n: MIN_ACCOUNT_PASSWORD });
     }
 
     setErrors(newErrors);

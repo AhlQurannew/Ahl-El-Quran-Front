@@ -94,6 +94,9 @@ export default function AttendanceStatsPage() {
                 l.lectureId === lectureIdNum || l.lecture_id === lectureIdNum
               )
             );
+            // Former members keep their attendance in this circle as history.
+            const former = await reportsAPI.getLectureFormerStudents(lectureIdNum).catch(() => []);
+            students = [...students, ...former.map((f) => ({ id: f.id, firstname: f.firstname, lastname: `${f.lastname} ${t("(سابق)")}` }))];
           } else {
             students = allStudents;
           }

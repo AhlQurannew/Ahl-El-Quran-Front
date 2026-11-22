@@ -1,5 +1,6 @@
 'use client';
 
+import { generatePassword, MIN_ACCOUNT_PASSWORD } from '@/utils/password';
 import { sameValues } from '@/utils/formChanges';
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw } from 'lucide-react';
@@ -36,15 +37,6 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
     firstname: editingSupervisor.firstname, lastname: editingSupervisor.lastname, email: editingSupervisor.email, password: '',
   });
 
-  // Generate random password
-  const generatePassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-    let password = '';
-    for (let i = 0; i < 8; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-  };
 
   useEffect(() => {
     if (editingSupervisor) {
@@ -85,8 +77,8 @@ export const SupervisorForm: React.FC<SupervisorFormProps> = ({
     // Password is only required in create mode
     if (!editingSupervisor && !formData.password?.trim()) {
       newErrors.password = t("كلمة المرور مطلوبة");
-    } else if (formData.password && formData.password.length < 6) {
-      newErrors.password = t("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+    } else if (formData.password && formData.password.length < MIN_ACCOUNT_PASSWORD) {
+      newErrors.password = t("كلمة المرور يجب أن تكون {n} أحرف على الأقل", { n: MIN_ACCOUNT_PASSWORD });
     }
 
     setErrors(newErrors);

@@ -22,6 +22,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { t as tr } from '@/i18n';
+import { describeError } from '@/utils/errorMessages';
 
 export default function LecturesPage() {
   const user = useAuthStore((state) => state.user);
@@ -149,7 +150,11 @@ export default function LecturesPage() {
       showToast(tr("تم حذف الحلقة بنجاح"), 'success');
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      showToast(tr("حدث خطأ أثناء عملية الحذف"), 'error');
+      showToast(describeError(error, tr("حدث خطأ أثناء عملية الحذف")), 'error');
+      // Some circles may already be deleted: show what is left.
+      setSelectedIds([]);
+      setIsDeleteModalOpen(false);
+      fetchLectures();
     } finally {
       setIsDeleting(false);
     }

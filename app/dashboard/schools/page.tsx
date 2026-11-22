@@ -1,5 +1,6 @@
 "use client";
 
+import { MIN_ACCOUNT_PASSWORD } from '@/utils/password';
 import { addressed } from '@/utils/address';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -125,6 +126,10 @@ export default function SchoolsManagementPage() {
       setCreateError(addressed(t("يرجى ملء جميع الحقول المطلوبة")));
       return;
     }
+    if (formData.password.length < MIN_ACCOUNT_PASSWORD) {
+      setCreateError(t("كلمة المرور يجب أن تكون {n} أحرف على الأقل", { n: MIN_ACCOUNT_PASSWORD }));
+      return;
+    }
 
     const normalizedEmail = formData.email.trim().toLowerCase();
     if (schools.some((school) => school.email.trim().toLowerCase() === normalizedEmail)) {
@@ -166,6 +171,10 @@ export default function SchoolsManagementPage() {
 
   const handleEdit = async () => {
     if (!selectedSchool) return;
+    if (formData.password && formData.password.length < MIN_ACCOUNT_PASSWORD) {
+      setEditError(t("كلمة المرور يجب أن تكون {n} أحرف على الأقل", { n: MIN_ACCOUNT_PASSWORD }));
+      return;
+    }
 
     if (!(await confirm({ title: t('تأكيد الحفظ'), message: t('هل أنت متأكد من حفظ تعديلات المدرسة {name}؟', { name: selectedSchool.school_name }), confirmText: t('نعم، احفظ') }))) return;
 

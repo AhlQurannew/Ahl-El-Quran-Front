@@ -1554,6 +1554,15 @@ const fr: Record<string, string> = {
   "تعذرت استعادة النسخة الاحتياطية. لم يتم تغيير أي بيانات.": "Impossible de restaurer la sauvegarde. Aucune donnée n’a été modifiée.",
   "هذا الملف ليس نسخة احتياطية صالحة": "Ce fichier n’est pas une sauvegarde valide",
   "هذه النسخة صُنعت بإصدار مختلف من قاعدة البيانات": "Cette sauvegarde a été faite avec une autre version de la base de données",
+  "كلمة المرور يجب أن تكون {n} أحرف على الأقل": "Le mot de passe doit contenir au moins {n} caractères",
+  "هذا الحقل يجب ألا يتجاوز {n} حرفاً": "Ce champ ne doit pas dépasser {n} caractères",
+  "آخر آية قبل أول آية": "Le dernier verset est avant le premier",
+  "كلمة المرور يجب أن تكون 8 أحرف على الأقل": "Le mot de passe doit contenir au moins 8 caractères",
+  "هذا الحقل يجب ألا يتجاوز 50 حرفاً": "Ce champ ne doit pas dépasser 50 caractères",
+  "هذا الحقل يجب ألا يتجاوز 100 حرفاً": "Ce champ ne doit pas dépasser 100 caractères",
+  "(سابق)": "(ancien)",
+  "حساب مدرستك معطّل. يرجى التواصل مع المسؤول": "Le compte de votre école est désactivé. Veuillez contacter l’administrateur",
+  "لا يمكن حذف هذه الحلقة لأن لها امتحانات مُنقَّطة": "Cette halaqa ne peut pas être supprimée car elle a des examens notés",
 };
 
 export default fr;

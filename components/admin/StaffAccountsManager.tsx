@@ -1,5 +1,6 @@
 'use client';
 
+import { generatePassword } from '@/utils/password';
 import { useCallback, useEffect, useState } from 'react';
 import { KeyRound, Loader2, Pencil, Plus, Power, ShieldCheck, Trash2, UserRound } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -68,13 +69,7 @@ interface FormState {
 
 const EMPTY: FormState = { full_name: '', username: '', email: '', password: '' };
 
-/** 14 characters from the browser's CSPRNG, without look-alike letters. */
-const generatePassword = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  const bytes = new Uint8Array(14);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => chars[b % chars.length]).join('');
-};
+const newPassword = () => generatePassword(14);
 
 const formatDate = (iso: string | null) =>
   iso ? new Intl.DateTimeFormat(getLocale(), { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso)) : '—';
@@ -112,7 +107,7 @@ export function StaffAccountsManager({ config }: { config: StaffAccountsConfig }
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ ...EMPTY, password: generatePassword() });
+    setForm({ ...EMPTY, password: newPassword() });
     setFormError('');
     setIsFormOpen(true);
   };
@@ -313,7 +308,7 @@ export function StaffAccountsManager({ config }: { config: StaffAccountsConfig }
             />
             <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
               <span>{editing ? t(copy.passwordHintEdit) : t(copy.passwordHintNew)}</span>
-              <button type="button" onClick={() => setForm((f) => ({ ...f, password: generatePassword() }))} className={cn('inline-flex items-center gap-1 font-semibold hover:underline', style.link)}>
+              <button type="button" onClick={() => setForm((f) => ({ ...f, password: newPassword() }))} className={cn('inline-flex items-center gap-1 font-semibold hover:underline', style.link)}>
                 <KeyRound size={13} /> {t('توليد كلمة مرور')}
               </button>
             </div>
