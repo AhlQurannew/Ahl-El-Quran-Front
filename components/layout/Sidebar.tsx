@@ -44,6 +44,7 @@ import {
   FileCheck2,
   ShieldCheck,
   UserCog,
+  Megaphone,
 } from 'lucide-react';
 import { useAdminTheme } from '@/utils/adminTheme';
 import { cn } from '@/utils/cn';
@@ -52,6 +53,7 @@ import { useAuthStore } from '@/store/authStore';
 import { AccountAvatar } from '@/components/ui/AccountAvatar';
 import { logout } from '@/utils/auth';
 import { t } from '@/i18n';
+import { useUnreadPolling, useUnreadStore } from '@/store/unreadStore';
 
 /**
  * Navigation Item Interface
@@ -61,6 +63,7 @@ interface NavItem {
   label: string;      // Arabic source text; translated with t() at render
   href: string;       // Link URL
   icon: React.ReactNode; // Lucide icon component
+  badge?: 'announcements' | 'messages'; // red dot when there is something new
 }
 
 /**
@@ -87,7 +90,8 @@ const adminNavGroups: NavGroup[] = [
       { label: 'التحليلات', href: '/dashboard/analytics', icon: <ChartNoAxesCombined size={18} /> },
       { label: 'إدارة المدارس', href: '/dashboard/schools', icon: <School size={18} /> },
       { label: 'عرض مدرسة', href: '/dashboard/view-school', icon: <BookOpen size={18} /> },
-      { label: 'المحادثات', href: '/dashboard/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الإعلانات', href: '/dashboard/announcements', icon: <Megaphone size={18} />, badge: 'announcements' },
+      { label: 'المحادثات', href: '/dashboard/messages', icon: <MessageSquare size={18} />, badge: 'messages' },
       { label: 'المسؤولون', href: '/dashboard/admins', icon: <UserCog size={18} /> },
       { label: 'المفتشون', href: '/dashboard/inspectors', icon: <ShieldCheck size={18} /> },
       { label: 'صور صفحة الدخول', href: '/dashboard/login-slides', icon: <Images size={18} /> },
@@ -116,7 +120,8 @@ const presidentNavGroups: NavGroup[] = [
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
       { label: 'المشرفين', href: '/supervisors', icon: <UserCheck size={18} /> },
-      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الإعلانات', href: '/announcements', icon: <Megaphone size={18} />, badge: 'announcements' },
+      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} />, badge: 'messages' },
       { label: 'الملف الشخصي', href: '/profile', icon: <UserRound size={18} /> },
       
     ],
@@ -145,7 +150,8 @@ const supervisorNavGroups: NavGroup[] = [
   {
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
-      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الإعلانات', href: '/announcements', icon: <Megaphone size={18} />, badge: 'announcements' },
+      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} />, badge: 'messages' },
       { label: 'الملف الشخصي', href: '/profile', icon: <UserRound size={18} /> },
       
     ],
@@ -172,7 +178,8 @@ const teacherNavGroups: NavGroup[] = [
   {
     items: [
       { label: 'لوحة القيادة', href: '/', icon: <LayoutDashboard size={18} /> },
-      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} /> },
+      { label: 'الإعلانات', href: '/announcements', icon: <Megaphone size={18} />, badge: 'announcements' },
+      { label: 'غرفة المحادثة', href: '/messages', icon: <MessageSquare size={18} />, badge: 'messages' },
       { label: 'الملف الشخصي', href: '/profile', icon: <UserRound size={18} /> },
     ],
   },
@@ -212,6 +219,8 @@ export const Sidebar: React.FC = () => {
   // An admin or inspector viewing a school sees it as its chief supervisor does.
   const isChiefSupervisor = user?.role === 'CHIEF_SUPERVISOR' || user?.role === 'PRESIDENT' || isAdminViewing;
   const adminTheme = useAdminTheme();
+  useUnreadPolling(pathname);
+  const unread = useUnreadStore();
   // Inspectors: same admin area, minus the site settings and the inspector accounts.
   const INSPECTOR_HIDDEN = ['/dashboard/login-slides', '/dashboard/inspectors', '/dashboard/admins'];
   const isSupervisor = user?.role === 'SUPERVISOR';
@@ -299,14 +308,22 @@ export const Sidebar: React.FC = () => {
                     style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.85)' }}
                     title={t(item.label)}
                   >
-                    <span className="flex shrink-0 items-center" style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.7)' }}>
+                    <span className="relative flex shrink-0 items-center" style={{ color: active ? '#fff' : 'rgba(255, 255, 255, 0.7)' }}>
                       {item.icon}
+                      {item.badge && unread[item.badge] > 0 && (
+                        <span
+                          role="status"
+                          aria-label={item.badge === 'announcements' ? t('إعلانات جديدة') : t('رسائل جديدة')}
+                          className="absolute -top-1 -end-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white/90"
+                        />
+                      )}
                     </span>
                     <span
                       aria-hidden={isCollapsed}
                       className={cn(
-                        'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap transition-all duration-300 ease-in-out',
-                        isCollapsed ? 'max-w-0 opacity-0' : 'max-w-50 opacity-100'
+                        'min-w-0 flex-1 overflow-hidden transition-all duration-300 ease-in-out',
+                        // Long French labels wrap instead of being cut ("Mémorisation et révi…").
+                        isCollapsed ? 'max-w-0 whitespace-nowrap opacity-0' : 'max-w-50 wrap-break-word leading-snug opacity-100'
                       )}
                     >
                       {t(item.label)}
@@ -389,17 +406,18 @@ export const Sidebar: React.FC = () => {
           collapsed ? 'justify-center px-2' : 'gap-3 px-4 py-4'
         )}>
           <div className={cn(
-            'flex min-w-0 items-center gap-3 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+            'flex min-w-0 items-center gap-3 overflow-hidden transition-all duration-300 ease-in-out',
             collapsed ? 'max-w-0 flex-none opacity-0' : 'max-w-full flex-1 opacity-100'
           )} aria-hidden={collapsed}>
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
               {isAdmin ? <Shield size={18} className="text-white" /> : <BookOpen size={18} className="text-white" />}
             </div>
             <div className="min-w-0 overflow-hidden">
-              <p className="whitespace-nowrap text-sm font-bold leading-tight text-white">
+              {/* Wraps instead of being cut: the French titles are longer than the Arabic ones. */}
+              <p className={cn('text-sm font-bold leading-tight text-white', collapsed ? 'whitespace-nowrap' : 'wrap-break-word')}>
                 {isAdmin ? t(adminTheme.title) : t('نظام أهل القرآن')}
               </p>
-              <p className="whitespace-nowrap text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              <p className={cn('mt-0.5 text-xs leading-snug', collapsed ? 'whitespace-nowrap' : 'wrap-break-word')} style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                 {isAdmin ? t('إدارة المنصة') : t('لوحة الإدارة')}
               </p>
             </div>
