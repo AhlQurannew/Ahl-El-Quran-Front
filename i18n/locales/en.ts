@@ -1566,6 +1566,10 @@ const en: Record<string, string> = {
   "(سابق)": "(former)",
   "حساب مدرستك معطّل. يرجى التواصل مع المسؤول": "Your school account is deactivated. Please contact the administrator",
   "لا يمكن حذف هذه الحلقة لأن لها امتحانات مُنقَّطة": "This circle cannot be deleted because it has graded exams",
+  // Missing translations found in QA
+  "الشؤون التعليمية / ملاحظاتي": "Teaching / My notes",
+  "، ": ", ",
+  "أخطاء التحقق:\n": "Validation errors:\n",
   // Announcements
   "عنوان الإعلان": "Announcement title",
   "تعذر تحميل المرفق": "Could not load the attachment",

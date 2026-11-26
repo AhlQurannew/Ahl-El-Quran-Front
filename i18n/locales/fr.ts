@@ -1566,6 +1566,10 @@ const fr: Record<string, string> = {
   "(سابق)": "(ancien)",
   "حساب مدرستك معطّل. يرجى التواصل مع المسؤول": "Le compte de votre école est désactivé. Veuillez contacter l’administrateur",
   "لا يمكن حذف هذه الحلقة لأن لها امتحانات مُنقَّطة": "Cette halaqa ne peut pas être supprimée car elle a des examens notés",
+  // Missing translations found in QA
+  "الشؤون التعليمية / ملاحظاتي": "Enseignement / Mes notes",
+  "، ": ", ",
+  "أخطاء التحقق:\n": "Erreurs de validation :\n",
   // Announcements
   "عنوان الإعلان": "Titre de l'annonce",
   "تعذر تحميل المرفق": "Impossible de charger la pièce jointe",
