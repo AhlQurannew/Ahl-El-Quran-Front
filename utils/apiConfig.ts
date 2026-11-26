@@ -8,7 +8,11 @@
  * NEXT_PUBLIC_* values are inlined at build/dev-server start, so restart
  * `npm run dev` after changing them.
  */
-const DEFAULT_API_BASE_URL = 'http://localhost:8000/api/v1';
+// Production builds fall back to the Render API: a build that misses the variable (wrong Vercel
+// project, cached build) would otherwise send every visitor's browser to their own localhost.
+const DEFAULT_API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://ahlquran-api.onrender.com/api/v1'
+  : 'http://localhost:8000/api/v1';
 
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
