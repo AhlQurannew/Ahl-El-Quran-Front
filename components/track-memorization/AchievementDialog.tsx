@@ -122,7 +122,7 @@ export function AchievementDialog({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">{t("نوع الإنجاز")}</label>
           <div className="flex flex-wrap gap-4">
-            {([['normal', t("حفظ")], ['small', t("مراجعة صغرى")], ['big', t("مراجعة كبرى")]] as const).map(([value, label]) => (
+            {([['normal', t("الحفظ")], ['small', t("مراجعة صغرى")], ['big', t("مراجعة كبرى")]] as const).map(([value, label]) => (
               <label key={value} className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"

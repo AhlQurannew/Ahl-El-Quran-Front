@@ -225,7 +225,18 @@ export default function AddLectureModal({
     if (!lectureNameEn.trim()) {
       newErrors.lectureNameEn = addressed(tr("يرجى إدخال اسم الحصة بالإنجليزية"));
     }
-    if (schedules.length === 0) {
+    // A slot or teacher picked but not yet "added" is what the user means to save: include it
+    // instead of rejecting the form with "add at least one slot" while a slot is on screen.
+    const finalSchedules = schedules.length > 0
+      ? schedules
+      : [{ day_of_week: selectedDay, start_time: startTime, end_time: endTime }];
+    const pendingTeacher = selectedTeacherId
+      ? availableTeachers.find((t) => t.id.toString() === selectedTeacherId)
+      : undefined;
+    const finalTeachers = pendingTeacher && !selectedTeachersList.some((t) => t.id === pendingTeacher.id)
+      ? [...selectedTeachersList, pendingTeacher]
+      : selectedTeachersList;
+    if (finalSchedules.length === 0) {
       newErrors.schedules = addressed(tr("يرجى إضافة وقت واحد على الأقل إلى الجدول"));
     }
 
@@ -237,7 +248,7 @@ export default function AddLectureModal({
     setErrors({});
     setLoading(true);
 
-    const teachersPayload: TeacherRef[] = selectedTeachersList.map((t) => ({
+    const teachersPayload: TeacherRef[] = finalTeachers.map((t) => ({
       teacher_id: t.id,
     }));
 
@@ -251,7 +262,7 @@ export default function AddLectureModal({
         ...(isEditMode && initialData ? { lecture_id: initialData.lecture_id } : {}),
       },
       teachers: teachersPayload,
-      schedules: schedules,
+      schedules: finalSchedules,
     };
 
     const confirmed = await confirm(isEditMode

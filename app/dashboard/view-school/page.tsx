@@ -158,7 +158,7 @@ export default function ViewSchoolSelectionPage() {
                     <p className="truncate text-sm text-gray-500">{school.president_name}</p>
                     <p className="flex items-center gap-2 text-sm text-gray-600">
                       <Users size={16} className="text-gray-400" aria-hidden="true" />
-                      {school.student_count}{' '}{t("طالب")}
+                      {school.student_count === 1 ? `1 ${t('طالب')}` : t('{count} طالب', { count: school.student_count })}
                     </p>
                   </div>
                   <ChevronLeft size={24} className="shrink-0 text-gray-400 transition-colors group-hover:text-yellow-600 ltr:-scale-x-100" aria-hidden="true" />

@@ -76,7 +76,7 @@ export const MemorizationTable: React.FC<MemorizationTableProps> = ({
       {records.length > 0 && (
         <div className="px-6 py-3.5 border-t border-gray-50 bg-gray-50/50">
           <p className="text-xs text-gray-400">
-            {t("إجمالي:")}{' '}<span className="font-semibold text-gray-600">{records.length}</span>{' '}{t("طالب")}
+            {t("إجمالي:")}{' '}<span className="font-semibold text-gray-600">{records.length}</span>{' '}{records.length === 1 ? t("طالب") : t("طلاب")}
           </p>
         </div>
       )}

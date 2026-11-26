@@ -159,7 +159,8 @@ export function DashboardCards() {
       <div className={`bg-gradient-to-l ${bannerGradient} rounded-xl p-6 shadow-md`}>
         <h2 className="text-white text-xl font-bold mb-2">{addressed(t("مرحبا بكم في نظام أهل القرآن"))}</h2>
         <p className="text-white/90 text-sm">
-          {addressed(t("مرحبا بك في نظام المتابعة، نتمنى لك أيام مديدة ومقبولة لك عند الله إيمانا واحتسابا"))}
+          {/* The title already addresses the user (سيدي / سيدتي); repeating it here read twice. */}
+          {t("مرحبا بك في نظام المتابعة، نتمنى لك أيام مديدة ومقبولة لك عند الله إيمانا واحتسابا")}
         </p>
       </div>
 

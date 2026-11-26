@@ -37,7 +37,7 @@ export default function AchievementStatsPage() {
   const [endDate, setEndDate] = useState(getTodayInputDate());
 
   const [chartData, setChartData] = useState([
-    { label: t("حفظ"), value: 0, color: 'bg-emerald-400' },
+    { label: t("الحفظ"), value: 0, color: 'bg-emerald-400' },
     { label: t("مراجعة صغرى"), value: 0, color: 'bg-amber-400' },
     { label: t("مراجعة كبرى"), value: 0, color: 'bg-blue-400' },
   ]);
@@ -135,7 +135,7 @@ export default function AchievementStatsPage() {
       });
 
       setChartData([
-        { label: t("حفظ"), value: res.normal || 0, color: 'bg-emerald-400' },
+        { label: t("الحفظ"), value: res.normal || 0, color: 'bg-emerald-400' },
         { label: t("مراجعة صغرى"), value: res.small || 0, color: 'bg-amber-400' },
         { label: t("مراجعة كبرى"), value: res.big || 0, color: 'bg-blue-400' },
       ]);

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import accountSettingsAPI from '@/app/API/accountSettings';
+import authAPI from '@/app/API/auth';
 import { useConfirm } from '@/components/ui/ConfirmProvider';
 import { useAuthStore } from '@/store/authStore';
 import { t } from '@/i18n';
@@ -16,7 +17,16 @@ export function HonorificCard() {
   const setUser = useAuthStore((s) => s.setUser);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const current: Honorific = user?.honorific === 'female' ? 'female' : 'male';
+  // The main administrator (super admin) is only ever addressed as « سيدي ».
+  const [isMainAdmin, setIsMainAdmin] = useState(false);
+  const isAdmin = user?.role === 'ADMIN';
+  useEffect(() => {
+    if (!isAdmin) return;
+    authAPI.getCurrentAdmin()
+      .then((me: { is_main?: boolean }) => setIsMainAdmin(!!me.is_main))
+      .catch(() => setIsMainAdmin(false));
+  }, [isAdmin]);
+  const current: Honorific = user?.honorific === 'female' && !isMainAdmin ? 'female' : 'male';
 
   const choose = async (value: Honorific) => {
     if (value === current || !user) return;
@@ -35,7 +45,7 @@ export function HonorificCard() {
 
   const options: { value: Honorific; label: string }[] = [
     { value: 'male', label: t('سيدي') },
-    { value: 'female', label: t('سيدتي') },
+    ...(isMainAdmin ? [] : [{ value: 'female' as const, label: t('سيدتي') }]),
   ];
 
   return (

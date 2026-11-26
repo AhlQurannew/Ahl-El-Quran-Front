@@ -244,7 +244,7 @@ export function StaffAccountsManager({ config }: { config: StaffAccountsConfig }
                         {account.is_active ? `● ${t('نشط')}` : `○ ${t('غير مفعّل')}`}
                       </span>
                       {account.protected && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-900">{t('الحساب الرئيسي')}</span>}
-                      {account.is_self && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-900">{t('أنت')}</span>}
+                      {account.is_self && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-900">{t('حسابي')}</span>}
                     </div>
                     <p className="mt-0.5 truncate text-xs text-gray-500">
                       <span dir="ltr">{account.username}</span>

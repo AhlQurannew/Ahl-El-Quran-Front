@@ -43,7 +43,7 @@ export const SchoolCard: React.FC<SchoolCardProps> = ({
 
           <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
             <Users size={14} aria-hidden="true" className="text-gray-400" />
-            <span>{studentCount}{' '}{t("طالب")}</span>
+            <span>{studentCount === 1 ? `1 ${t('طالب')}` : t('{count} طالب', { count: studentCount })}</span>
           </div>
 
           <div className="text-xs text-gray-500">

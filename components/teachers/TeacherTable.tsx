@@ -60,7 +60,7 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                 {t("رقم التسجيل")}
               </th>
               <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
-                {t("الاسم")}
+                {t("الاسم الأول")}
               </th>
               <th className="px-4 py-3.5 text-xs font-bold text-start uppercase tracking-wider">
                 {t("اللقب")}

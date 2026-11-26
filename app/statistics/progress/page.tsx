@@ -272,7 +272,7 @@ export default function ProgressStatsPage() {
                     <span className="w-6 h-0.5 bg-emerald-400 relative">
                       <span className="absolute w-2 h-2 rounded-full bg-emerald-400 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></span>
                     </span>
-                    <span className="text-xs font-semibold text-gray-600">{t("حفظ")}</span>
+                    <span className="text-xs font-semibold text-gray-600">{t("الحفظ")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-0.5 bg-amber-400 relative">

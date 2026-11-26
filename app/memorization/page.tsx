@@ -524,7 +524,7 @@ export default function MemorizationPage() {
                               >
                                 <div className="min-w-0 flex-1 text-start">
                                   <span className="inline-flex rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-semibold text-teal-700">
-                                    {achievement.achievement_type === 'normal' ? tr("حفظ") :
+                                    {achievement.achievement_type === 'normal' ? tr("الحفظ") :
                                       achievement.achievement_type === 'small' ? tr("مراجعة صغرى") :
                                         achievement.achievement_type === 'big' ? tr("مراجعة كبرى") : achievement.achievement_type}
                                   </span>

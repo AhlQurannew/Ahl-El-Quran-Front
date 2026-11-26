@@ -198,7 +198,7 @@ export default function ProfilePage() {
               <form onSubmit={saveProfile} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="profile-firstname" className="mb-2 block text-sm font-medium text-gray-700">{t('الاسم')}</label>
+                    <label htmlFor="profile-firstname" className="mb-2 block text-sm font-medium text-gray-700">{t('الاسم الأول')}</label>
                     <input id="profile-firstname" value={firstname} maxLength={50} required onChange={(event) => setFirstname(event.target.value)} className={inputClass} />
                   </div>
                   <div>

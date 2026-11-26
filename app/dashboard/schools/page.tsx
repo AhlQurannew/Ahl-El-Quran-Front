@@ -379,7 +379,7 @@ export default function SchoolsManagementPage() {
                     <td className="px-3 py-3 text-sm text-gray-600">{school.phone_number}</td>
                     <td className="px-3 py-3">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {school.student_count}{' '}{t("طالب")}
+                        {school.student_count === 1 ? `1 ${t('طالب')}` : t('{count} طالب', { count: school.student_count })}
                       </span>
                     </td>
                     <td className="px-3 py-3">
@@ -445,10 +445,10 @@ export default function SchoolsManagementPage() {
                   <input type="text" autoComplete="organization" placeholder={t("مثال: مدرسة النور")} value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block text-sm font-medium text-gray-700">{t("الاسم الأول للمشرف العام")}{' '}<span className="text-red-500">*</span>
+                  <label className="flex flex-col text-sm font-medium text-gray-700"><span className="flex-1">{t("الاسم الأول للمشرف العام")}{' '}<span className="text-red-500">*</span></span>
                     <input type="text" autoComplete="given-name" placeholder={t("مثال: أحمد")} value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
-                  <label className="block text-sm font-medium text-gray-700">{t("اسم العائلة للمشرف العام")}{' '}<span className="text-red-500">*</span>
+                  <label className="flex flex-col text-sm font-medium text-gray-700"><span className="flex-1">{t("اسم العائلة للمشرف العام")}{' '}<span className="text-red-500">*</span></span>
                     <input type="text" autoComplete="family-name" placeholder={t("مثال: اليعقوبي")} value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
                 </div>
@@ -511,10 +511,10 @@ export default function SchoolsManagementPage() {
                   <input type="text" autoComplete="organization" placeholder={t("اسم المدرسة")} value={formData.school_name} onChange={(e) => setFormData({...formData, school_name: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </label>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block text-sm font-medium text-gray-700">{t("الاسم الأول للمشرف العام")}
+                  <label className="flex flex-col text-sm font-medium text-gray-700"><span className="flex-1">{t("الاسم الأول للمشرف العام")}</span>
                     <input type="text" autoComplete="given-name" placeholder={t("الاسم الأول")} value={formData.chief_supervisor_firstname} onChange={(e) => setFormData({...formData, chief_supervisor_firstname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
-                  <label className="block text-sm font-medium text-gray-700">{t("اسم العائلة للمشرف العام")}
+                  <label className="flex flex-col text-sm font-medium text-gray-700"><span className="flex-1">{t("اسم العائلة للمشرف العام")}</span>
                     <input type="text" autoComplete="family-name" placeholder={t("اسم العائلة")} value={formData.chief_supervisor_lastname} onChange={(e) => setFormData({...formData, chief_supervisor_lastname: e.target.value})} className="mt-1.5 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-start focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </label>
                 </div>
